@@ -231,7 +231,7 @@ const CrearOrdenProduccion = () => {
 			today.setHours(0, 0, 0, 0);
 
 			if (selectedDate < today) {
-				nuevosErrores.startDate = "La fecha de inicio no puede ser anterior a hoy";
+				nuevosErrores.startDate = "La fecha de inicio no puede ser anterior ni igual a la fecha de hoy";
 				esValido = false;
 			}
 		}
@@ -360,17 +360,6 @@ const CrearOrdenProduccion = () => {
 			productionLine: "",
 			startDate: "",
 		});
-	};
-
-	// Manejar cancelación
-	const handleCancel = () => {
-		if (
-			window.confirm(
-				"¿Estás seguro de que deseas cancelar? Se perderán todos los datos no guardados."
-			)
-		) {
-			resetForm();
-		}
 	};
 
 	if (loading) {
@@ -575,16 +564,6 @@ const CrearOrdenProduccion = () => {
 
 						{/* Acciones del Formulario */}
 						<div className={styles.actionsContainer}>
-							<button
-								type="button"
-								onClick={handleCancel}
-								className={`${styles.btn} ${styles.btnSecondary} ${
-									submitting ? styles.disabledButton : ""
-								}`}
-								disabled={submitting}
-							>
-								Cancelar
-							</button>
 							<button
 								type="submit"
 								className={`${styles.submitButton} ${

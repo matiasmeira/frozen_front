@@ -229,10 +229,6 @@ const GeneradorFactura = () => {
     await generarPDF();
   };
 
-  const handleCancelar = () => {
-    navigate('/ventas');
-  };
-
   // Función para formatear fecha en el PDF
   const formatFechaPDF = (fecha) => {
     if (!fecha) return 'N/A';
@@ -288,9 +284,6 @@ const GeneradorFactura = () => {
         <p>{error}</p>
         <button onClick={() => window.location.reload()} className={styles.botonReintentar}>
           Reintentar
-        </button>
-        <button onClick={handleCancelar} className={styles.botonCancelar}>
-          Volver a Ventas
         </button>
       </div>
     );
@@ -379,14 +372,6 @@ const GeneradorFactura = () => {
                 className={styles.botonEnviar}
               >
                 {generandoPDF ? 'Generando PDF...' : 'Generar Factura PDF'}
-              </button>
-              
-              <button
-                type="button"
-                onClick={handleCancelar}
-                className={styles.botonCancelar}
-              >
-                Cancelar
               </button>
             </div>
           </form>

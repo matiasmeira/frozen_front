@@ -40,6 +40,13 @@ const Ventas = () => {
     searchParams.get('prioridad') || 'todos'
   );
 
+  // Función para verificar si una orden puede ser editada
+  const puedeEditarOrden = (orden) => {
+    const estadoDescripcion = getDescripcionEstado(orden.estado_venta);
+    // No permitir editar órdenes canceladas
+    return estadoDescripcion !== 'Cancelada';
+  };
+
   // Función para navegar a crear nueva orden
   const handleCrearNuevaOrden = () => {
     navigate('/crearOrdenVenta');
@@ -367,6 +374,12 @@ const Ventas = () => {
   };
 
   const iniciarEdicion = (orden) => {
+    // Verificar si la orden puede ser editada
+    if (!puedeEditarOrden(orden)) {
+      alert('No se puede editar una orden cancelada');
+      return;
+    }
+    
     setEditando(orden.id_orden_venta);
     
     const productosParaEditar = (orden.productos || []).map((p, index) => ({
@@ -548,6 +561,12 @@ const Ventas = () => {
       return;
     }
     
+    // Verificar si la orden puede ser editada antes de iniciar edición
+    if (!puedeEditarOrden(orden)) {
+      alert('No se puede editar una orden cancelada');
+      return;
+    }
+    
     iniciarEdicion(orden);
   };
 
@@ -655,7 +674,9 @@ const Ventas = () => {
         {ordenes.map((orden) => (
           <div 
             key={orden.id_orden_venta} 
-            className={`${styles.ordenItem} ${editando === orden.id_orden_venta ? styles.ordenEditando : ''}`}
+            className={`${styles.ordenItem} ${editando === orden.id_orden_venta ? styles.ordenEditando : ''} ${
+              !puedeEditarOrden(orden) ? styles.ordenNoEditable : ''
+            }`}
             onClick={(e) => handleOrdenClick(orden, e)}
           >
             <div className={styles.ordenHeader}>
@@ -668,6 +689,11 @@ const Ventas = () => {
                   {orden.prioridad && (
                     <span className={`${styles.badge} ${getPrioridadBadgeClass(orden.prioridad)}`}>
                       {getDescripcionPrioridadFromObject(orden.prioridad)}
+                    </span>
+                  )}
+                  {!puedeEditarOrden(orden) && (
+                    <span className={`${styles.badge} ${styles.badgeNoEditable}`}>
+                      No Editable
                     </span>
                   )}
                 </div>
