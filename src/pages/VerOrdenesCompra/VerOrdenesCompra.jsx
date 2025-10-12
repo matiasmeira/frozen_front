@@ -231,20 +231,11 @@ const VerOrdenesCompra = () => {
 
 							<div className={styles.cardBody}>
 								<div className={styles.infoGrupo}>
-									<strong>Proveedor:</strong>
-									<span>{orden.proveedor.nombre}</span>
-								</div>
-
-								<div className={styles.infoGrupo}>
-									<strong>Producto:</strong>
-									<span>{orden.producto.nombre}</span>
-								</div>
-
-								<div className={styles.infoGrupo}>
-									<strong>Cantidad:</strong>
-									<span>
-										{orden.cantidad} {orden.producto.unidad_medida}
-									</span>
+									<strong>
+										Proveedor: <span >{orden.proveedor.nombre}</span>
+									</strong>
+									<p className={styles.fechaInfo}>Fecha Pedido: <span>{formatearFecha(orden.fecha_pedido)}</span></p>
+									
 								</div>
 
 								<div className={styles.infoGrupo}>
@@ -254,14 +245,20 @@ const VerOrdenesCompra = () => {
 									</span>
 								</div>
 
-								<div className={styles.infoGrupo}>
-									<strong>Fecha Pedido:</strong>
-									<span>{formatearFecha(orden.fecha_pedido)}</span>
-								</div>
 
 								<div className={styles.infoGrupo}>
-									<strong>Fecha Estimada:</strong>
+									<strong>Fecha Estimada de llegada:</strong>
 									<span>{formatearFecha(orden.fecha_entrega_estimada)}</span>
+								</div>
+
+								<div className={styles.infoProducto}>
+									<h2>Producto:</h2>
+									<div className={styles.descripcionProducto}>
+										<strong>{orden.producto.nombre}</strong>
+										<span>
+											{orden.cantidad} {orden.producto.unidad_medida}
+										</span>
+									</div>
 								</div>
 							</div>
 
