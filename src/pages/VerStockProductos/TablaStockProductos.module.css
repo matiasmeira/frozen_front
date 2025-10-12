@@ -223,6 +223,408 @@
   color: #333;
 } 
 
+/* Estilos para la sección de lotes */
+.lotesSection {
+  margin-top: 3rem;
+  padding: 2rem;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+}
+
+.lotesHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.lotesTitle {
+  color: #2c3e50;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.lotesCount {
+  background-color: #6c757d;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.lotesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.loteCard {
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.loteCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.loteHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.loteId {
+  color: #2c3e50;
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.loteProduct {
+  background-color: #e3f2fd;
+  color: #1976d2;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.loteDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.loteDetail {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.detailLabel {
+  color: #6c757d;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.detailValue {
+  color: #2c3e50;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.loteStatus {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.statusBadge {
+  background-color: #28a745;
+  color: white;
+  padding: 0.375rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 2rem;
+  color: #6c757d;
+}
+
+.emptyState p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+/* Estilos para paginación */
+.paginacionInfo {
+  margin: 1rem 0;
+  text-align: center;
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+.paginacionContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 2rem 0;
+  padding: 1rem;
+}
+
+.botonPaginacion {
+  padding: 0.5rem 1rem;
+  border: 1px solid #dee2e6;
+  background-color: white;
+  color: #007bff;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.botonPaginacion:hover:not(:disabled) {
+  background-color: #e9ecef;
+  border-color: #adb5bd;
+}
+
+.botonPaginacion:disabled {
+  color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.numerosPagina {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.numeroPagina {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #dee2e6;
+  background-color: white;
+  color: #007bff;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  min-width: 2.5rem;
+}
+
+.numeroPagina:hover {
+  background-color: #e9ecef;
+  border-color: #adb5bd;
+}
+
+.paginaActiva {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.paginaActiva:hover {
+  background-color: #0056b3;
+  border-color: #0056b3;
+}
+
+/* Estilos para la sección de lotes */
+.lotesSection {
+  margin-top: 3rem;
+  padding: 2rem;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+}
+
+.lotesHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #dee2e6;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.lotesTitle {
+  color: #2c3e50;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.lotesHeaderInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.lotesCount {
+  background-color: #6c757d;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.lotesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.loteCard {
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.loteCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.loteHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.loteId {
+  color: #2c3e50;
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.loteProduct {
+  background-color: #e3f2fd;
+  color: #1976d2;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.loteDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.loteDetail {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.detailLabel {
+  color: #6c757d;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.detailValue {
+  color: #2c3e50;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.loteStatus {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.statusBadge {
+  background-color: #28a745;
+  color: white;
+  padding: 0.375rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 2rem;
+  color: #6c757d;
+}
+
+.emptyState p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .lotesSection {
+    padding: 1rem;
+    margin-top: 2rem;
+  }
+
+  .lotesHeader {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .lotesHeaderInfo {
+    align-items: flex-start;
+  }
+
+  .lotesGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .loteHeader {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+
+  .paginacionContainer {
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+
+  .numerosPagina {
+    order: 1;
+    width: 100%;
+    justify-content: center;
+    margin-top: 0.5rem;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .lotesSection {
+    padding: 1rem;
+    margin-top: 2rem;
+  }
+
+  .lotesHeader {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .lotesGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .loteHeader {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .container {
