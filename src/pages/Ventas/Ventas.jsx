@@ -40,6 +40,13 @@ const Ventas = () => {
     searchParams.get('prioridad') || 'todos'
   );
 
+  // Función para verificar si una orden puede ser editada
+  const puedeEditarOrden = (orden) => {
+    const estadoDescripcion = getDescripcionEstado(orden.estado_venta);
+    // No permitir editar órdenes canceladas
+    return estadoDescripcion !== 'Cancelada';
+  };
+
   // Función para navegar a crear nueva orden
   const handleCrearNuevaOrden = () => {
     navigate('/crearOrdenVenta');
@@ -68,6 +75,7 @@ const Ventas = () => {
 
       const response = await axios.get(
         `https://frozenback-test.up.railway.app/api/ventas/ordenes-venta/?${params.toString()}`
+        
       );
       
       const data = response.data;
@@ -267,6 +275,20 @@ const Ventas = () => {
     }
   };
 
+    // Función para navegar a generar factura
+  const handleGenerarFactura = (idOrdenVenta) => {
+    navigate(`/generar-factura/${idOrdenVenta}`);
+  };
+
+  // Función para verificar si una orden puede ser facturada
+  const puedeFacturarOrden = (orden) => {
+    const estadoDescripcion = getDescripcionEstado(orden.estado_venta);
+    // Solo permitir facturar órdenes que no estén canceladas
+    const estadosNoFacturables = ['Cancelada'];
+    return !estadosNoFacturables.includes(estadoDescripcion);
+  };
+
+
   // Función para verificar si una orden puede ser cancelada
   const puedeCancelarOrden = (orden) => {
     const estadoDescripcion = getDescripcionEstado(orden.estado_venta);
@@ -352,6 +374,12 @@ const Ventas = () => {
   };
 
   const iniciarEdicion = (orden) => {
+    // Verificar si la orden puede ser editada
+    if (!puedeEditarOrden(orden)) {
+      alert('No se puede editar una orden cancelada');
+      return;
+    }
+    
     setEditando(orden.id_orden_venta);
     
     const productosParaEditar = (orden.productos || []).map((p, index) => ({
@@ -533,6 +561,12 @@ const Ventas = () => {
       return;
     }
     
+    // Verificar si la orden puede ser editada antes de iniciar edición
+    if (!puedeEditarOrden(orden)) {
+      alert('No se puede editar una orden cancelada');
+      return;
+    }
+    
     iniciarEdicion(orden);
   };
 
@@ -640,7 +674,9 @@ const Ventas = () => {
         {ordenes.map((orden) => (
           <div 
             key={orden.id_orden_venta} 
-            className={`${styles.ordenItem} ${editando === orden.id_orden_venta ? styles.ordenEditando : ''}`}
+            className={`${styles.ordenItem} ${editando === orden.id_orden_venta ? styles.ordenEditando : ''} ${
+              !puedeEditarOrden(orden) ? styles.ordenNoEditable : ''
+            }`}
             onClick={(e) => handleOrdenClick(orden, e)}
           >
             <div className={styles.ordenHeader}>
@@ -653,6 +689,11 @@ const Ventas = () => {
                   {orden.prioridad && (
                     <span className={`${styles.badge} ${getPrioridadBadgeClass(orden.prioridad)}`}>
                       {getDescripcionPrioridadFromObject(orden.prioridad)}
+                    </span>
+                  )}
+                  {!puedeEditarOrden(orden) && (
+                    <span className={`${styles.badge} ${styles.badgeNoEditable}`}>
+                      No Editable
                     </span>
                   )}
                 </div>
@@ -671,9 +712,23 @@ const Ventas = () => {
                 <span className={styles.fechaEntregaValor}> {formatFecha(orden.fecha_entrega)}</span>
               </div>
 
-              {/* BOTÓN PARA CANCELAR ORDEN - NUEVO */}
-              {puedeCancelarOrden(orden) && (
-                <div className={styles.botonesAccion}>
+              {/* BOTONES DE ACCIÓN - INCLUYENDO FACTURAR */}
+              <div className={styles.botonesAccion}>
+                {/* Botón para facturar */}
+                {puedeFacturarOrden(orden) && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleGenerarFactura(orden.id_orden_venta);
+                    }}
+                    className={styles.botonFacturar}
+                  >
+                    Facturar
+                  </button>
+                )}
+                
+                {/* Botón para cancelar orden */}
+                {puedeCancelarOrden(orden) && (
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -684,8 +739,8 @@ const Ventas = () => {
                   >
                     {cancelandoOrden === orden.id_orden_venta ? 'Cancelando...' : 'Cancelar Orden'}
                   </button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
             <div className={styles.ordenBody}>

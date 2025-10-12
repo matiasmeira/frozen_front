@@ -549,7 +549,6 @@ function CrearOrdenDeVenta() {
 													id={`cantidad-${field.id}`}
 													type="number"
 													min="1"
-													max="50"
 													value={field.cantidad}
 													onChange={(e) =>
 														updateQuantity(

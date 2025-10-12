@@ -909,11 +909,30 @@
 }
 
 .botonesAccion {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid #eee;
   display: flex;
-  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.botonFacturar {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.botonFacturar:hover {
+  background-color: #218838;
+}
+
+.botonFacturar:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
 }
 
 .botonCancelarOrden {
