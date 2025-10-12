@@ -16,7 +16,7 @@ function CrearOrdenDeVenta() {
 	const [prioridades, setPrioridades] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [creatingOrder, setCreatingOrder] = useState(false);
-	const [totalVenta, setTotalVenta] = useState(0)
+	const [totalVenta, setTotalVenta] = useState(0);
 	const [fields, setFields] = useState([
 		{
 			id: "1",
@@ -24,6 +24,8 @@ function CrearOrdenDeVenta() {
 			cantidad: 1,
 			unidad_medida: "",
 			cantidad_disponible: 0,
+			precio_unitario: 0,
+			subtotal: 0
 		},
 	]);
 	const [orden, setOrden] = useState({
@@ -38,6 +40,18 @@ function CrearOrdenDeVenta() {
 		fecha_entrega: "",
 		productos: "",
 	});
+
+	// Calcular el total cada vez que cambien los fields
+	useEffect(() => {
+		calcularTotalVenta();
+	}, [fields]);
+
+	const calcularTotalVenta = () => {
+		const total = fields.reduce((sum, field) => {
+			return sum + field.subtotal;
+		}, 0);
+		setTotalVenta(total);
+	};
 
 	useEffect(() => {
 		const fetchApis = async () => {
@@ -126,6 +140,8 @@ function CrearOrdenDeVenta() {
 			cantidad: 1,
 			unidad_medida: "",
 			cantidad_disponible: 0,
+			precio_unitario: 0,
+			subtotal: 0
 		};
 		setFields([...fields, newField]);
 	};
@@ -149,19 +165,26 @@ function CrearOrdenDeVenta() {
 			return;
 		}
 
-		// Encontrar el producto seleccionado para obtener su unidad de medida
+		// Encontrar el producto seleccionado para obtener su unidad de medida y precio
 		const productoSeleccionado = products.find(
 			(product) => product.id_producto === parseInt(id_producto)
 		);
 		const unidadMedida = productoSeleccionado
 			? productoSeleccionado.unidad_medida
 			: "";
+		const precioUnitario = productoSeleccionado
+			? productoSeleccionado.precio
+			: 0;
 
 		// Obtener la cantidad disponible del producto
 		let cantidadDisponible = 0;
 		if (id_producto) {
 			cantidadDisponible = await obtenerCantidadDisponible(id_producto);
 		}
+
+		// Calcular subtotal inicial
+		const cantidadActual = fields.find(field => field.id === id)?.cantidad || 1;
+		const subtotal = cantidadActual * precioUnitario;
 
 		setFields(
 			fields.map((field) =>
@@ -171,6 +194,8 @@ function CrearOrdenDeVenta() {
 							id_producto,
 							unidad_medida: unidadMedida,
 							cantidad_disponible: cantidadDisponible,
+							precio_unitario: precioUnitario,
+							subtotal: subtotal
 					  }
 					: field
 			)
@@ -185,13 +210,21 @@ function CrearOrdenDeVenta() {
 	};
 
 	const updateQuantity = (id, cantidad) => {
+		const cantidadNumerica = Math.max(1, cantidad);
+		
 		setFields(
-			fields.map((field) =>
-				field.id === id ? { ...field, cantidad: Math.max(1, cantidad) } : field
-			)
+			fields.map((field) => {
+				if (field.id === id) {
+					const subtotal = cantidadNumerica * field.precio_unitario;
+					return { 
+						...field, 
+						cantidad: cantidadNumerica,
+						subtotal: subtotal
+					};
+				}
+				return field;
+			})
 		);
-
-		setTotalVenta(totalVenta)
 	};
 
 	/* VALIDACIONES */
@@ -306,8 +339,11 @@ function CrearOrdenDeVenta() {
 						cantidad: 1,
 						unidad_medida: "",
 						cantidad_disponible: 0,
+						precio_unitario: 0,
+						subtotal: 0
 					},
 				]);
+				setTotalVenta(0);
 				setErrors({
 					cliente: "",
 					prioridad: "",
@@ -337,7 +373,7 @@ function CrearOrdenDeVenta() {
 
 	function agregarSinId(arrayOrigen) {
 		const sinId = arrayOrigen.map(
-			({ id, cantidad_disponible, ...resto }) => resto
+			({ id, cantidad_disponible, precio_unitario, subtotal, ...resto }) => resto
 		);
 		return sinId;
 	}
@@ -355,6 +391,14 @@ function CrearOrdenDeVenta() {
 		);
 	};
 
+	// Función para formatear precio en formato monetario
+	const formatearPrecio = (precio) => {
+		return new Intl.NumberFormat('es-AR', {
+			style: 'currency',
+			currency: 'ARS'
+		}).format(precio);
+	};
+
 	if (loading) {
 		return (
 			<div className={styles.loading}>
@@ -367,6 +411,7 @@ function CrearOrdenDeVenta() {
 	return (
 		<div className={styles.container}>
 			<h1 className={styles.title}>Crear Orden de Venta</h1>
+
 			<div className="divFormulario">
 				<form onSubmit={handleSubmit}>
 					<div className={styles.formGrid}>
@@ -532,7 +577,7 @@ function CrearOrdenDeVenta() {
 																	: "inherit",
 															}}
 														>
-															{product.nombre} - {product.descripcion}
+															{product.nombre} - {product.descripcion} ({formatearPrecio(product.precio)})
 														</option>
 													))}
 												</select>
@@ -596,6 +641,37 @@ function CrearOrdenDeVenta() {
 														: "Seleccione un producto"}
 												</div>
 											</div>
+
+											{/* Nueva sección para mostrar precio unitario y subtotal */}
+											<div className={styles.productField}>
+												<label className={styles.fieldLabel}>
+													Precio Unitario
+												</label>
+												<div
+													className={`${styles.priceDisplay} ${
+														creatingOrder ? styles.disabledInput : ""
+													}`}
+												>
+													{field.id_producto
+														? formatearPrecio(field.precio_unitario)
+														: "Seleccione un producto"}
+												</div>
+											</div>
+
+											<div className={styles.productField}>
+												<label className={styles.fieldLabel}>
+													Subtotal
+												</label>
+												<div
+													className={`${styles.subtotalDisplay} ${
+														creatingOrder ? styles.disabledInput : ""
+													}`}
+												>
+													{field.id_producto
+														? formatearPrecio(field.subtotal)
+														: "$0.00"}
+												</div>
+											</div>
 										</div>
 									</div>
 								))}
@@ -646,7 +722,7 @@ function CrearOrdenDeVenta() {
 												<span>Creando Orden...</span>
 											</div>
 										) : (
-											"Enviar Pedido"
+											`Enviar Pedido - ${formatearPrecio(totalVenta)}`
 										)}
 									</button>
 								</div>
