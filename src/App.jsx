@@ -48,7 +48,7 @@ function App() {
 						<Route path="/crearOrdenProduccion" element={<CrearOrdenProduccion />}/>
 						<Route path="/verOrdenesProduccion" element={<VerOrdenesProduccion />}/>
 						<Route path="/verStockProductos" element={<TablaStockProductos />}/>
-
+						<Route path="/GestionMateriasPrimas" element={<GestionMateriasPrimas/>}/>
 						{/*</Route>*/}
 					</Routes>
 				</main>
