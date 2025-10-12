@@ -5,8 +5,10 @@ import styles from './TablaStockProductos.module.css';
 const TablaStockProductos = () => {
   const [products, setProducts] = useState([]);
   const [stockData, setStockData] = useState({});
+  const [lotes, setLotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stockLoading, setStockLoading] = useState(true);
+  const [lotesLoading, setLotesLoading] = useState(true);
 
   // Fetch productos
   useEffect(() => {
@@ -71,6 +73,26 @@ const TablaStockProductos = () => {
     fetchStockForProducts();
   }, [products]);
 
+  // Fetch lotes de producción
+  useEffect(() => {
+    const fetchLotesProduccion = async () => {
+      try {
+        setLotesLoading(true);
+        const response = await axios.get(
+          'https://frozenback-test.up.railway.app/api/stock/lotes-produccion/?id_estado_lote_produccion=8'
+        );
+        console.log('Lotes de producción obtenidos:', response.data.results);
+        setLotes(response.data.results);
+      } catch (error) {
+        console.error('Error fetching lotes de producción:', error);
+      } finally {
+        setLotesLoading(false);
+      }
+    };
+
+    fetchLotesProduccion();
+  }, []);
+
   const getStockStatus = (productId, stock) => {
     const product = products.find(p => p.id_producto === productId);
     if (!product) {
@@ -103,6 +125,18 @@ const TablaStockProductos = () => {
     if (stock === 0) return '❌';
     if (stock < product.umbral_minimo) return '⚠️';
     return '✅';
+  };
+
+  // Función para obtener el nombre del producto por ID
+  const getProductName = (productId) => {
+    const product = products.find(p => p.id_producto === productId);
+    return product ? product.nombre : `Producto ${productId}`;
+  };
+
+  // Función para formatear fechas
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES');
   };
 
   if (loading) {
@@ -169,6 +203,67 @@ const TablaStockProductos = () => {
           );
         })}
       </div>
+
+      {/* Sección de Lotes de Producción */}
+      <section className={styles.lotesSection}>
+        <header className={styles.lotesHeader}>
+          <h2 className={styles.lotesTitle}>Lotes de Producción Disponibles</h2>
+          <span className={styles.lotesCount}>
+            {lotesLoading ? '...' : lotes.length} lotes
+          </span>
+        </header>
+
+        {lotesLoading ? (
+          <div className={styles.loadingContainer}>
+            <div className={styles.loadingSpinner}></div>
+            <p>Cargando lotes de producción...</p>
+          </div>
+        ) : (
+          <div className={styles.lotesGrid}>
+            {lotes.map((lote) => (
+              <div key={lote.id_lote_produccion} className={styles.loteCard}>
+                <div className={styles.loteHeader}>
+                  <h3 className={styles.loteId}>Lote #{lote.id_lote_produccion}</h3>
+                  <span className={styles.loteProduct}>
+                    {getProductName(lote.id_producto)}
+                  </span>
+                </div>
+                
+                <div className={styles.loteDetails}>
+                  <div className={styles.loteDetail}>
+                    <span className={styles.detailLabel}>Cantidad:</span>
+                    <span className={styles.detailValue}>{lote.cantidad}</span>
+                  </div>
+                  
+                  <div className={styles.loteDetail}>
+                    <span className={styles.detailLabel}>Producción:</span>
+                    <span className={styles.detailValue}>
+                      {formatDate(lote.fecha_produccion)}
+                    </span>
+                  </div>
+                  
+                  <div className={styles.loteDetail}>
+                    <span className={styles.detailLabel}>Vencimiento:</span>
+                    <span className={styles.detailValue}>
+                      {formatDate(lote.fecha_vencimiento)}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className={styles.loteStatus}>
+                  <span className={styles.statusBadge}>Disponible</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {!lotesLoading && lotes.length === 0 && (
+          <div className={styles.emptyState}>
+            <p>No hay lotes de producción disponibles</p>
+          </div>
+        )}
+      </section>
     </div>
   );
 };
