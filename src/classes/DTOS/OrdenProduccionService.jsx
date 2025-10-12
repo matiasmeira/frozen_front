@@ -213,10 +213,8 @@ class OrdenProduccionService {
 		// numeros para agregar orden a los estados.
 		const mapaDeOrden = [3,4,2,1,5];
 
-		// El resto de la lógica es exactamente la misma.
 		const datosConOrden = datos.map((item, index) => ({
 			...item,
-			// Ahora "Cancelado" encontrará su valor y no usará el default.
 			orden: mapaDeOrden[index] || 99,
 		}));
 
@@ -224,7 +222,6 @@ class OrdenProduccionService {
 		return datosOrdenados;
 	}
 
-	// Función para obtener todos los operarios (rol = 1)
 	static async obtenerOperarios() {
 		try {
 			const url =
@@ -250,7 +247,6 @@ class OrdenProduccionService {
 		}
 	}
 
-	// En tu OrdenProduccionService.js - agrega este método
 	static async obtenerProductos() {
 		try {
 			const response = await fetch(
@@ -269,46 +265,6 @@ class OrdenProduccionService {
 		}
 	}
 
-	// Mock para desarrollo (con la estructura transformada)
-	static async obtenerOrdenesMock() {
-		return new Promise((resolve) => {
-			setTimeout(() => {
-				const datosMock = [
-					{
-						Id: 29,
-						id_linea: 5,
-						linea_descripcion: "Línea de congelados",
-						Estado: "En espera",
-						Cantidad: 500,
-						Producto: "Empanada",
-						producto_descripcion: "Empanada de carne",
-						Fecha_creacion: "2025-10-04T19:54:52.744470Z",
-						Fecha_inicio: null,
-						operario: "Giuliano Gomes Da Silva",
-						supervisor: "thomi rossi",
-						id_lote_produccion: 14,
-						estado_orden_descripcion: "Pendiente de inicio",
-					},
-					{
-						Id: 30,
-						id_linea: 3,
-						linea_descripcion: "Línea de pizzas",
-						Estado: "En proceso",
-						Cantidad: 200,
-						Producto: "Pizza",
-						producto_descripcion: "Pizza napolitana",
-						Fecha_creacion: "2025-10-05T10:30:00.000000Z",
-						Fecha_inicio: "2025-10-05T11:00:00.000000Z",
-						operario: "María González",
-						supervisor: "Carlos López",
-						id_lote_produccion: 15,
-						estado_orden_descripcion: "En proceso",
-					},
-				];
-				resolve(datosMock);
-			}, 1000);
-		});
-	}
 }
 
 export default OrdenProduccionService;

@@ -1,0 +1,344 @@
+/* OrdenesCompra.module.css */
+.ordenesCompra {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 20px;
+	font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+	background-color: #f5f5f5;
+	min-height: 100vh;
+}
+
+.titulo {
+	color: #2c3e50;
+	margin-bottom: 30px;
+	text-align: center;
+	font-size: 2rem;
+	font-weight: 600;
+}
+
+.contador {
+	text-align: center;
+	margin-bottom: 20px;
+	color: #7f8c8d;
+	font-size: 0.95em;
+	font-weight: 500;
+	padding: 10px;
+	background: #ecf0f1;
+	border-radius: 6px;
+}
+
+.listaOrdenes {
+	display: grid;
+	gap: 20px;
+	max-width: 1200px;
+	margin: 0 auto;
+	grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+}
+
+.cardOrden {
+	border: 1px solid #e0e0e0;
+	border-radius: 12px;
+	padding: 24px;
+	background: white;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	transition: all 0.3s ease;
+	display: flex;
+	flex-direction: column;
+}
+
+.cardOrden:hover {
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+	transform: translateY(-2px);
+}
+
+.cardHeader {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 20px;
+	padding-bottom: 15px;
+	border-bottom: 2px solid #f8f9fa;
+}
+
+.cardHeader h3 {
+	margin: 0;
+	color: #2c3e50;
+	font-size: 1.4em;
+	font-weight: 600;
+}
+
+.estado {
+	padding: 6px 12px;
+	border-radius: 20px;
+	font-size: 0.75em;
+	font-weight: bold;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	color: white;
+}
+
+.cardBody {
+	margin-bottom: 20px;
+	flex-grow: 1;
+}
+
+.infoGrupo {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 10px;
+	padding: 8px 0;
+	border-bottom: 1px solid #f8f9fa;
+}
+
+.infoGrupo:last-child {
+	border-bottom: none;
+}
+
+.infoGrupo strong {
+	color: #2c3e50;
+	font-weight: 600;
+	font-size: 0.9em;
+}
+
+.infoGrupo span {
+	color: #555;
+	text-align: right;
+	font-size: 0.95em;
+}
+
+.total {
+	font-weight: 700;
+	color: #27ae60 !important;
+	font-size: 1.05em !important;
+}
+
+.cardFooter {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding-top: 20px;
+	border-top: 1px solid #f0f0f0;
+	gap: 10px;
+}
+
+.btnRecibir {
+	background-color: #27ae60;
+	color: white;
+	border: none;
+	padding: 10px 16px;
+	border-radius: 6px;
+	cursor: pointer;
+	font-size: 0.85em;
+	font-weight: 600;
+	transition: all 0.3s ease;
+	flex: 1;
+}
+
+.btnRecibir:hover {
+	background-color: #219a52;
+	transform: translateY(-1px);
+}
+
+.btnRechazar {
+	background-color: #e74c3c;
+	color: white;
+	border: none;
+	padding: 10px 16px;
+	border-radius: 6px;
+	cursor: pointer;
+	font-size: 0.85em;
+	font-weight: 600;
+	transition: all 0.3s ease;
+	flex: 1;
+}
+
+.btnRechazar:hover {
+	background-color: #c0392b;
+	transform: translateY(-1px);
+}
+
+.btnDetalles {
+	background-color: #3498db;
+	color: white;
+	border: none;
+	padding: 10px 16px;
+	border-radius: 6px;
+	cursor: pointer;
+	font-size: 0.85em;
+	font-weight: 600;
+	transition: all 0.3s ease;
+	flex: 1;
+}
+
+.btnDetalles:hover {
+	background-color: #2980b9;
+	transform: translateY(-1px);
+}
+
+.cargando,
+.error {
+	text-align: center;
+	padding: 60px;
+	font-size: 1.2em;
+	background: white;
+	border-radius: 12px;
+	margin: 20px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cargando {
+	color: #7f8c8d;
+}
+
+.error {
+	color: #e74c3c;
+	background-color: #fadbd8;
+	border: 1px solid #f5b7b1;
+}
+
+.sinResultados {
+	text-align: center;
+	padding: 60px 20px;
+	color: #7f8c8d;
+	font-size: 1.1em;
+	background: white;
+	border-radius: 12px;
+	grid-column: 1 / -1;
+	border: 2px dashed #bdc3c7;
+}
+
+/* Spinner */
+.spinner {
+	width: 40px;
+	height: 40px;
+	border: 4px solid #f3f3f3;
+	border-top: 4px solid #3498db;
+	border-radius: 50%;
+	animation: spin 1s linear infinite;
+	margin: 0 auto 20px;
+}
+
+/* Agregar estos estilos al archivo OrdenesCompra.module.css */
+
+/* Controles de Filtrado */
+.controles {
+	display: flex;
+	margin-bottom: 1.5rem;
+	gap: 1rem;
+	padding: 1rem;
+	border-radius: 12px;
+	flex-wrap: wrap;
+	align-items: end;
+	justify-content: start;
+}
+
+.filtroGrupo {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	flex: 1;
+	width: 100px;
+}
+
+.label {
+	font-weight: 600;
+	color: #2c3e50;
+	font-size: 0.9em;
+}
+
+.select {
+	background: white;
+	transition: all 0.3s ease;
+	cursor: pointer;
+	padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.select:focus {
+	outline: none;
+	border-color: #3498db;
+	box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.btnLimpiar {
+	background-color: #95a5a6;
+	color: white;
+	border: none;
+	padding: 10px 20px;
+	border-radius: 6px;
+	cursor: pointer;
+	font-size: 0.9em;
+	font-weight: 600;
+	transition: all 0.3s ease;
+	height: fit-content;
+	white-space: nowrap;
+}
+
+.btnLimpiar:hover {
+	background-color: #7f8c8d;
+	transform: translateY(-1px);
+}
+
+
+@keyframes spin {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+	.controles {
+		flex-direction: column;
+		gap: 15px;
+	}
+
+	.filtroGrupo {
+		min-width: 100%;
+	}
+
+	.btnLimpiar {
+		width: 100%;
+		margin-top: 10px;
+	}
+	.listaOrdenes {
+		grid-template-columns: 1fr;
+		max-width: 500px;
+	}
+
+	.cardFooter {
+		flex-direction: column;
+	}
+
+	.btnRecibir,
+	.btnRechazar,
+	.btnDetalles {
+		width: 100%;
+	}
+
+	.cardHeader {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 12px;
+	}
+
+	.titulo {
+		font-size: 1.6rem;
+	}
+
+	.infoGrupo {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 4px;
+	}
+
+	.infoGrupo span {
+		text-align: left;
+	}
+}

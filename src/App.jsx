@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar/Navbar";
 import Footer from "./components/Footer/Footer";
+//Pages
 import AutenticacionFacial from "./pages/AutenticacionFacial/AutenticacionFacial";
 import MenuPrincipal from "./pages/MenuPrincipal/MenuPrincipal";
 import Fichaje from "./pages/Fichajes/Fichaje";
@@ -12,6 +13,9 @@ import FormularioEmpleado from "./pages/FormularioEmpleado/FormularioEmpleado";
 import VerOrdenesProduccion from "./pages/VerOrdenesProduccion/VerOrdenesProduccion";
 import TablaStockProductos from "./pages/VerStockProductos/TablaStockProductos";
 import GeneradorFactura from "./pages/GeneradorFactura/GeneradorFactura";
+import VerOrdenesCompra from "./pages/VerOrdenesCompra/VerOrdenesCompra";
+//Pages
+
 import "./App.css";
 
 import ProtectedAuth from "./utils/ProtectedAuth";
@@ -49,6 +53,7 @@ function App() {
 						<Route path="/verOrdenesProduccion" element={<VerOrdenesProduccion />}/>
 						<Route path="/verStockProductos" element={<TablaStockProductos />}/>
 						<Route path="/GestionMateriasPrimas" element={<GestionMateriasPrimas/>}/>
+						<Route path="/VerOrdenesCompra" element={<VerOrdenesCompra/>}/>
 						{/*</Route>*/}
 					</Routes>
 				</main>
