@@ -5,8 +5,8 @@ import { useState, useEffect } from "react";
 
 // Configuración base de axios
 const api = axios.create({
-  baseURL: "https://frozenback-test.up.railway.app/api",
-  timeout: 10000,
+	baseURL: "https://frozenback-test.up.railway.app/api",
+	timeout: 10000,
 });
 
 function CrearOrdenDeVenta() {
@@ -16,8 +16,15 @@ function CrearOrdenDeVenta() {
 	const [prioridades, setPrioridades] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [creatingOrder, setCreatingOrder] = useState(false);
+	const [totalVenta, setTotalVenta] = useState(0)
 	const [fields, setFields] = useState([
-		{ id: "1", id_producto: "", cantidad: 1, unidad_medida: "", cantidad_disponible: 0 },
+		{
+			id: "1",
+			id_producto: "",
+			cantidad: 1,
+			unidad_medida: "",
+			cantidad_disponible: 0,
+		},
 	]);
 	const [orden, setOrden] = useState({
 		id_cliente: "",
@@ -35,13 +42,14 @@ function CrearOrdenDeVenta() {
 	useEffect(() => {
 		const fetchApis = async () => {
 			try {
-				const [clientesResponse, productosResponse, prioridadesResponse] = await Promise.all([
-					obtenerClientes(),
-					obtenerProductos(),
-					obtenerPrioridades()
-				]);
-
-				setProducts(productosResponse.data.results);
+				const [clientesResponse, productosResponse, prioridadesResponse] =
+					await Promise.all([
+						obtenerClientes(),
+						obtenerProductos(),
+						obtenerPrioridades(),
+					]);
+				console.log(productosResponse)
+				setProducts(productosResponse);
 				setClientes(clientesResponse.data.results);
 				setPrioridades(prioridadesResponse.data.results);
 				setLoading(false);
@@ -55,7 +63,21 @@ function CrearOrdenDeVenta() {
 	}, []);
 
 	const obtenerProductos = async () => {
-		return await api.get("/productos/listar/");
+		const response = await api.get("/productos/productos/");
+		console.log(response.data.results);
+		const productos = response.data.results.map((prod) => 
+			({
+				id_producto: prod.id_producto,
+				nombre: prod.nombre,
+				descripcion: prod.descripcion,
+				unidad_medida: prod.unidad.descripcion,
+				umbral_minimo: prod.umbral_minimo,
+				precio: prod.precio
+			})
+		);
+
+		console.log(productos)
+		return productos;
 	};
 
 	const obtenerClientes = async () => {
@@ -69,10 +91,15 @@ function CrearOrdenDeVenta() {
 	// Nueva función para obtener la cantidad disponible de un producto
 	const obtenerCantidadDisponible = async (id_producto) => {
 		try {
-			const response = await api.get(`/stock/cantidad-disponible/${id_producto}/`);
+			const response = await api.get(
+				`/stock/cantidad-disponible/${id_producto}/`
+			);
 			return response.data.cantidad_disponible;
 		} catch (error) {
-			console.error(`Error obteniendo stock para producto ${id_producto}:`, error);
+			console.error(
+				`Error obteniendo stock para producto ${id_producto}:`,
+				error
+			);
 			return 0;
 		}
 	};
@@ -123,9 +150,13 @@ function CrearOrdenDeVenta() {
 		}
 
 		// Encontrar el producto seleccionado para obtener su unidad de medida
-		const productoSeleccionado = products.find(product => product.id_producto === parseInt(id_producto));
-		const unidadMedida = productoSeleccionado ? productoSeleccionado.unidad_medida : "";
-		
+		const productoSeleccionado = products.find(
+			(product) => product.id_producto === parseInt(id_producto)
+		);
+		const unidadMedida = productoSeleccionado
+			? productoSeleccionado.unidad_medida
+			: "";
+
 		// Obtener la cantidad disponible del producto
 		let cantidadDisponible = 0;
 		if (id_producto) {
@@ -134,12 +165,14 @@ function CrearOrdenDeVenta() {
 
 		setFields(
 			fields.map((field) =>
-				field.id === id ? { 
-					...field, 
-					id_producto, 
-					unidad_medida: unidadMedida,
-					cantidad_disponible: cantidadDisponible
-				} : field
+				field.id === id
+					? {
+							...field,
+							id_producto,
+							unidad_medida: unidadMedida,
+							cantidad_disponible: cantidadDisponible,
+					  }
+					: field
 			)
 		);
 
@@ -157,6 +190,8 @@ function CrearOrdenDeVenta() {
 				field.id === id ? { ...field, cantidad: Math.max(1, cantidad) } : field
 			)
 		);
+
+		setTotalVenta(totalVenta)
 	};
 
 	/* VALIDACIONES */
@@ -242,15 +277,18 @@ function CrearOrdenDeVenta() {
 		const productosConIdDinamico = [...fields];
 		let productos = agregarSinId(productosConIdDinamico);
 		const nuevaOrden = { ...orden, productos: productos };
-		
+
 		if (!validarFormulario()) {
 			return;
 		}
-		
+
 		setCreatingOrder(true);
-		
+
 		try {
-			const response = await api.post("/ventas/ordenes-venta/crear/", nuevaOrden);
+			const response = await api.post(
+				"/ventas/ordenes-venta/crear/",
+				nuevaOrden
+			);
 
 			if (response.status === 200 || response.status === 201) {
 				console.log("Orden de venta creada:", response.data);
@@ -261,7 +299,15 @@ function CrearOrdenDeVenta() {
 					fecha_entrega: "",
 					productos: [],
 				});
-				setFields([{ id: "1", id_producto: "", cantidad: 1, unidad_medida: "", cantidad_disponible: 0 }]);
+				setFields([
+					{
+						id: "1",
+						id_producto: "",
+						cantidad: 1,
+						unidad_medida: "",
+						cantidad_disponible: 0,
+					},
+				]);
 				setErrors({
 					cliente: "",
 					prioridad: "",
@@ -274,7 +320,11 @@ function CrearOrdenDeVenta() {
 			console.error("Error al crear orden:", error);
 			if (error.response) {
 				console.error("Detalles del error:", error.response.data);
-				alert(`Error al crear la orden: ${error.response.status} - ${error.response.data.message || 'Error del servidor'}`);
+				alert(
+					`Error al crear la orden: ${error.response.status} - ${
+						error.response.data.message || "Error del servidor"
+					}`
+				);
 			} else if (error.request) {
 				alert("Error de conexión: No se pudo contactar al servidor");
 			} else {
@@ -286,7 +336,9 @@ function CrearOrdenDeVenta() {
 	};
 
 	function agregarSinId(arrayOrigen) {
-		const sinId = arrayOrigen.map(({ id, cantidad_disponible, ...resto }) => resto);
+		const sinId = arrayOrigen.map(
+			({ id, cantidad_disponible, ...resto }) => resto
+		);
 		return sinId;
 	}
 
@@ -331,7 +383,7 @@ function CrearOrdenDeVenta() {
 								disabled={creatingOrder}
 								className={`${styles.formInput} ${
 									errors.cliente ? styles.inputError : ""
-								} ${creatingOrder ? styles.disabledInput : ''}`}
+								} ${creatingOrder ? styles.disabledInput : ""}`}
 							>
 								<option value="" disabled hidden>
 									Seleccione una opción
@@ -343,9 +395,7 @@ function CrearOrdenDeVenta() {
 								))}
 							</select>
 							{errors.cliente && (
-								<span className={styles.errorText}>
-									{errors.cliente}
-								</span>
+								<span className={styles.errorText}>{errors.cliente}</span>
 							)}
 						</div>
 
@@ -369,12 +419,10 @@ function CrearOrdenDeVenta() {
 								disabled={creatingOrder}
 								className={`${styles.formInput} ${
 									errors.fecha_entrega ? styles.inputError : ""
-								} ${creatingOrder ? styles.disabledInput : ''}`}
+								} ${creatingOrder ? styles.disabledInput : ""}`}
 							/>
 							{errors.fecha_entrega && (
-								<span className={styles.errorText}>
-									{errors.fecha_entrega}
-								</span>
+								<span className={styles.errorText}>{errors.fecha_entrega}</span>
 							)}
 						</div>
 
@@ -391,21 +439,22 @@ function CrearOrdenDeVenta() {
 								disabled={creatingOrder}
 								className={`${styles.formInput} ${
 									errors.prioridad ? styles.inputError : ""
-								} ${creatingOrder ? styles.disabledInput : ''}`}
+								} ${creatingOrder ? styles.disabledInput : ""}`}
 							>
 								<option value="" disabled hidden>
 									Seleccione una opción
 								</option>
 								{prioridades.map((prioridad) => (
-									<option key={prioridad.id_prioridad} value={prioridad.id_prioridad}>
+									<option
+										key={prioridad.id_prioridad}
+										value={prioridad.id_prioridad}
+									>
 										{prioridad.descripcion}
 									</option>
 								))}
 							</select>
 							{errors.prioridad && (
-								<span className={styles.errorText}>
-									{errors.prioridad}
-								</span>
+								<span className={styles.errorText}>{errors.prioridad}</span>
 							)}
 						</div>
 
@@ -413,10 +462,7 @@ function CrearOrdenDeVenta() {
 						<div className={styles.productsSection}>
 							<div className={styles.productsContainer}>
 								{fields.map((field, index) => (
-									<div
-										key={field.id}
-										className={styles.productCard}
-									>
+									<div key={field.id} className={styles.productCard}>
 										<div className={styles.productHeader}>
 											<label className={styles.productTitle}>
 												Producto {index + 1}
@@ -427,7 +473,7 @@ function CrearOrdenDeVenta() {
 													onClick={() => removeField(field.id)}
 													disabled={creatingOrder}
 													className={`${styles.removeButton} ${
-														creatingOrder ? styles.disabledButton : ''
+														creatingOrder ? styles.disabledButton : ""
 													}`}
 												>
 													<svg
@@ -463,7 +509,7 @@ function CrearOrdenDeVenta() {
 													}
 													disabled={creatingOrder}
 													className={`${styles.formInput} ${
-														creatingOrder ? styles.disabledInput : ''
+														creatingOrder ? styles.disabledInput : ""
 													}`}
 												>
 													<option value="" disabled hidden>
@@ -513,11 +559,12 @@ function CrearOrdenDeVenta() {
 													}
 													disabled={creatingOrder}
 													className={`${styles.formInput} ${
-														creatingOrder ? styles.disabledInput : ''
+														creatingOrder ? styles.disabledInput : ""
 													} ${
-														field.id_producto && field.cantidad > field.cantidad_disponible 
-														? styles.inputError 
-														: ''
+														field.id_producto &&
+														field.cantidad > field.cantidad_disponible
+															? styles.inputError
+															: ""
 													}`}
 												/>
 											</div>
@@ -526,9 +573,11 @@ function CrearOrdenDeVenta() {
 												<label className={styles.fieldLabel}>
 													Unidad de Medida
 												</label>
-												<div className={`${styles.measurementDisplay} ${
-													creatingOrder ? styles.disabledInput : ''
-												}`}>
+												<div
+													className={`${styles.measurementDisplay} ${
+														creatingOrder ? styles.disabledInput : ""
+													}`}
+												>
 													{field.unidad_medida || "Seleccione un producto"}
 												</div>
 											</div>
@@ -538,13 +587,14 @@ function CrearOrdenDeVenta() {
 												<label className={styles.fieldLabel}>
 													Stock Disponible
 												</label>
-												<div className={`${styles.stockDisplay} ${
-													creatingOrder ? styles.disabledInput : ''
-												}`}>
-													{field.id_producto 
-														? `${field.cantidad_disponible} ${field.unidad_medida}` 
-														: "Seleccione un producto"
-													}
+												<div
+													className={`${styles.stockDisplay} ${
+														creatingOrder ? styles.disabledInput : ""
+													}`}
+												>
+													{field.id_producto
+														? `${field.cantidad_disponible} ${field.unidad_medida}`
+														: "Seleccione un producto"}
 												</div>
 											</div>
 										</div>
@@ -553,9 +603,7 @@ function CrearOrdenDeVenta() {
 
 								{errors.productos && (
 									<div className={styles.productsError}>
-										<span className={styles.errorText}>
-											{errors.productos}
-										</span>
+										<span className={styles.errorText}>{errors.productos}</span>
 									</div>
 								)}
 
@@ -566,7 +614,7 @@ function CrearOrdenDeVenta() {
 											onClick={addField}
 											disabled={creatingOrder}
 											className={`${styles.addButton} ${
-												creatingOrder ? styles.disabledButton : ''
+												creatingOrder ? styles.disabledButton : ""
 											}`}
 										>
 											<svg
@@ -590,7 +638,7 @@ function CrearOrdenDeVenta() {
 										type="submit"
 										disabled={creatingOrder}
 										className={`${styles.submitButton} ${
-											creatingOrder ? styles.submitButtonLoading : ''
+											creatingOrder ? styles.submitButtonLoading : ""
 										}`}
 									>
 										{creatingOrder ? (

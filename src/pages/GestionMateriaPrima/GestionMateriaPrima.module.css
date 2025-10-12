@@ -1,0 +1,393 @@
+/* GestionMateriasPrimas.module.css */
+.gestionMateriasPrimas {
+	padding: 20px;
+	font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+	background-color: #f5f5f5;
+	min-height: 100vh;
+}
+
+.titulo {
+	color: #2c3e50;
+	margin-bottom: 30px;
+	text-align: center;
+	font-size: 2rem;
+	font-weight: 600;
+}
+
+.listaMateriasPrimas {
+	display: grid;
+	gap: 20px;
+	max-width: 1200px;
+	margin: 0 auto;
+	grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+}
+
+.cardMateriaPrima {
+	border: 1px solid #e0e0e0;
+	border-radius: 12px;
+	padding: 24px;
+	background: white;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	transition: all 0.3s ease;
+	display: flex;
+	flex-direction: column;
+}
+
+.cardMateriaPrima:hover {
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+	transform: translateY(-2px);
+}
+
+.cardHeader {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	margin-bottom: 20px;
+	padding-bottom: 15px;
+	border-bottom: 2px solid #f8f9fa;
+}
+
+.cardHeader h3 {
+	margin: 0;
+	color: #2c3e50;
+	font-size: 1.3em;
+	font-weight: 600;
+	flex: 1;
+}
+
+.tipoBadge {
+	background-color: #e3f2fd;
+	color: #1976d2;
+	padding: 4px 12px;
+	border-radius: 20px;
+	font-size: 0.8em;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.cardBody {
+	margin-bottom: 20px;
+	flex-grow: 1;
+}
+
+.infoGrupo {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 10px;
+	padding: 8px 0;
+	border-bottom: 1px solid #f8f9fa;
+}
+
+.infoGrupo:last-child {
+	border-bottom: none;
+}
+
+.infoGrupo strong {
+	color: #2c3e50;
+	font-weight: 600;
+	font-size: 0.9em;
+}
+
+.infoGrupo span {
+	color: #555;
+	text-align: right;
+	font-size: 0.95em;
+}
+
+.cardFooter {
+	display: flex;
+	gap: 12px;
+	padding-top: 20px;
+	border-top: 1px solid #f0f0f0;
+}
+
+.btnAgregar {
+	background-color: #27ae60;
+	color: white;
+	border: none;
+	padding: 10px 20px;
+	border-radius: 6px;
+	cursor: pointer;
+	font-size: 0.9em;
+	font-weight: 600;
+	transition: all 0.3s ease;
+	flex: 1;
+}
+
+.btnAgregar:hover {
+	background-color: #219a52;
+	transform: translateY(-1px);
+}
+
+.btnQuitar {
+	background-color: #e74c3c;
+	color: white;
+	border: none;
+	padding: 10px 20px;
+	border-radius: 6px;
+	cursor: pointer;
+	font-size: 0.9em;
+	font-weight: 600;
+	transition: all 0.3s ease;
+	flex: 1;
+}
+
+.btnQuitar:hover {
+	background-color: #c0392b;
+	transform: translateY(-1px);
+}
+
+/* Estilos para los modales */
+.overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: rgba(0, 0, 0, 0.6);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 1000;
+}
+
+.modal {
+	background: white;
+	border-radius: 12px;
+	padding: 0;
+	max-width: 500px;
+	width: 90%;
+	max-height: 90vh;
+	overflow-y: auto;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+	outline: none;
+}
+
+.modalContent {
+	padding: 30px;
+}
+
+.modalTitulo {
+	color: #2c3e50;
+	margin-bottom: 20px;
+	font-size: 1.5em;
+	font-weight: 600;
+	text-align: center;
+}
+
+.modalInfo {
+	background: #f8f9fa;
+	padding: 15px;
+	border-radius: 8px;
+	margin-bottom: 20px;
+}
+
+.modalInfo p {
+	margin: 5px 0;
+	color: #555;
+}
+
+.modalForm {
+	margin-bottom: 25px;
+}
+
+.formGroup {
+	margin-bottom: 20px;
+}
+
+.modalLabel {
+	display: block;
+	margin-bottom: 8px;
+	font-weight: 600;
+	color: #2c3e50;
+}
+
+.modalInput {
+	width: 100%;
+	padding: 12px;
+	border: 2px solid #e0e0e0;
+	border-radius: 6px;
+	font-size: 0.95em;
+	transition: border-color 0.3s ease;
+}
+
+.modalInput:focus {
+	outline: none;
+	border-color: #3498db;
+}
+
+.modalTextarea {
+	width: 100%;
+	padding: 12px;
+	border: 2px solid #e0e0e0;
+	border-radius: 6px;
+	font-size: 0.95em;
+	font-family: inherit;
+	resize: vertical;
+	transition: border-color 0.3s ease;
+}
+
+.modalTextarea:focus {
+	outline: none;
+	border-color: #3498db;
+}
+
+.modalHelp {
+	display: block;
+	margin-top: 5px;
+	color: #7f8c8d;
+	font-size: 0.85em;
+}
+
+.modalActions {
+	display: flex;
+	gap: 12px;
+	justify-content: flex-end;
+}
+
+.btnModalCancelar {
+	background-color: #95a5a6;
+	color: white;
+	border: none;
+	padding: 10px 20px;
+	border-radius: 6px;
+	cursor: pointer;
+	font-size: 0.9em;
+	font-weight: 600;
+	transition: all 0.3s ease;
+}
+
+.btnModalCancelar:hover {
+	background-color: #7f8c8d;
+}
+
+.btnModalAgregar {
+	background-color: #27ae60;
+	color: white;
+	border: none;
+	padding: 10px 20px;
+	border-radius: 6px;
+	cursor: pointer;
+	font-size: 0.9em;
+	font-weight: 600;
+	transition: all 0.3s ease;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.btnModalAgregar:hover:not(:disabled) {
+	background-color: #219a52;
+}
+
+.btnModalQuitar {
+	background-color: #e74c3c;
+	color: white;
+	border: none;
+	padding: 10px 20px;
+	border-radius: 6px;
+	cursor: pointer;
+	font-size: 0.9em;
+	font-weight: 600;
+	transition: all 0.3s ease;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.btnModalQuitar:hover:not(:disabled) {
+	background-color: #c0392b;
+}
+
+.btnModalAgregar:disabled,
+.btnModalQuitar:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+}
+
+/* Spinners */
+.spinnerSmall {
+	width: 16px;
+	height: 16px;
+	border: 2px solid transparent;
+	border-top: 2px solid white;
+	border-radius: 50%;
+	animation: spin 1s linear infinite;
+}
+
+.cargando {
+	text-align: center;
+	padding: 60px;
+	font-size: 1.2em;
+	background: white;
+	border-radius: 12px;
+	margin: 20px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	color: #7f8c8d;
+}
+
+.error {
+	text-align: center;
+	padding: 60px;
+	font-size: 1.2em;
+	background: white;
+	border-radius: 12px;
+	margin: 20px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	color: #e74c3c;
+	background-color: #fadbd8;
+	border: 1px solid #f5b7b1;
+}
+
+.sinResultados {
+	text-align: center;
+	padding: 60px 20px;
+	color: #7f8c8d;
+	font-size: 1.1em;
+	background: white;
+	border-radius: 12px;
+	grid-column: 1 / -1;
+	border: 2px dashed #bdc3c7;
+}
+
+@keyframes spin {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+	.listaMateriasPrimas {
+		grid-template-columns: 1fr;
+		max-width: 500px;
+	}
+
+	.cardFooter {
+		flex-direction: column;
+	}
+
+	.modal {
+		width: 95%;
+		margin: 20px;
+	}
+
+	.modalContent {
+		padding: 20px;
+	}
+
+	.modalActions {
+		flex-direction: column;
+	}
+
+	.btnModalCancelar,
+	.btnModalAgregar,
+	.btnModalQuitar {
+		width: 100%;
+	}
+}

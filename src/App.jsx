@@ -16,6 +16,7 @@ import "./App.css";
 import ProtectedAuth from "./utils/ProtectedAuth";
 import ProtectedRoutes from "./utils/ProtectedRoutes";
 import ProtectedLogin from "./utils/ProtectedLogin";
+import GestionMateriasPrimas from "./pages/GestionMateriaPrima/GestionMateriaPrima";
 
 function App() {
 	return (
@@ -45,6 +46,7 @@ function App() {
 						<Route path="/crearOrdenProduccion" element={<CrearOrdenProduccion />}/>
 						<Route path="/verOrdenesProduccion" element={<VerOrdenesProduccion />}/>
 						<Route path="/verStockProductos" element={<TablaStockProductos />}/>
+						<Route path="/GestionMateriaPrima" element={<GestionMateriasPrimas/>} />
 						{/*</Route>*/}
 					</Routes>
 				</main>
