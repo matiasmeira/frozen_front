@@ -231,23 +231,95 @@
 	background-color: #dc2626;
 }
 
-/* Grid de productos */
+/* Grid de productos - ACTUALIZADO */
 .productGrid {
 	display: grid;
-	grid-template-columns: 1fr;
+	grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr;
 	gap: 1rem;
+	align-items: start;
 }
 
-/* Agrega estos estilos al archivo CSS existente */
+.productField {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
 
-.stockDisplay {
-	padding: 8px 12px;
-	border: 1px solid #d1d5db;
-	border-radius: 6px;
-	background-color: #f9fafb;
-	font-size: 14px;
+.fieldLabel {
+	font-size: 0.875rem;
+	font-weight: 500;
 	color: #374151;
-	min-height: 40px;
+	margin-bottom: 0.25rem;
+}
+
+/* ESTILOS UNIFICADOS PARA INPUTS Y DISPLAYS - NUEVOS */
+.inputField, .displayField {
+	height: 42px;
+	min-height: 42px;
+	display: flex;
+	align-items: center;
+	padding: 0.5rem 0.75rem;
+	border: 1px solid #d1d5db;
+	border-radius: 0.375rem;
+	background-color: white;
+	font-size: 0.875rem;
+	box-sizing: border-box;
+	width: 100%;
+}
+
+/* Estilos específicos para inputs editables */
+.inputField {
+	transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+	padding: 0;
+}
+
+.inputField:focus-within {
+	outline: none;
+	border-color: #3b82f6;
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Estilos específicos para displays (campos de solo lectura) */
+.displayField {
+	background-color: #f9fafb;
+	color: #6b7280;
+	border: 1px solid #e5e7eb;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* Asegurar que los selects dentro de inputField tengan el estilo correcto */
+.inputField select {
+	height: 100%;
+	border: none;
+	background: transparent;
+	width: 100%;
+	outline: none;
+	padding: 0 0.75rem;
+	font-size: 0.875rem;
+}
+
+/* Asegurar que los inputs number dentro de inputField tengan el estilo correcto */
+.inputField input[type="number"] {
+	height: 100%;
+	border: none;
+	background: transparent;
+	width: 100%;
+	outline: none;
+	padding: 0 0.75rem;
+	font-size: 0.875rem;
+}
+
+/* Stock display específico */
+.stockDisplay {
+	padding: 0.5rem 0.75rem;
+	border: 1px solid #d1d5db;
+	border-radius: 0.375rem;
+	background-color: #f9fafb;
+	font-size: 0.875rem;
+	color: #374151;
+	min-height: 42px;
 	display: flex;
 	align-items: center;
 }
@@ -260,93 +332,32 @@
 }
 
 .stockError {
-	font-size: 12px;
+	font-size: 0.75rem;
 	color: #dc2626;
-	margin-top: 4px;
+	margin-top: 0.25rem;
 	display: block;
-}
-
-/* Ajusta el grid para acomodar el nuevo campo */
-.productGrid {
-	display: grid;
-	grid-template-columns: 1fr 120px 120px 120px;
-	gap: 16px;
-	align-items: start;
-}
-
-/* Estilos para el total de la venta */
-.totalContainer {
-	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-	border-radius: 12px;
-	padding: 20px;
-	margin-bottom: 30px;
-	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-	color: white;
-}
-
-.totalContent {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-}
-
-.totalLabel {
-	font-size: 1.2em;
-	font-weight: 600;
-	margin: 0;
-}
-
-.totalAmount {
-	font-size: 2em;
-	font-weight: 700;
 }
 
 /* Estilos para los displays de precio */
 .priceDisplay,
-.subtotalDisplay {
+.subtotalDisplay,
+.measurementDisplay {
 	background: #f8f9fa;
-	padding: 12px;
-	border-radius: 6px;
+	padding: 0.5rem 0.75rem;
+	border-radius: 0.375rem;
 	border: 1px solid #e0e0e0;
-	font-weight: 600;
-	color: #2c3e50;
+	font-weight: 500;
+	color: #374151;
+	min-height: 42px;
+	display: flex;
+	align-items: center;
 }
 
 .subtotalDisplay {
 	background: #e8f5e8;
 	border-color: #27ae60;
 	color: #27ae60;
-}
-
-/* Ajustar el grid para las nuevas columnas */
-.productGrid {
-	display: grid;
-	grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr;
-	gap: 15px;
-	align-items: end;
-}
-
-.productField {
-	display: flex;
-	flex-direction: column;
-}
-
-.fieldLabel {
-	font-size: 0.875rem;
-	font-weight: 500;
-	color: #374151;
-	margin-bottom: 0.5rem;
-}
-
-.measurementDisplay {
-	width: 100%;
-	padding: 0.75rem;
-	border: 1px solid #d1d5db;
-	border-radius: 0.5rem;
-	background-color: #f3f4f6;
-	color: #6b7280;
-	font-size: 0.875rem;
-	box-sizing: border-box;
+	font-weight: 600;
 }
 
 .productsError {
@@ -420,23 +431,22 @@
 }
 
 /* Para responsividad */
+@media (max-width: 1200px) {
+	.productGrid {
+		grid-template-columns: 2fr 1fr 1fr 1fr;
+		gap: 1rem;
+	}
+}
+
 @media (max-width: 768px) {
 	.productGrid {
-		grid-template-columns: 2fr 1fr 1fr;
-		gap: 1.5rem;
+		grid-template-columns: 1fr 1fr;
+		gap: 1rem;
 	}
-	.productGrid {
-		grid-template-columns: 1fr;
-	}
-
-	.totalContent {
-		flex-direction: column;
-		gap: 10px;
-		text-align: center;
-	}
-
-	.totalAmount {
-		font-size: 1.5em;
+	
+	.inputField, .displayField {
+		height: 44px;
+		min-height: 44px;
 	}
 
 	.title {
@@ -450,6 +460,13 @@
 
 	.productCard {
 		padding: 1rem;
+	}
+}
+
+@media (max-width: 480px) {
+	.productGrid {
+		grid-template-columns: 1fr;
+		gap: 1rem;
 	}
 }
 
