@@ -3,7 +3,7 @@ class MateriasPrimasService {
 	static async obtenerMateriasPrimas() {
 		try {
 			const response = await fetch(
-				"http://frozenback-test.up.railway.app/api/stock/materiasprimas/"
+				"https://frozenback-test.up.railway.app/api/stock/materiasprimas/"
 			);
 
 			if (!response.ok) {
