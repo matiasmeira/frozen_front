@@ -237,7 +237,7 @@ const Ventas = () => {
     setPaginaActual(1);
   };
 
-  // FUNCIÓN PARA CANCELAR ORDEN - NUEVA
+  // FUNCIÓN PARA CANCELAR ORDEN - MODIFICADA: Solo permite cancelar órdenes con id_estado_venta = 9
   const cancelarOrden = async (idOrdenVenta) => {
     if (!window.confirm('¿Estás seguro de que deseas cancelar esta orden? Esta acción no se puede deshacer.')) {
       return;
@@ -289,15 +289,12 @@ const Ventas = () => {
     return idEstadoVenta === 3;
   };
 
-  // Función para verificar si una orden puede ser cancelada - MODIFICADA
+  // Función para verificar si una orden puede ser cancelada - MODIFICADA: Solo id_estado_venta = 9
   const puedeCancelarOrden = (orden) => {
     const idEstadoVenta = orden.estado_venta?.id_estado_venta || orden.id_estado_venta;
-    const estadoDescripcion = getDescripcionEstado(orden.estado_venta);
     
-    // No permitir cancelar órdenes que estén ya canceladas, completadas o pagadas
-    return estadoDescripcion !== 'Cancelada' && 
-           estadoDescripcion !== 'Completada' && 
-           idEstadoVenta !== 1; // No permitir cancelar órdenes pagadas (id_estado_venta = 1)
+    // SOLO permitir cancelar órdenes con id_estado_venta = 9 ("En Preparación")
+    return idEstadoVenta === 9;
   };
 
   const formatFecha = (fecha) => {
@@ -732,7 +729,7 @@ const Ventas = () => {
                   </button>
                 )}
                 
-                {/* Botón para cancelar orden - NO SE MUESTRA SI id_estado_venta = 1 (pagada) */}
+                {/* Botón para cancelar orden - SOLO SE MUESTRA SI id_estado_venta = 9 (En Preparación) */}
                 {puedeCancelarOrden(orden) && (
                   <button
                     onClick={(e) => {
