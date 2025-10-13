@@ -270,7 +270,7 @@
 /* Estilos específicos para inputs editables */
 .inputField {
 	transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-	padding: 0;
+
 }
 
 .inputField:focus-within {
