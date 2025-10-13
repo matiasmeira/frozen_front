@@ -1,25 +1,9 @@
 // Servicio para las llamadas API de materias primas
 class MateriasPrimasService {
-	static async obtenerUnidadesDeMedida() {
-		try {
-			const response = await fetch(
-				"https://frozenback-test.up.railway.app/api/productos/unidades/"
-			);
-			if (!response.ok) {
-				throw new Error(`Error HTTP: ${response.status}`);
-			}
-
-			const data = await response.json();
-            return data.results
-		} catch (error) {
-            console.error(error)
-            throw new Error(error)
-        }
-	}
 	static async obtenerMateriasPrimas() {
 		try {
 			const response = await fetch(
-				"https://frozenback-test.up.railway.app/api/materias_primas/materias/"
+				"http://frozenback-test.up.railway.app/api/stock/materiasprimas/"
 			);
 
 			if (!response.ok) {

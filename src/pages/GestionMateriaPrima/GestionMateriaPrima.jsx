@@ -18,31 +18,22 @@ const GestionMateriasPrimas = () => {
 		useState(null);
 	const [cantidadAgregar, setCantidadAgregar] = useState(0);
 	const [agregando, setAgregando] = useState(false);
-	const [unidadesDeMedida, setUnidadesDeMedida] = useState([])
 	// Estados para el modal de quitar
 	const [modalQuitarAbierto, setModalQuitarAbierto] = useState(false);
 	const [cantidadQuitar, setCantidadQuitar] = useState(0);
 	const [quitando, setQuitando] = useState(false);
 
 	useEffect(() => {
-		obtenerUnidadesDeMedida();
 		obtenerMateriasPrimas();
+
 	}, []);
 
-	const obtenerUnidadesDeMedida = async() => {
-		try {
-			const unidadesDeMedidaFetch =  await MateriasPrimasService.obtenerUnidadesDeMedida()
-			setUnidadesDeMedida(unidadesDeMedidaFetch)
-		} catch (error) {
-			console.error(error)
-		}
-		
-	}
 	const obtenerMateriasPrimas = async () => {
 		try {
 			setCargando(true);
 			setError(null);
 			const datos = await MateriasPrimasService.obtenerMateriasPrimas();
+			console.log(datos)
 			setMateriasPrimas(datos);
 		} catch (err) {
 			setError("Error al cargar las materias primas");
@@ -75,12 +66,8 @@ const GestionMateriasPrimas = () => {
 		setAgregando(true);
 		try {
 
-			const response = await MateriasPrimasService.agregarMateriaPrima(materiaPrimaSeleccionada.id_materia_prima, cantidadAgregar)
+			await MateriasPrimasService.agregarMateriaPrima(materiaPrimaSeleccionada.id_materia_prima, cantidadAgregar)
 
-
-			alert(
-				`${response.mensaje + "\n" +  "Nueva cantidad: "  +response.nueva_cantidad || response.cantidad}`
-			);
 
 			// Recargar la lista
 			await obtenerMateriasPrimas();
@@ -94,14 +81,6 @@ const GestionMateriasPrimas = () => {
 		}
 	};
 
-	const encontrarUnidadMedida = (id_unidad) =>{
-		const unidad =unidadesDeMedida.find((unidad) => {
-			return unidad.id_unidad === id_unidad 
-		})
-		
-		return unidad.descripcion
-
-	}
 
 	// Funciones para el modal de quitar
 	const abrirModalQuitar = (materiaPrima) => {
@@ -125,13 +104,8 @@ const GestionMateriasPrimas = () => {
 
 		setQuitando(true);
 		try {
-			const response = await MateriasPrimasService.quitarMateriaPrima(materiaPrimaSeleccionada.id_materia_prima, cantidadQuitar)
+			await MateriasPrimasService.quitarMateriaPrima(materiaPrimaSeleccionada.id_materia_prima, cantidadQuitar)
 
-			console.log(response)
-
-			alert(
-				`Se quitaron ${cantidadQuitar} unidades de ${materiaPrimaSeleccionada.nombre} exitosamente`
-			);
 
 			// Recargar la lista
 			await obtenerMateriasPrimas();
@@ -172,25 +146,13 @@ const GestionMateriasPrimas = () => {
 						>
 							<div className={styles.cardHeader}>
 								<h3>{materiaPrima.nombre}</h3>
-								<span className={styles.tipoBadge}>
-									{materiaPrima.tipo_descripcion}
-								</span>
 							</div>
 
 							<div className={styles.cardBody}>
-								<div className={styles.infoGrupo}>
-									<strong>Descripción:</strong>
-									<span>{materiaPrima.descripcion}</span>
-								</div>
 
 								<div className={styles.infoGrupo}>
-									<strong>Precio:</strong>
-									<span>${materiaPrima.precio}</span>
-								</div>
-
-								<div className={styles.infoGrupo}>
-									<strong>Unidad de medida:</strong>
-									<span>{encontrarUnidadMedida(materiaPrima.id_unidad)}</span>
+									<strong>{materiaPrima.unidad_medida}:</strong>
+									<span>{materiaPrima.cantidad_disponible}</span>
 								</div>
 
 							</div>
