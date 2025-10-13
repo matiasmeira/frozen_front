@@ -33,6 +33,41 @@ const CrearOrdenProduccion = () => {
 		productionLine: "",
 		startDate: "",
 	});
+	const [touched, setTouched] = useState({
+		product: false,
+		quantity: false,
+		productionLine: false,
+		startDate: false,
+	});
+
+	// Estado para controlar si el formulario es válido
+	const [isFormValid, setIsFormValid] = useState(false);
+	// Estado para controlar si se intentó enviar el formulario
+	const [submitAttempted, setSubmitAttempted] = useState(false);
+
+	// Efecto para validar el formulario completo cuando cambien los datos
+	useEffect(() => {
+		validateForm();
+	}, [formData, filteredLineOptions]);
+
+	// Función para validar si el formulario completo es válido
+	const validateForm = () => {
+		const { product, quantity, productionLine, startDate } = formData;
+		
+		// Verificar que todos los campos requeridos estén completos y válidos
+		const isValid = 
+			product.trim() !== "" &&
+			quantity.trim() !== "" &&
+			!isNaN(quantity) && 
+			parseInt(quantity) > 0 &&
+			productionLine.trim() !== "" &&
+			startDate.trim() !== "" &&
+			filteredLineOptions.length > 0 &&
+			filteredLineOptions.some(line => line.value === productionLine);
+
+		setIsFormValid(isValid);
+		return isValid;
+	};
 
 	// Efecto para cargar productos y líneas de producción desde la API
 	useEffect(() => {
@@ -192,65 +227,123 @@ const CrearOrdenProduccion = () => {
 		}
 	};
 
-	// Validaciones
-	const validarFormulario = () => {
-		const nuevosErrores = {
-			product: "",
-			quantity: "",
-			productionLine: "",
-			startDate: "",
-		};
+	// Validaciones individuales por campo
+	const validarCampo = (name, value) => {
+		switch (name) {
+			case "product":
+				if (!value.trim()) {
+					return "Debes seleccionar un producto";
+				}
+				return "";
 
-		let esValido = true;
+			case "quantity":
+				if (!value || value === "") {
+					return "La cantidad es obligatoria";
+				}
+				if (isNaN(value) || parseInt(value) < 1) {
+					return "La cantidad debe ser un número mayor a 0";
+				}
+				return "";
 
-		// Validar producto
-		if (!formData.product) {
-			nuevosErrores.product = "Debes seleccionar un producto";
-			esValido = false;
+			case "productionLine":
+				if (!value.trim()) {
+					return "Debes seleccionar una línea de producción";
+				}
+				return "";
+
+			case "startDate":
+				if (!value.trim()) {
+					return "La fecha de inicio es obligatoria";
+				}
+				const selectedDate = new Date(value);
+				const today = new Date();
+				today.setHours(0, 0, 0, 0);
+				
+				if (selectedDate < today) {
+					return "La fecha de inicio no puede ser anterior a la fecha actual";
+				}
+				return "";
+
+			default:
+				return "";
 		}
-
-		// Validar cantidad
-		if (!formData.quantity || formData.quantity < 1) {
-			nuevosErrores.quantity = "La cantidad debe ser mayor a 0";
-			esValido = false;
-		}
-
-		// Validar línea de producción
-		if (!formData.productionLine) {
-			nuevosErrores.productionLine = "Debes seleccionar una línea de producción";
-			esValido = false;
-		}
-
-		// Validar fecha
-		if (!formData.startDate) {
-			nuevosErrores.startDate = "Debes indicar una fecha de inicio";
-			esValido = false;
-		} else {
-			const selectedDate = new Date(formData.startDate);
-			const today = new Date();
-			today.setHours(0, 0, 0, 0);
-
-			if (selectedDate < today) {
-				nuevosErrores.startDate = "La fecha de inicio no puede ser anterior ni igual a la fecha de hoy";
-				esValido = false;
-			}
-		}
-
-		setErrors(nuevosErrores);
-		return esValido;
 	};
 
+	// Validación completa del formulario
+	const validarFormulario = () => {
+		const nuevosErrores = {
+			product: validarCampo("product", formData.product),
+			quantity: validarCampo("quantity", formData.quantity),
+			productionLine: validarCampo("productionLine", formData.productionLine),
+			startDate: validarCampo("startDate", formData.startDate),
+		};
+
+		setErrors(nuevosErrores);
+		
+		// Marcar todos los campos como tocados para mostrar todos los errores
+		setTouched({
+			product: true,
+			quantity: true,
+			productionLine: true,
+			startDate: true,
+		});
+
+		const isValid = !Object.values(nuevosErrores).some(error => error !== "");
+		setIsFormValid(isValid);
+		return isValid;
+	};
+
+	// Función para mostrar todos los campos incompletos
+	const mostrarCamposIncompletos = () => {
+		const nuevosErrores = {
+			product: validarCampo("product", formData.product),
+			quantity: validarCampo("quantity", formData.quantity),
+			productionLine: validarCampo("productionLine", formData.productionLine),
+			startDate: validarCampo("startDate", formData.startDate),
+		};
+
+		setErrors(nuevosErrores);
+		setTouched({
+			product: true,
+			quantity: true,
+			productionLine: true,
+			startDate: true,
+		});
+
+		// Crear mensaje con los campos faltantes
+		const camposFaltantes = [];
+		if (nuevosErrores.product) camposFaltantes.push("Producto");
+		if (nuevosErrores.quantity) camposFaltantes.push("Cantidad");
+		if (nuevosErrores.productionLine) camposFaltantes.push("Línea de Producción");
+		if (nuevosErrores.startDate) camposFaltantes.push("Fecha de Inicio");
+
+		if (camposFaltantes.length > 0) {
+			showAlert(`Complete los siguientes campos: ${camposFaltantes.join(", ")}`, "error");
+		}
+
+		return camposFaltantes.length === 0;
+	};
+
+	// Validación en tiempo real cuando el campo pierde el foco
+	const handleBlur = (e) => {
+		const { name, value } = e.target;
+		setTouched(prev => ({
+			...prev,
+			[name]: true
+		}));
+
+		const error = validarCampo(name, value);
+		setErrors(prev => ({
+			...prev,
+			[name]: error
+		}));
+	};
+
+	// Validación en tiempo real cuando el campo cambia
 	const handleInputChange = (e) => {
 		const { name, value } = e.target;
 
-		// Limpiar error del campo cuando el usuario empiece a escribir
-		if (errors[name]) {
-			setErrors({
-				...errors,
-				[name]: "",
-			});
-		}
-
+		// Actualizar el estado del formulario
 		if (name === "product") {
 			const selectedProduct = productOptions.find(
 				(product) => product.value === value
@@ -276,6 +369,31 @@ const CrearOrdenProduccion = () => {
 				[name]: value,
 			}));
 		}
+
+		// Si el campo ya fue tocado, validar en tiempo real
+		if (touched[name]) {
+			const error = validarCampo(name, value);
+			setErrors(prev => ({
+				...prev,
+				[name]: error
+			}));
+		}
+
+		// Limpiar error si el usuario está corrigiendo
+		if (errors[name] && value) {
+			const error = validarCampo(name, value);
+			if (!error) {
+				setErrors(prev => ({
+					...prev,
+					[name]: ""
+				}));
+			}
+		}
+
+		// Si ya se intentó enviar, limpiar el estado de intento cuando el usuario empiece a corregir
+		if (submitAttempted && value.trim() !== "") {
+			setSubmitAttempted(false);
+		}
 	};
 
 	// Mostrar alerta
@@ -299,8 +417,13 @@ const CrearOrdenProduccion = () => {
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
+		setSubmitAttempted(true);
 		
-		if (!validarFormulario()) {
+		// Mostrar todos los campos incompletos y validar
+		const esValido = mostrarCamposIncompletos();
+		
+		if (!esValido) {
+			// Ya se mostraron los errores y el alert con los campos faltantes
 			return;
 		}
 
@@ -334,6 +457,7 @@ const CrearOrdenProduccion = () => {
 			setTimeout(() => {
 				resetForm();
 				setSubmitting(false);
+				setSubmitAttempted(false);
 			}, 2000);
 		} catch (error) {
 			console.error("Error al crear orden:", error);
@@ -360,6 +484,20 @@ const CrearOrdenProduccion = () => {
 			productionLine: "",
 			startDate: "",
 		});
+		setTouched({
+			product: false,
+			quantity: false,
+			productionLine: false,
+			startDate: false,
+		});
+		setIsFormValid(false);
+		setSubmitAttempted(false);
+	};
+
+	// Función para verificar si un campo debe mostrar error
+	const shouldShowError = (fieldName) => {
+		// Mostrar error si el campo fue tocado O si se intentó enviar el formulario
+		return (touched[fieldName] || submitAttempted) && errors[fieldName];
 	};
 
 	if (loading) {
@@ -410,7 +548,7 @@ const CrearOrdenProduccion = () => {
 
 								<div className={styles.formGroup}>
 									<label htmlFor="startDate" className={styles.formLabel}>
-										Fecha de Inicio Planificada
+										Fecha de Inicio Planificada *
 									</label>
 									<input
 										type="date"
@@ -418,14 +556,15 @@ const CrearOrdenProduccion = () => {
 										name="startDate"
 										value={formData.startDate}
 										onChange={handleInputChange}
+										onBlur={handleBlur}
 										required
 										disabled={submitting}
 										min={new Date().toISOString().split("T")[0]}
 										className={`${styles.formInput} ${
-											errors.startDate ? styles.inputError : ""
+											shouldShowError("startDate") ? styles.inputError : ""
 										} ${submitting ? styles.disabledInput : ""}`}
 									/>
-									{errors.startDate && (
+									{shouldShowError("startDate") && (
 										<span className={styles.errorText}>{errors.startDate}</span>
 									)}
 								</div>
@@ -435,16 +574,17 @@ const CrearOrdenProduccion = () => {
 							<div className={styles.formRow}>
 								<div className={styles.formGroup}>
 									<label htmlFor="product" className={styles.formLabel}>
-										Producto
+										Producto *
 									</label>
 									<select
 										id="product"
 										name="product"
 										value={formData.product}
 										onChange={handleInputChange}
+										onBlur={handleBlur}
 										disabled={submitting || productOptions.length === 0}
 										className={`${styles.formInput} ${
-											errors.product ? styles.inputError : ""
+											shouldShowError("product") ? styles.inputError : ""
 										} ${submitting ? styles.disabledInput : ""}`}
 									>
 										<option value="" disabled hidden>
@@ -458,7 +598,7 @@ const CrearOrdenProduccion = () => {
 											</option>
 										))}
 									</select>
-									{errors.product && (
+									{shouldShowError("product") && (
 										<span className={styles.errorText}>{errors.product}</span>
 									)}
 									{productOptions.length === 0 && !loading && (
@@ -470,7 +610,7 @@ const CrearOrdenProduccion = () => {
 
 								<div className={styles.formGroup}>
 									<label htmlFor="quantity" className={styles.formLabel}>
-										Cantidad{selectedProductUnit && ` (${selectedProductUnit})`}
+										Cantidad{selectedProductUnit && ` (${selectedProductUnit})`} *
 									</label>
 									<input
 										type="number"
@@ -478,6 +618,7 @@ const CrearOrdenProduccion = () => {
 										name="quantity"
 										value={formData.quantity}
 										onChange={handleInputChange}
+										onBlur={handleBlur}
 										min="1"
 										required
 										disabled={submitting}
@@ -487,10 +628,10 @@ const CrearOrdenProduccion = () => {
 												: "Ingrese la cantidad"
 										}
 										className={`${styles.formInput} ${
-											errors.quantity ? styles.inputError : ""
+											shouldShowError("quantity") ? styles.inputError : ""
 										} ${submitting ? styles.disabledInput : ""}`}
 									/>
-									{errors.quantity && (
+									{shouldShowError("quantity") && (
 										<span className={styles.errorText}>{errors.quantity}</span>
 									)}
 								</div>
@@ -500,7 +641,7 @@ const CrearOrdenProduccion = () => {
 							<div className={styles.formRow}>
 								<div className={`${styles.formGroup} ${styles.fullWidth}`}>
 									<label htmlFor="productionLine" className={styles.formLabel}>
-										Línea de Producción
+										Línea de Producción *
 										{loadingLines && (
 											<small className={styles.loadingText}>
 												{" "}
@@ -521,6 +662,7 @@ const CrearOrdenProduccion = () => {
 										name="productionLine"
 										value={formData.productionLine}
 										onChange={handleInputChange}
+										onBlur={handleBlur}
 										required
 										disabled={
 											submitting ||
@@ -529,7 +671,7 @@ const CrearOrdenProduccion = () => {
 											filteredLineOptions.length === 0
 										}
 										className={`${styles.formInput} ${
-											errors.productionLine ? styles.inputError : ""
+											shouldShowError("productionLine") ? styles.inputError : ""
 										} ${submitting ? styles.disabledInput : ""}`}
 									>
 										<option value="" disabled hidden>
@@ -547,7 +689,7 @@ const CrearOrdenProduccion = () => {
 											</option>
 										))}
 									</select>
-									{errors.productionLine && (
+									{shouldShowError("productionLine") && (
 										<span className={styles.errorText}>{errors.productionLine}</span>
 									)}
 									{formData.product &&
@@ -562,6 +704,16 @@ const CrearOrdenProduccion = () => {
 							</div>
 						</div>
 
+						{/* Información de campos requeridos */}
+						<div className={styles.requiredInfo}>
+							<small>* Campos obligatorios</small>
+							{submitAttempted && !isFormValid && (
+								<small className={styles.validationError}>
+									❌ Complete todos los campos requeridos marcados en rojo
+								</small>
+							)}
+						</div>
+
 						{/* Acciones del Formulario */}
 						<div className={styles.actionsContainer}>
 							<button
@@ -569,12 +721,7 @@ const CrearOrdenProduccion = () => {
 								className={`${styles.submitButton} ${
 									submitting ? styles.submitButtonLoading : ""
 								}`}
-								disabled={
-									submitting ||
-									productOptions.length === 0 ||
-									!formData.productionLine ||
-									!idUsuario
-								}
+								disabled={submitting}
 							>
 								{submitting ? (
 									<div className={styles.buttonLoadingContent}>

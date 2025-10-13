@@ -539,6 +539,7 @@ function CrearOrdenDeVenta() {
 										</div>
 
 										<div className={styles.productGrid}>
+											{/* Producto */}
 											<div className={styles.productField}>
 												<label
 													htmlFor={`producto-${field.id}`}
@@ -553,7 +554,7 @@ function CrearOrdenDeVenta() {
 														updateProduct(field.id, e.target.value)
 													}
 													disabled={creatingOrder}
-													className={`${styles.formInput} ${
+													className={`${styles.formInput} ${styles.inputField} ${
 														creatingOrder ? styles.disabledInput : ""
 													}`}
 												>
@@ -583,6 +584,7 @@ function CrearOrdenDeVenta() {
 												</select>
 											</div>
 
+											{/* Cantidad */}
 											<div className={styles.productField}>
 												<label
 													htmlFor={`cantidad-${field.id}`}
@@ -602,7 +604,7 @@ function CrearOrdenDeVenta() {
 														)
 													}
 													disabled={creatingOrder}
-													className={`${styles.formInput} ${
+													className={`${styles.formInput} ${styles.inputField} ${
 														creatingOrder ? styles.disabledInput : ""
 													} ${
 														field.id_producto &&
@@ -613,12 +615,13 @@ function CrearOrdenDeVenta() {
 												/>
 											</div>
 
+											{/* Unidad de Medida */}
 											<div className={styles.productField}>
 												<label className={styles.fieldLabel}>
 													Unidad de Medida
 												</label>
 												<div
-													className={`${styles.measurementDisplay} ${
+													className={`${styles.measurementDisplay} ${styles.displayField} ${
 														creatingOrder ? styles.disabledInput : ""
 													}`}
 												>
@@ -626,13 +629,13 @@ function CrearOrdenDeVenta() {
 												</div>
 											</div>
 
-											{/* Nueva sección para mostrar cantidad disponible */}
+											{/* Stock Disponible */}
 											<div className={styles.productField}>
 												<label className={styles.fieldLabel}>
 													Stock Disponible
 												</label>
 												<div
-													className={`${styles.stockDisplay} ${
+													className={`${styles.stockDisplay} ${styles.displayField} ${
 														creatingOrder ? styles.disabledInput : ""
 													}`}
 												>
@@ -642,13 +645,13 @@ function CrearOrdenDeVenta() {
 												</div>
 											</div>
 
-											{/* Nueva sección para mostrar precio unitario y subtotal */}
+											{/* Precio Unitario */}
 											<div className={styles.productField}>
 												<label className={styles.fieldLabel}>
 													Precio Unitario
 												</label>
 												<div
-													className={`${styles.priceDisplay} ${
+													className={`${styles.priceDisplay} ${styles.displayField} ${
 														creatingOrder ? styles.disabledInput : ""
 													}`}
 												>
@@ -658,12 +661,13 @@ function CrearOrdenDeVenta() {
 												</div>
 											</div>
 
+											{/* Subtotal */}
 											<div className={styles.productField}>
 												<label className={styles.fieldLabel}>
 													Subtotal
 												</label>
 												<div
-													className={`${styles.subtotalDisplay} ${
+													className={`${styles.subtotalDisplay} ${styles.displayField} ${
 														creatingOrder ? styles.disabledInput : ""
 													}`}
 												>

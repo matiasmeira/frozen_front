@@ -40,11 +40,13 @@ const Ventas = () => {
     searchParams.get('prioridad') || 'todos'
   );
 
-  // Función para verificar si una orden puede ser editada
+  // Función para verificar si una orden puede ser editada - MODIFICADA
   const puedeEditarOrden = (orden) => {
+    const idEstadoVenta = orden.estado_venta?.id_estado_venta || orden.id_estado_venta;
     const estadoDescripcion = getDescripcionEstado(orden.estado_venta);
-    // No permitir editar órdenes canceladas
-    return estadoDescripcion !== 'Cancelada';
+    
+    // No permitir editar órdenes canceladas o pagadas
+    return estadoDescripcion !== 'Cancelada' && idEstadoVenta !== 1;
   };
 
   // Función para navegar a crear nueva orden
@@ -275,25 +277,27 @@ const Ventas = () => {
     }
   };
 
-    // Función para navegar a generar factura
+  // Función para navegar a generar factura
   const handleGenerarFactura = (idOrdenVenta) => {
     navigate(`/generar-factura/${idOrdenVenta}`);
   };
 
-  // Función para verificar si una orden puede ser facturada
+  // Función para verificar si una orden puede ser facturada - MODIFICADA
   const puedeFacturarOrden = (orden) => {
-    const estadoDescripcion = getDescripcionEstado(orden.estado_venta);
-    // Solo permitir facturar órdenes que no estén canceladas
-    const estadosNoFacturables = ['Cancelada'];
-    return !estadosNoFacturables.includes(estadoDescripcion);
+    // Solo permitir facturar órdenes con id_estado_venta = 3 ("pendiente de pago")
+    const idEstadoVenta = orden.estado_venta?.id_estado_venta || orden.id_estado_venta;
+    return idEstadoVenta === 3;
   };
 
-
-  // Función para verificar si una orden puede ser cancelada
+  // Función para verificar si una orden puede ser cancelada - MODIFICADA
   const puedeCancelarOrden = (orden) => {
+    const idEstadoVenta = orden.estado_venta?.id_estado_venta || orden.id_estado_venta;
     const estadoDescripcion = getDescripcionEstado(orden.estado_venta);
-    // Solo permitir cancelar órdenes que no estén ya canceladas o completadas
-    return estadoDescripcion !== 'Cancelada' && estadoDescripcion !== 'Completada';
+    
+    // No permitir cancelar órdenes que estén ya canceladas, completadas o pagadas
+    return estadoDescripcion !== 'Cancelada' && 
+           estadoDescripcion !== 'Completada' && 
+           idEstadoVenta !== 1; // No permitir cancelar órdenes pagadas (id_estado_venta = 1)
   };
 
   const formatFecha = (fecha) => {
@@ -357,6 +361,7 @@ const Ventas = () => {
       'En Preparación': styles.badgeEstadoPreparacion,
       'Completada': styles.badgeEstadoCompletada,
       'Cancelada': styles.badgeEstadoCancelada,
+      'Pagada': styles.badgeEstadoPagada,
       'Creada': styles.badgeEstadoDefault
     };
     return clases[estadoDescripcion] || styles.badgeEstadoDefault;
@@ -376,7 +381,7 @@ const Ventas = () => {
   const iniciarEdicion = (orden) => {
     // Verificar si la orden puede ser editada
     if (!puedeEditarOrden(orden)) {
-      alert('No se puede editar una orden cancelada');
+      alert('No se puede editar una orden cancelada o pagada');
       return;
     }
     
@@ -563,7 +568,7 @@ const Ventas = () => {
     
     // Verificar si la orden puede ser editada antes de iniciar edición
     if (!puedeEditarOrden(orden)) {
-      alert('No se puede editar una orden cancelada');
+      alert('No se puede editar una orden cancelada o pagada');
       return;
     }
     
@@ -714,7 +719,7 @@ const Ventas = () => {
 
               {/* BOTONES DE ACCIÓN - INCLUYENDO FACTURAR */}
               <div className={styles.botonesAccion}>
-                {/* Botón para facturar */}
+                {/* Botón para facturar - SOLO SE MUESTRA SI id_estado_venta = 3 */}
                 {puedeFacturarOrden(orden) && (
                   <button
                     onClick={(e) => {
@@ -727,7 +732,7 @@ const Ventas = () => {
                   </button>
                 )}
                 
-                {/* Botón para cancelar orden */}
+                {/* Botón para cancelar orden - NO SE MUESTRA SI id_estado_venta = 1 (pagada) */}
                 {puedeCancelarOrden(orden) && (
                   <button
                     onClick={(e) => {
