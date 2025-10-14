@@ -422,7 +422,6 @@ const VerOrdenesProduccion = () => {
 			);
 
 			await obtenerOrdenes(paginacion.currentPage);
-
 		} catch (error) {
 			console.log(error);
 		}
@@ -467,6 +466,16 @@ const VerOrdenesProduccion = () => {
 		}
 
 		return paginas;
+	};
+
+	const puedeCancelar = () => {
+		const rol = JSON.parse(localStorage.getItem("usuario")).rol;
+
+		if (rol == "Gerente" || rol == "Administrador" || rol == "Supervisor") {
+			return true;
+		}
+
+		return false;
 	};
 
 	if (cargando && ordenes.length === 0) {
@@ -619,12 +628,15 @@ const VerOrdenesProduccion = () => {
 										>
 											Finalizar
 										</button>
-										<button
-											className={styles.btnCancelar}
-											onClick={() => abrirModalCancelar(orden)}
-										>
-											Cancelar
-										</button>
+										{console.log(puedeCancelar())}
+										{puedeCancelar() ? (
+											<button
+												className={styles.btnCancelar}
+												onClick={() => abrirModalCancelar(orden)}
+											>
+												Cancelar
+											</button>
+										) : null}
 									</>
 								) : null}
 
