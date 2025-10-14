@@ -52,6 +52,7 @@ const Ventas = () => {
     const estadoDescripcion = getDescripcionEstado(orden.estado_venta);
     
     // No permitir editar órdenes canceladas o pagadas
+    // Pero sí permitir editar órdenes en estado 3 y 9 (que también se pueden cancelar)
     return estadoDescripcion !== 'Cancelada' && idEstadoVenta !== 1;
   };
 
@@ -296,9 +297,10 @@ const Ventas = () => {
   const puedeCancelarOrden = (orden) => {
     const idEstadoVenta = orden.estado_venta?.id_estado_venta || orden.id_estado_venta;
     
-    // SOLO permitir cancelar órdenes con id_estado_venta = 9 ("En Preparación")
-    return idEstadoVenta === 9;
+    // PERMITIR cancelar órdenes con id_estado_venta = 3 ("Pendiente de Pago") y 9 ("En Preparación")
+    return idEstadoVenta === 3 || idEstadoVenta === 9;
   };
+
 
   const formatFecha = (fecha) => {
     if (!fecha) return 'No asignada';
