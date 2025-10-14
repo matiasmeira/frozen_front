@@ -1,11 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import Modal from "react-modal";
+import axios from "axios";
 import styles from "./VerOrdenesProduccion.module.css";
 import OrdenProduccionService from "../../classes/DTOS/OrdenProduccionService";
 
 // Configurar el modal para accesibilidad
 Modal.setAppElement("#root");
+
+const baseURL = import.meta.env.VITE_API_BASE_URL;
+
+const api = axios.create({
+  baseURL: baseURL,
+});
 
 const VerOrdenesProduccion = () => {
 	const [searchParams, setSearchParams] = useSearchParams();
@@ -158,15 +165,9 @@ const VerOrdenesProduccion = () => {
 
 	const manejarIniciarOrden = async (idOrden) => {
 		try {
-			const response = await fetch(
-				`https://frozenback-test.up.railway.app/api/produccion/ordenes/${idOrden}/actualizar_estado/`,
-				{
-					method: "PATCH",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({ id_estado_orden_produccion: 4 }), // 4 = En proceso
-				}
+			const response = await api.patch(
+				`/produccion/ordenes/${idOrden}/actualizar_estado/`,
+				{ id_estado_orden_produccion: 4 } // 4 = En proceso
 			);
 
 			if (!response.ok) {
@@ -203,18 +204,12 @@ const VerOrdenesProduccion = () => {
 
 		setCancelando(true);
 		try {
-			const response = await fetch(
-				`https://frozenback-test.up.railway.app/api/produccion/ordenes/${ordenSeleccionada.id}/actualizar_estado/`,
-				{
-					method: "PATCH",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({ id_estado_orden_produccion: 7 }), // 7 = Cancelada
-				}
+			const response = await api.patch(
+				`/produccion/ordenes/${ordenSeleccionada.id}/actualizar_estado/`,
+				{ id_estado_orden_produccion: 7 } // 7 = Cancelada
 			);
 
-			if (response.ok) {
+			if (response.status === 200) {
 				alert("Orden de producción cancelada.");
 			}
 
@@ -410,15 +405,9 @@ const VerOrdenesProduccion = () => {
 
 	const manejarFinalizar = async (idOrden) => {
 		try {
-			const response = await fetch(
-				`https://frozenback-test.up.railway.app/api/produccion/ordenes/${idOrden}/actualizar_estado/`,
-				{
-					method: "PATCH",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({ id_estado_orden_produccion: 2 }), // 7 = Cancelada
-				}
+			const response = await api.patch(
+				`/produccion/ordenes/${idOrden}/actualizar_estado/`,
+				{ id_estado_orden_produccion: 2 } // 2 = Finalizada
 			);
 
 			await obtenerOrdenes(paginacion.currentPage);
@@ -986,6 +975,7 @@ const VerOrdenesProduccion = () => {
 						</button>
 					</div>
 				</div>
+			
 			</Modal>
 		</div>
 	);

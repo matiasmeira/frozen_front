@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import styles from "./VerOrdenesCompra.module.css";
 import { OrdenCompraService } from "../../classes/OrdenesCompraService";
+
+const baseURL = import.meta.env.VITE_API_BASE_URL;
+
+const api = axios.create({
+  baseURL: baseURL,
+});
 
 const VerOrdenesCompra = () => {
 	const [ordenes, setOrdenes] = useState([]);
@@ -113,20 +120,59 @@ const VerOrdenesCompra = () => {
 		setFiltroFecha("todos");
 	};
 
-	// Funciones para los botones (por ahora solo console.log)
-	const manejarRecibir = (orden) => {
-		console.log("Recibir orden:", orden.numero_orden);
-		// Aquí irá la lógica para recibir la orden
+	// Funciones para los botones (ahora usando la instancia de axios)
+	const manejarRecibir = async (orden) => {
+		try {
+			console.log("Recibiendo orden:", orden.numero_orden);
+			
+			// Aquí irá la lógica para recibir la orden usando la instancia de axios
+			const response = await api.patch(`/compras/ordenes/${orden.id_orden_compra}/recibir/`);
+			
+			if (response.status === 200) {
+				console.log("Orden recibida exitosamente");
+				// Recargar las órdenes para reflejar el cambio
+				const datos = await OrdenCompraService.obtenerOrdenesCompra();
+				setOrdenes(datos);
+				setOrdenesFiltradas(datos);
+			}
+		} catch (error) {
+			console.error("Error al recibir la orden:", error);
+		}
 	};
 
-	const manejarRechazar = (orden) => {
-		console.log("Rechazar orden:", orden.numero_orden);
-		// Aquí irá la lógica para rechazar la orden
+	const manejarRechazar = async (orden) => {
+		try {
+			console.log("Rechazando orden:", orden.numero_orden);
+			
+			// Aquí irá la lógica para rechazar la orden usando la instancia de axios
+			const response = await api.patch(`/compras/ordenes/${orden.id_orden_compra}/rechazar/`);
+			
+			if (response.status === 200) {
+				console.log("Orden rechazada exitosamente");
+				// Recargar las órdenes para reflejar el cambio
+				const datos = await OrdenCompraService.obtenerOrdenesCompra();
+				setOrdenes(datos);
+				setOrdenesFiltradas(datos);
+			}
+		} catch (error) {
+			console.error("Error al rechazar la orden:", error);
+		}
 	};
 
-	const manejarVerDetalles = (orden) => {
-		console.log("Ver detalles de orden:", orden.numero_orden);
-		// Aquí irá la lógica para mostrar detalles
+	const manejarVerDetalles = async (orden) => {
+		try {
+			console.log("Obteniendo detalles de orden:", orden.numero_orden);
+			
+			// Aquí irá la lógica para obtener detalles usando la instancia de axios
+			const response = await api.get(`/compras/ordenes/${orden.id_orden_compra}/`);
+			
+			if (response.status === 200) {
+				console.log("Detalles de la orden:", response.data);
+				// Aquí puedes mostrar los detalles en un modal o redirigir a otra página
+			}
+		} catch (error) {
+			console.error("Error al obtener detalles de la orden:", error);
+		}
 	};
 
 	if (cargando) {

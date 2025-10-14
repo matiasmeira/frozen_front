@@ -5,6 +5,12 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import styles from './GeneradorFactura.module.css';
 
+const baseURL = import.meta.env.VITE_API_BASE_URL;
+
+const api = axios.create({
+  baseURL: baseURL,
+});
+
 const GeneradorFactura = () => {
   const { idOrden } = useParams();
   const navigate = useNavigate();
@@ -27,9 +33,7 @@ const GeneradorFactura = () => {
       try {
         setLoading(true);
         
-        const response = await axios.get(
-          `https://frozenback-test.up.railway.app/api/ventas/facturacion/${idOrden}/`
-        );
+        const response = await api.get(`/ventas/facturacion/${idOrden}/`);
         
         const datos = response.data;
         setDatosFactura(datos);

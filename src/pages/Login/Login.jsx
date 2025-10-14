@@ -3,6 +3,12 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import styles from './Login.module.css';
 
+const baseURL = import.meta.env.VITE_API_BASE_URL;
+
+const api = axios.create({
+  baseURL: baseURL,
+});
+
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -25,7 +31,7 @@ const Login = () => {
 
     try {
       // Hacer la petición al backend
-      const response = await axios.post('https://frozenback-test.up.railway.app/api/login/', {
+      const response = await api.post('/login/', {
         username,
         password,
       });

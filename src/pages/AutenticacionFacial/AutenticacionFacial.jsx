@@ -1,7 +1,14 @@
 import React, {useState, useEffect, useRef} from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import * as faceapi from 'face-api.js';
 import styles from './AutenticacionFacial.module.css'
+
+const baseURL = import.meta.env.VITE_API_BASE_URL;
+
+const api = axios.create({
+  baseURL: baseURL,
+});
 
 function AutenticacionFacial() {
     const [vectoresUsuario, setVectoresUsuario] = useState([]);
