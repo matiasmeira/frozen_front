@@ -169,7 +169,7 @@ const VerOrdenesProduccion = () => {
 				}
 			);
 
-			if (!response.ok) {
+			if ( response.status != 200) {
 				throw new Error(`Error HTTP: ${response.status}`);
 			}
 
