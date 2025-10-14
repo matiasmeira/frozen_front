@@ -3,10 +3,10 @@ import axios from "axios";
 import styles from "./CrearOrdenDeVenta.module.css";
 import { useState, useEffect } from "react";
 
-// Configuración base de axios
+const baseURL = import.meta.env.VITE_API_BASE_URL;
+
 const api = axios.create({
-	baseURL: "https://frozenback-test.up.railway.app/api",
-	timeout: 10000,
+  baseURL: baseURL,
 });
 
 function CrearOrdenDeVenta() {

@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import styles from "./CrearOrdenProduccion.module.css";
 
-// Configuración base de axios
+const baseURL = import.meta.env.VITE_API_BASE_URL;
+
 const api = axios.create({
-  baseURL: "https://frozenback-test.up.railway.app/api",
+  baseURL: baseURL,
   timeout: 10000,
 });
 

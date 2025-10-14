@@ -1,3 +1,10 @@
+import axios from 'axios';
+const baseURL = import.meta.env.VITE_API_BASE_URL;
+
+const api = axios.create({
+  baseURL: baseURL,
+});
+
 class OrdenProduccionService {
 	// DTO - Transforma la respuesta compleja del backend en la estructura simple para el frontend
 	static transformarOrdenDTO(datosBackend) {
@@ -47,7 +54,7 @@ class OrdenProduccionService {
 
 	static async obtenerOrdenesPaginated(page = 1, filtros = {}) {
 		try {
-			let url = `https://frozenback-test.up.railway.app/api/produccion/ordenes/?page=${page}`;
+			let url = `/produccion/ordenes/?page=${page}`;
 
 			// Agregar filtros a la URL si existen
 			const params = new URLSearchParams();
@@ -60,13 +67,9 @@ class OrdenProduccionService {
 				url += `&${queryString}`;
 			}
 
-			const response = await fetch(url);
+			const response = await api.get(url);
 
-			if (!response.ok) {
-				throw new Error(`Error HTTP: ${response.status}`);
-			}
-
-			const datosPagina = await response.json();
+			const datosPagina = response.data;
 
 			// Transformar cada orden en el array de results
 			const ordenesTransformadas = datosPagina.results.map((ordenCompleja) =>
@@ -104,20 +107,14 @@ class OrdenProduccionService {
 	// Función principal para obtener y transformar las órdenes
 	static async obtenerOrdenes() {
 		try {
-			const response = await fetch(
-				"https://frozenback-test.up.railway.app/api/produccion/ordenes/"
-			);
+			const response = await api.get("/produccion/ordenes/");
 
-			if (!response.ok) {
-				throw new Error(`Error HTTP: ${response.status}`);
-			}
-
-			const datosPagina = await response.json();
+			const datosPagina = response.data;
 
 			// Transformar cada orden en el array de results
-			const ordenesTransformadas = datosPagina.results.map((ordenCompleja) => {
-				this.transformarOrdenDTO(ordenCompleja);
-			});
+			const ordenesTransformadas = datosPagina.results.map((ordenCompleja) =>
+				this.transformarOrdenDTO(ordenCompleja)
+			);
 
 			return {
 				ordenes: ordenesTransformadas,
@@ -136,7 +133,7 @@ class OrdenProduccionService {
 	// Función para obtener todas las páginas (si necesitas todos los datos)
 	static async obtenerTodasLasOrdenes(filtros = {}, queryParam = "") {
 		let todasLasOrdenes = [];
-		let url = `https://frozenback-test.up.railway.app/api/produccion/ordenes/${queryParam}`;
+		let url = `/produccion/ordenes/${queryParam}`;
 
 		// Construir parámetros de filtro
 		const params = new URLSearchParams();
@@ -157,23 +154,18 @@ class OrdenProduccionService {
 		}
 
 		try {
-			const response = await fetch(url);
+			const response = await api.get(url);
 
-			if (!response.ok) {
-				throw new Error(`Error HTTP: ${response.status}`);
-			}
-
-			const datosPagina = await response.json();
+			const datosPagina = response.data;
 
 			// Transformar las órdenes de esta página
-			const ordenesPagina = datosPagina.results.map((ordenCompleja) => {
-				return this.transformarOrdenDTO(ordenCompleja);
-			});
+			const ordenesPagina = datosPagina.results.map((ordenCompleja) =>
+				this.transformarOrdenDTO(ordenCompleja)
+			);
 
 			todasLasOrdenes = [...todasLasOrdenes, ...ordenesPagina];
-			url = datosPagina.next; // Pasar a la siguiente página
 
-			return { url, todasLasOrdenes };
+			return { url: datosPagina.next, todasLasOrdenes };
 		} catch (error) {
 			console.error("Error en obtenerTodasLasOrdenes:", error);
 			throw new Error("No se pudieron cargar todas las órdenes");
@@ -183,24 +175,16 @@ class OrdenProduccionService {
 	// Función para obtener todos los estados disponibles
 	static async obtenerEstados() {
 		try {
-			const url =
-				"https://frozenback-test.up.railway.app/api/produccion/estados/";
-			const response = await fetch(url);
+			const response = await api.get("/produccion/estados/");
 
-			if (!response.ok) {
-				throw new Error(`Error HTTP: ${response.status}`);
-			}
-
-			const datos = await response.json();
+			const datos = response.data;
 
 			const estadosTransformados = datos.results.map((estado) => ({
 				id: estado.id_estado_orden_produccion,
 				nombre: estado.descripcion,
 			}));
 
-
-			const estadosOrdenados = this.ordenarEstadosProduccion(estadosTransformados)
-			
+			const estadosOrdenados = this.ordenarEstadosProduccion(estadosTransformados);
 
 			return estadosOrdenados;
 		} catch (error) {
@@ -211,7 +195,7 @@ class OrdenProduccionService {
 
 	static ordenarEstadosProduccion(datos) {
 		// numeros para agregar orden a los estados.
-		const mapaDeOrden = [3,4,2,1,5];
+		const mapaDeOrden = [3, 4, 2, 1, 5];
 
 		const datosConOrden = datos.map((item, index) => ({
 			...item,
@@ -224,16 +208,9 @@ class OrdenProduccionService {
 
 	static async obtenerOperarios() {
 		try {
-			const url =
-				"https://frozenback-test.up.railway.app/api/empleados/empleados-filter/?rol=1";
+			const response = await api.get("/empleados/empleados-filter/?rol=1");
 
-			const response = await fetch(url);
-
-			if (!response.ok) {
-				throw new Error(`Error HTTP: ${response.status}`);
-			}
-
-			const datos = await response.json();
+			const datos = response.data;
 
 			const operariosTransformados = datos.results.map((operario) => ({
 				id: operario.id_empleado,
@@ -249,22 +226,14 @@ class OrdenProduccionService {
 
 	static async obtenerProductos() {
 		try {
-			const response = await fetch(
-				"https://frozenback-test.up.railway.app/api/productos/listar/"
-			);
+			const response = await api.get("/productos/listar/");
 
-			if (!response.ok) {
-				throw new Error(`Error HTTP: ${response.status}`);
-			}
-
-			const data = await response.json();
-			return data.results;
+			return response.data.results;
 		} catch (error) {
 			console.error("Error en obtenerProductos:", error);
 			throw new Error("No se pudieron cargar los productos");
 		}
 	}
-
 }
 
 export default OrdenProduccionService;

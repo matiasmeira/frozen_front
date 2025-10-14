@@ -1,10 +1,17 @@
 import React, { useState, useEffect } from "react";
 import Modal from "react-modal";
+import axios from "axios";
 import styles from "./GestionMateriaPrima.module.css";
 import MateriasPrimasService from "../../classes/DTOS/MateriasPrimasService";
 
 // Configurar el modal para accesibilidad
 Modal.setAppElement("#root");
+
+const baseURL = import.meta.env.VITE_API_BASE_URL;
+
+const api = axios.create({
+  baseURL: baseURL,
+});
 
 // Servicio para las llamadas API de materias primas
 const GestionMateriasPrimas = () => {

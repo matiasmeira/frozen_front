@@ -3,6 +3,12 @@ import axios from 'axios';
 import * as faceapi from "face-api.js";
 import styles from "./Fichaje.module.css";
 
+const baseURL = import.meta.env.VITE_API_BASE_URL;
+
+const api = axios.create({
+  baseURL: baseURL,
+});
+
 const Fichaje = () => {
   const videoRef = useRef(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -15,8 +21,6 @@ const Fichaje = () => {
   const [cameraStream, setCameraStream] = useState(null);
   const [empleadoInfo, setEmpleadoInfo] = useState(null);
   const [recognitionStarted, setRecognitionStarted] = useState(false);
-
-  const BACKEND_URL = "https://frozenback-test.up.railway.app/api/fichaje/";
 
   useEffect(() => {
     // Solo cargar los modelos de FaceAPI al inicio
@@ -112,7 +116,7 @@ const Fichaje = () => {
     setIsProcessing(true);
     setResult(null);
     try {
-      const response = await axios.post(BACKEND_URL, 
+      const response = await api.post("/fichaje/", 
         { vector }, // Solo enviamos el vector, sin ID
         {
           headers: { "Content-Type": "application/json" }

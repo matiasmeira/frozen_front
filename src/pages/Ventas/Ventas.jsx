@@ -3,6 +3,12 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import styles from './Ventas.module.css';
 
+const baseURL = import.meta.env.VITE_API_BASE_URL;
+
+const api = axios.create({
+  baseURL: baseURL,
+});
+
 const Ventas = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -46,6 +52,7 @@ const Ventas = () => {
     const estadoDescripcion = getDescripcionEstado(orden.estado_venta);
     
     // No permitir editar órdenes canceladas o pagadas
+    // Pero sí permitir editar órdenes en estado 3 y 9 (que también se pueden cancelar)
     return estadoDescripcion !== 'Cancelada' && idEstadoVenta !== 1;
   };
 
@@ -75,10 +82,7 @@ const Ventas = () => {
 
       console.log('Fetching órdenes con parámetros:', params.toString());
 
-      const response = await axios.get(
-        `https://frozenback-test.up.railway.app/api/ventas/ordenes-venta/?${params.toString()}`
-        
-      );
+      const response = await api.get(`/ventas/ordenes-venta/?${params.toString()}`);
       
       const data = response.data;
       setOrdenes(data.results || []);
@@ -97,7 +101,7 @@ const Ventas = () => {
   // Función para obtener estados disponibles
   const fetchEstados = async () => {
     try {
-      const response = await axios.get('https://frozenback-test.up.railway.app/api/ventas/estados-venta/');
+      const response = await api.get('/ventas/estados-venta/');
       setEstadosDisponibles(response.data.results || []);
     } catch (err) {
       console.error('Error fetching estados:', err);
@@ -107,7 +111,7 @@ const Ventas = () => {
   // Función para obtener clientes disponibles
   const fetchClientes = async () => {
     try {
-      const response = await axios.get('https://frozenback-test.up.railway.app/api/ventas/clientes/');
+      const response = await api.get('/ventas/clientes/');
       console.log('Clientes obtenidos:', response.data);
       setClientesDisponibles(response.data.results || []);
     } catch (err) {
@@ -122,8 +126,8 @@ const Ventas = () => {
         setLoading(true);
         
         const [productosResponse, prioridadesResponse] = await Promise.all([
-          axios.get('https://frozenback-test.up.railway.app/api/productos/productos/'),
-          axios.get('https://frozenback-test.up.railway.app/api/ventas/prioridades/')
+          api.get('/productos/productos/'),
+          api.get('/ventas/prioridades/')
         ]);
         
         setProductosDisponibles(productosResponse.data.results || []);
@@ -251,8 +255,8 @@ const Ventas = () => {
         id_estado_venta: 6 // ID para estado "Cancelada"
       };
 
-      const response = await axios.put(
-        'https://frozenback-test.up.railway.app/api/ventas/ordenes_venta/cambiar_estado/',
+      const response = await api.put(
+        '/ventas/ordenes_venta/cambiar_estado/',
         datosCancelacion,
         { 
           headers: { 
@@ -293,9 +297,10 @@ const Ventas = () => {
   const puedeCancelarOrden = (orden) => {
     const idEstadoVenta = orden.estado_venta?.id_estado_venta || orden.id_estado_venta;
     
-    // SOLO permitir cancelar órdenes con id_estado_venta = 9 ("En Preparación")
-    return idEstadoVenta === 9;
+    // PERMITIR cancelar órdenes con id_estado_venta = 3 ("Pendiente de Pago") y 9 ("En Preparación")
+    return idEstadoVenta === 3 || idEstadoVenta === 9;
   };
+
 
   const formatFecha = (fecha) => {
     if (!fecha) return 'No asignada';
@@ -530,8 +535,8 @@ const Ventas = () => {
         datosActualizacion.id_prioridad = parseInt(prioridadEdit);
       }
 
-      await axios.put(
-        'https://frozenback-test.up.railway.app/api/ventas/ordenes-venta/actualizar/',
+      await api.put(
+        '/ventas/ordenes-venta/actualizar/',
         datosActualizacion,
         { headers: { 'Content-Type': 'application/json' } }
       );

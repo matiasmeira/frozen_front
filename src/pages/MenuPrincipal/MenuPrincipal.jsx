@@ -3,6 +3,12 @@ import axios from 'axios';
 import styles from './MenuPrincipal.module.css'
 import { useNavigate } from 'react-router-dom';
 
+const baseURL = import.meta.env.VITE_API_BASE_URL;
+
+const api = axios.create({
+  baseURL: baseURL,
+});
+
 function MenuPrincipal() {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
@@ -15,14 +21,12 @@ function MenuPrincipal() {
         setLoading(true)
         setError(null)
 
-      const usuarioData = localStorage.getItem('usuario');
-      const parsedData = JSON.parse(usuarioData);
-      const rolUsuario = parsedData.rol;
-      const response = await axios.get(`https://frozenback-test.up.railway.app/api/empleados/permisos-rol/${encodeURIComponent(rolUsuario)}`);
+        const usuarioData = localStorage.getItem('usuario');
+        const parsedData = JSON.parse(usuarioData);
+        const rolUsuario = parsedData.rol;
+        const response = await api.get(`/empleados/permisos-rol/${encodeURIComponent(rolUsuario)}`);
 
-
-        
-      const opcionesMenu = response.data.permisos;
+        const opcionesMenu = response.data.permisos;
 
         setData(opcionesMenu)
       } catch (err) {

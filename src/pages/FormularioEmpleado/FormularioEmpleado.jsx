@@ -1,7 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import * as faceapi from "face-api.js";
 import styles from './FormularioEmpleado.module.css';
+
+const baseURL = import.meta.env.VITE_API_BASE_URL;
+
+const api = axios.create({
+  baseURL: baseURL,
+});
 
 const FormularioEmpleado = () => {
 	const navigate = useNavigate();
@@ -104,11 +111,8 @@ const FormularioEmpleado = () => {
 
 	const traerDepartamentos = async () => {
 		try {
-			const response = await fetch(
-				"https://frozenback-test.up.railway.app/api/empleados/departamentos/"
-			);
-			const data = await response.json();
-			return data.results || [];
+			const response = await api.get("/empleados/departamentos/");
+			return response.data.results || [];
 		} catch (error) {
 			console.error("Error fetching departamentos:", error);
 			return [];
@@ -117,11 +121,8 @@ const FormularioEmpleado = () => {
 	
 	const traerRoles = async () => {
 		try {
-			const response = await fetch(
-				"https://frozenback-test.up.railway.app/api/empleados/roles/"
-			);
-			const data = await response.json();
-			return data.results || [];
+			const response = await api.get("/empleados/roles/");
+			return response.data.results || [];
 		} catch (error) {
 			console.error("Error fetching roles:", error);
 			return [];
@@ -130,11 +131,8 @@ const FormularioEmpleado = () => {
 	
 	const traerTurnos = async () => {
 		try {
-			const response = await fetch(
-				"https://frozenback-test.up.railway.app/api/empleados/turnos/"
-			);
-			const data = await response.json();
-			return data.results || [];
+			const response = await api.get("/empleados/turnos/");
+			return response.data.results || [];
 		} catch (error) {
 			console.error("Error fetching turnos:", error);
 			return [];
@@ -241,18 +239,14 @@ const FormularioEmpleado = () => {
 	const enviarDatosBackEnd = async () => {
 		try {
 			console.log(JSON.stringify({ ...form, vector: Array.from(faceVectors) }));
-			const response = await fetch(
-				"https://frozenback-test.up.railway.app/api/empleados/crear/",
-				{
-					method: "POST",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({ ...form, vector: Array.from(faceVectors) }),
-				}
-			);
+			const response = await api.post("/empleados/crear/", {
+				...form, 
+				vector: Array.from(faceVectors)
+			});
 
 			// Si el status es 400 o cualquier error
-			if (!response.ok) {
-				const errorData = await response.json();
+			if (response.status !== 200 && response.status !== 201) {
+				const errorData = response.data;
 				console.error("Error del backend:", errorData.error);
 				setErrors({ rostro: errorData.message || "Error en el servidor" });
 				return; // corta la ejecución
@@ -265,7 +259,12 @@ const FormularioEmpleado = () => {
 			}, 5000);
 		} catch (err) {
 			console.error("Error enviando datos al backend:", err);
-			setErrors({ submit: "Error enviando datos al servidor." });
+			if (err.response) {
+				const errorData = err.response.data;
+				setErrors({ submit: errorData.message || "Error en el servidor" });
+			} else {
+				setErrors({ submit: "Error enviando datos al servidor." });
+			}
 		}
 	};
 

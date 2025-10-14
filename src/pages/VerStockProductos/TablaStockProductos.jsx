@@ -2,6 +2,12 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import styles from './TablaStockProductos.module.css';
 
+const baseURL = import.meta.env.VITE_API_BASE_URL;
+
+const api = axios.create({
+  baseURL: baseURL,
+});
+
 const TablaStockProductos = () => {
   const [products, setProducts] = useState([]);
   const [stockData, setStockData] = useState({});
@@ -44,9 +50,7 @@ const TablaStockProductos = () => {
       
       console.log('Fetching productos con parámetros:', params.toString());
 
-      const response = await axios.get(
-        `https://frozenback-test.up.railway.app/api/productos/listar/?${params.toString()}`
-      );
+      const response = await api.get(`/productos/listar/?${params.toString()}`);
       
       const data = response.data;
       console.log('Productos obtenidos:', data.results);
@@ -87,9 +91,7 @@ const TablaStockProductos = () => {
         setStockLoading(true);
         const stockPromises = products.map(async (product) => {
           try {
-            const response = await axios.get(
-              `https://frozenback-test.up.railway.app/api/stock/cantidad-disponible/${product.id_producto}/`
-            );
+            const response = await api.get(`/stock/cantidad-disponible/${product.id_producto}/`);
             return {
               productId: product.id_producto,
               stock: response.data.cantidad_disponible
@@ -127,9 +129,7 @@ const TablaStockProductos = () => {
       const params = new URLSearchParams();
       params.append('page', pagina.toString());
       
-      const response = await axios.get(
-        `https://frozenback-test.up.railway.app/api/stock/lotes-produccion/?id_estado_lote_produccion=8&${params.toString()}`
-      );
+      const response = await api.get(`/stock/lotes-produccion/?id_estado_lote_produccion=8&${params.toString()}`);
       
       const data = response.data;
       console.log('Lotes de producción disponibles obtenidos:', data.results);
@@ -162,9 +162,6 @@ const TablaStockProductos = () => {
   useEffect(() => {
     fetchLotesProduccion(1);
   }, []);
-
-  // Resto del código se mantiene igual...
-  // [Las funciones de paginación, getStockStatus, etc.]
 
   // Funciones de paginación para productos
   const irAPaginaProductos = (pagina) => {

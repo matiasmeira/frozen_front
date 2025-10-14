@@ -1,17 +1,16 @@
-// Servicio para las llamadas API de materias primas
+import axios from 'axios';
+const baseURL = import.meta.env.VITE_API_BASE_URL;
+
+const api = axios.create({
+  baseURL: baseURL,
+});
+
 class MateriasPrimasService {
 	static async obtenerMateriasPrimas() {
 		try {
-			const response = await fetch(
-				"https://frozenback-test.up.railway.app/api/stock/materiasprimas/"
-			);
+			const response = await api.get("/stock/materiasprimas/");
 
-			if (!response.ok) {
-				throw new Error(`Error HTTP: ${response.status}`);
-			}
-
-			const data = await response.json();
-			return data.results || data;
+			return response.data.results || response.data;
 		} catch (error) {
 			console.error("Error en obtenerMateriasPrimas:", error);
 			throw new Error("No se pudieron cargar las materias primas");
@@ -20,25 +19,12 @@ class MateriasPrimasService {
 
 	static async agregarMateriaPrima(materiaPrimaId, cantidad) {
 		try {
-			const response = await fetch(
-				"https://frozenback-test.up.railway.app/api/stock/materias_primas/agregar/",
-				{
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({
-						id_materia_prima: materiaPrimaId,
-						cantidad: cantidad,
-					}),
-				}
-			);
+			const response = await api.post("/stock/materias_primas/agregar/", {
+				id_materia_prima: materiaPrimaId,
+				cantidad: cantidad,
+			});
 
-			if (!response.ok) {
-				throw new Error(`Error HTTP: ${response.status}`);
-			}
-
-			return await response.json();
+			return response.data;
 		} catch (error) {
 			console.error("Error en agregarMateriaPrima:", error);
 			throw new Error("No se pudo agregar la materia prima");
@@ -47,25 +33,12 @@ class MateriasPrimasService {
 
 	static async quitarMateriaPrima(materiaPrimaId, cantidad) {
 		try {
-			const response = await fetch(
-				"https://frozenback-test.up.railway.app/api/stock/materias_primas/restar/",
-				{
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({
-						id_materia_prima: materiaPrimaId,
-						cantidad: cantidad,
-					}),
-				}
-			);
+			const response = await api.post("/stock/materias_primas/restar/", {
+				id_materia_prima: materiaPrimaId,
+				cantidad: cantidad,
+			});
 
-			if (!response.ok) {
-				throw new Error(`Error HTTP: ${response.status}`);
-			}
-
-			return await response.json();
+			return response.data;
 		} catch (error) {
 			console.error("Error en quitarMateriaPrima:", error);
 			throw new Error("No se pudo quitar la materia prima");

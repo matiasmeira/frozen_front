@@ -43,17 +43,17 @@ function App() {
 							/>
 						</Route>
 
-						{/* <Route element={<ProtectedRoutes></ProtectedRoutes>}>*/}
-						<Route path="/home" element={<MenuPrincipal />} />
-						<Route path="/crearUsuario" element={<FormularioEmpleado />} />
-						<Route path="/verOrdenesVenta" element={<Ventas />} />
-						<Route path="/crearOrdenVenta" element={<CrearOrdenDeVenta />} />
-						<Route path="/generar-factura/:idOrden" element={<GeneradorFactura />} />
-						<Route path="/crearOrdenProduccion" element={<CrearOrdenProduccion />}/>
-						<Route path="/verOrdenesProduccion" element={<VerOrdenesProduccion />}/>
-						<Route path="/verStockProductos" element={<TablaStockProductos />}/>
-						<Route path="/GestionMateriasPrimas" element={<GestionMateriasPrimas/>}/>
-						<Route path="/VerOrdenesCompra" element={<VerOrdenesCompra/>}/>
+						{/*<Route element={<ProtectedRoutes></ProtectedRoutes>}>*/}
+							<Route path="/home" element={<MenuPrincipal />} />
+							<Route path="/crearUsuario" element={<FormularioEmpleado />} />
+							<Route path="/verOrdenesVenta" element={<Ventas />} />
+							<Route path="/crearOrdenVenta" element={<CrearOrdenDeVenta />} />
+							<Route path="/generar-factura/:idOrden" element={<GeneradorFactura />} />
+							<Route path="/crearOrdenProduccion" element={<CrearOrdenProduccion />}/>
+							<Route path="/verOrdenesProduccion" element={<VerOrdenesProduccion />}/>
+							<Route path="/verStockProductos" element={<TablaStockProductos />}/>
+							<Route path="/GestionMateriasPrimas" element={<GestionMateriasPrimas/>}/>
+							<Route path="/VerOrdenesCompra" element={<VerOrdenesCompra/>}/>
 						{/*</Route>*/}
 					</Routes>
 				</main>
