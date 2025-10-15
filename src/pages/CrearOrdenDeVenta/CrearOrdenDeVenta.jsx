@@ -602,8 +602,7 @@ function CrearOrdenDeVenta() {
 																	: "inherit",
 															}}
 														>
-															{product.nombre} - {product.descripcion} (
-															{formatearPrecio(product.precio)})
+															{product.nombre} - {product.descripcion}
 														</option>
 													))}
 												</select>
