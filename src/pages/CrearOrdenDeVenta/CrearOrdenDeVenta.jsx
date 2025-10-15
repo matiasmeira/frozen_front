@@ -2,11 +2,12 @@ import React from "react";
 import axios from "axios";
 import styles from "./CrearOrdenDeVenta.module.css";
 import { useState, useEffect } from "react";
+import Select from "react-select";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 const api = axios.create({
-  baseURL: baseURL,
+	baseURL: baseURL,
 });
 
 function CrearOrdenDeVenta() {
@@ -25,7 +26,7 @@ function CrearOrdenDeVenta() {
 			unidad_medida: "",
 			cantidad_disponible: 0,
 			precio_unitario: 0,
-			subtotal: 0
+			subtotal: 0,
 		},
 	]);
 	const [orden, setOrden] = useState({
@@ -62,7 +63,7 @@ function CrearOrdenDeVenta() {
 						obtenerProductos(),
 						obtenerPrioridades(),
 					]);
-				console.log(productosResponse)
+				console.log(productosResponse);
 				setProducts(productosResponse);
 				setClientes(clientesResponse.data.results);
 				setPrioridades(prioridadesResponse.data.results);
@@ -79,18 +80,16 @@ function CrearOrdenDeVenta() {
 	const obtenerProductos = async () => {
 		const response = await api.get("/productos/productos/");
 		console.log(response.data.results);
-		const productos = response.data.results.map((prod) => 
-			({
-				id_producto: prod.id_producto,
-				nombre: prod.nombre,
-				descripcion: prod.descripcion,
-				unidad_medida: prod.unidad.descripcion,
-				umbral_minimo: prod.umbral_minimo,
-				precio: prod.precio
-			})
-		);
+		const productos = response.data.results.map((prod) => ({
+			id_producto: prod.id_producto,
+			nombre: prod.nombre,
+			descripcion: prod.descripcion,
+			unidad_medida: prod.unidad.descripcion,
+			umbral_minimo: prod.umbral_minimo,
+			precio: prod.precio,
+		}));
 
-		console.log(productos)
+		console.log(productos);
 		return productos;
 	};
 
@@ -132,6 +131,28 @@ function CrearOrdenDeVenta() {
 		}
 	};
 
+	const handleCliente = (e) => {
+		console.log(e);
+		const {value } = e;
+		setOrden({
+			...orden,
+			["id_cliente"]: value,
+		});
+		if (errors["id_cliente"]) {
+			setErrors({
+				...errors,
+				["id_cliente"]: "",
+			});
+		}
+	};
+
+	const obtenerClientesNombres = () => {
+		const clientesNuevos = clientes.map((clientes) => {
+			return { value: clientes.id_cliente, label: clientes.nombre };
+		});
+		return clientesNuevos;
+	};
+
 	const addField = () => {
 		setCantidadElementos(cantidadElementos + 1);
 		const newField = {
@@ -141,7 +162,7 @@ function CrearOrdenDeVenta() {
 			unidad_medida: "",
 			cantidad_disponible: 0,
 			precio_unitario: 0,
-			subtotal: 0
+			subtotal: 0,
 		};
 		setFields([...fields, newField]);
 	};
@@ -183,7 +204,8 @@ function CrearOrdenDeVenta() {
 		}
 
 		// Calcular subtotal inicial
-		const cantidadActual = fields.find(field => field.id === id)?.cantidad || 1;
+		const cantidadActual =
+			fields.find((field) => field.id === id)?.cantidad || 1;
 		const subtotal = cantidadActual * precioUnitario;
 
 		setFields(
@@ -195,7 +217,7 @@ function CrearOrdenDeVenta() {
 							unidad_medida: unidadMedida,
 							cantidad_disponible: cantidadDisponible,
 							precio_unitario: precioUnitario,
-							subtotal: subtotal
+							subtotal: subtotal,
 					  }
 					: field
 			)
@@ -211,15 +233,15 @@ function CrearOrdenDeVenta() {
 
 	const updateQuantity = (id, cantidad) => {
 		const cantidadNumerica = Math.max(1, cantidad);
-		
+
 		setFields(
 			fields.map((field) => {
 				if (field.id === id) {
 					const subtotal = cantidadNumerica * field.precio_unitario;
-					return { 
-						...field, 
+					return {
+						...field,
 						cantidad: cantidadNumerica,
-						subtotal: subtotal
+						subtotal: subtotal,
 					};
 				}
 				return field;
@@ -340,7 +362,7 @@ function CrearOrdenDeVenta() {
 						unidad_medida: "",
 						cantidad_disponible: 0,
 						precio_unitario: 0,
-						subtotal: 0
+						subtotal: 0,
 					},
 				]);
 				setTotalVenta(0);
@@ -373,7 +395,8 @@ function CrearOrdenDeVenta() {
 
 	function agregarSinId(arrayOrigen) {
 		const sinId = arrayOrigen.map(
-			({ id, cantidad_disponible, precio_unitario, subtotal, ...resto }) => resto
+			({ id, cantidad_disponible, precio_unitario, subtotal, ...resto }) =>
+				resto
 		);
 		return sinId;
 	}
@@ -381,6 +404,12 @@ function CrearOrdenDeVenta() {
 	const obtenerFechaMinima = () => {
 		const fecha = new Date();
 		fecha.setDate(fecha.getDate() + 3);
+		return fecha.toISOString().split("T")[0];
+	};
+
+	const obtenerFechaMaxima = () => {
+		const fecha = new Date();
+		fecha.setDate(fecha.getDate() + 30);
 		return fecha.toISOString().split("T")[0];
 	};
 
@@ -393,9 +422,9 @@ function CrearOrdenDeVenta() {
 
 	// Función para formatear precio en formato monetario
 	const formatearPrecio = (precio) => {
-		return new Intl.NumberFormat('es-AR', {
-			style: 'currency',
-			currency: 'ARS'
+		return new Intl.NumberFormat("es-AR", {
+			style: "currency",
+			currency: "ARS",
 		}).format(precio);
 	};
 
@@ -420,25 +449,19 @@ function CrearOrdenDeVenta() {
 							<label htmlFor="Cliente" className={styles.formLabel}>
 								Cliente:
 							</label>
-							<select
+							<Select
 								name="id_cliente"
 								id="Cliente"
-								value={orden.id_cliente}
-								onChange={handleChange}
+								onChange={handleCliente}
 								disabled={creatingOrder}
+								options={obtenerClientesNombres()}
+								isClearable
+								isSearchable
 								className={`${styles.formInput} ${
 									errors.cliente ? styles.inputError : ""
 								} ${creatingOrder ? styles.disabledInput : ""}`}
-							>
-								<option value="" disabled hidden>
-									Seleccione una opción
-								</option>
-								{clientes.map((cliente) => (
-									<option key={cliente.id_cliente} value={cliente.id_cliente}>
-										{cliente.nombre}
-									</option>
-								))}
-							</select>
+								placeholder="Seleccione una opción"
+							></Select>
 							{errors.cliente && (
 								<span className={styles.errorText}>{errors.cliente}</span>
 							)}
@@ -447,7 +470,7 @@ function CrearOrdenDeVenta() {
 						{/* Fecha de Entrega */}
 						<div className={styles.formGroup}>
 							<label htmlFor="FechaEntrega" className={styles.formLabel}>
-								Fecha de Entrega Estimada:
+								Fecha Requerida
 							</label>
 							<input
 								type="date"
@@ -455,6 +478,7 @@ function CrearOrdenDeVenta() {
 								name="fecha_entrega"
 								value={orden.fecha_entrega}
 								min={obtenerFechaMinima()}
+								max={obtenerFechaMaxima()}
 								onChange={(e) =>
 									setOrden({
 										...orden,
@@ -554,9 +578,9 @@ function CrearOrdenDeVenta() {
 														updateProduct(field.id, e.target.value)
 													}
 													disabled={creatingOrder}
-													className={`${styles.formInput} ${styles.inputField} ${
-														creatingOrder ? styles.disabledInput : ""
-													}`}
+													className={`${styles.formInput} ${
+														styles.inputField
+													} ${creatingOrder ? styles.disabledInput : ""}`}
 												>
 													<option value="" disabled hidden>
 														Seleccione una opción
@@ -578,7 +602,8 @@ function CrearOrdenDeVenta() {
 																	: "inherit",
 															}}
 														>
-															{product.nombre} - {product.descripcion} ({formatearPrecio(product.precio)})
+															{product.nombre} - {product.descripcion} (
+															{formatearPrecio(product.precio)})
 														</option>
 													))}
 												</select>
@@ -604,9 +629,9 @@ function CrearOrdenDeVenta() {
 														)
 													}
 													disabled={creatingOrder}
-													className={`${styles.formInput} ${styles.inputField} ${
-														creatingOrder ? styles.disabledInput : ""
-													} ${
+													className={`${styles.formInput} ${
+														styles.inputField
+													} ${creatingOrder ? styles.disabledInput : ""} ${
 														field.id_producto &&
 														field.cantidad > field.cantidad_disponible
 															? styles.inputError
@@ -621,9 +646,9 @@ function CrearOrdenDeVenta() {
 													Unidad de Medida
 												</label>
 												<div
-													className={`${styles.measurementDisplay} ${styles.displayField} ${
-														creatingOrder ? styles.disabledInput : ""
-													}`}
+													className={`${styles.measurementDisplay} ${
+														styles.displayField
+													} ${creatingOrder ? styles.disabledInput : ""}`}
 												>
 													{field.unidad_medida || "Seleccione un producto"}
 												</div>
@@ -635,9 +660,9 @@ function CrearOrdenDeVenta() {
 													Stock Disponible
 												</label>
 												<div
-													className={`${styles.stockDisplay} ${styles.displayField} ${
-														creatingOrder ? styles.disabledInput : ""
-													}`}
+													className={`${styles.stockDisplay} ${
+														styles.displayField
+													} ${creatingOrder ? styles.disabledInput : ""}`}
 												>
 													{field.id_producto
 														? `${field.cantidad_disponible} ${field.unidad_medida}`
@@ -651,9 +676,9 @@ function CrearOrdenDeVenta() {
 													Precio Unitario
 												</label>
 												<div
-													className={`${styles.priceDisplay} ${styles.displayField} ${
-														creatingOrder ? styles.disabledInput : ""
-													}`}
+													className={`${styles.priceDisplay} ${
+														styles.displayField
+													} ${creatingOrder ? styles.disabledInput : ""}`}
 												>
 													{field.id_producto
 														? formatearPrecio(field.precio_unitario)
@@ -663,13 +688,11 @@ function CrearOrdenDeVenta() {
 
 											{/* Subtotal */}
 											<div className={styles.productField}>
-												<label className={styles.fieldLabel}>
-													Subtotal
-												</label>
+												<label className={styles.fieldLabel}>Subtotal</label>
 												<div
-													className={`${styles.subtotalDisplay} ${styles.displayField} ${
-														creatingOrder ? styles.disabledInput : ""
-													}`}
+													className={`${styles.subtotalDisplay} ${
+														styles.displayField
+													} ${creatingOrder ? styles.disabledInput : ""}`}
 												>
 													{field.id_producto
 														? formatearPrecio(field.subtotal)
