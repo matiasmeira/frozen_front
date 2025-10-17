@@ -5,6 +5,15 @@
 	min-height: 100vh;
 }
 
+.headerContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
 .titulo {
 	color: #2c3e50;
 	margin-bottom: 30px;
@@ -12,6 +21,40 @@
 	font-size: 2rem;
 	font-weight: 600;
 }
+
+.btnCrearOrden {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+}
+
+.btnCrearOrden:hover {
+  background-color: #0056b3;
+}
+
+.btnCrearOrden:active {
+  background-color: #004085;
+}
+
+/* Para hacerlo responsive en pantallas pequeñas */
+@media (max-width: 768px) {
+  .headerContainer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .btnCrearOrden {
+    align-self: stretch;
+  }
+}
+
+
 
 .controles {
 	display: flex;

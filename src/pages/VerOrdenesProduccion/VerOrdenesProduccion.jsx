@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import Modal from "react-modal";
 import axios from "axios";
 import styles from "./VerOrdenesProduccion.module.css";
@@ -16,6 +16,7 @@ const api = axios.create({
 
 const VerOrdenesProduccion = () => {
 	const [searchParams, setSearchParams] = useSearchParams();
+	const navigate = useNavigate();
 	const [ordenes, setOrdenes] = useState([]);
 	const [ordenesFiltradas, setOrdenesFiltradas] = useState([]);
 	const [cargando, setCargando] = useState(true);
@@ -89,6 +90,11 @@ const VerOrdenesProduccion = () => {
 		};
 		fetchData();
 	}, [filtroProducto, filtroEstado, filtroOperario]);
+
+
+	const redirigirACrearOrden = () => {
+		navigate("/crearOrdenProduccion");
+	};
 
 	const obtenerOrdenes = async (page = 1) => {
 		try {
@@ -479,8 +485,15 @@ const VerOrdenesProduccion = () => {
 
 	return (
 		<div className={styles.verOrdenesProduccion}>
-			<h2 className={styles.titulo}>Órdenes de Producción</h2>
-
+			<div className={styles.headerContainer}>
+				<h2 className={styles.titulo}>Órdenes de Producción</h2>
+				<button 
+					className={styles.btnCrearOrden}
+					onClick={redirigirACrearOrden}
+				>
+					Crear Nueva Orden
+				</button>
+			</div>
 			{/* Controles de Filtrado */}
 			<div className={styles.controles}>
 				<div className={styles.filtroGrupo}>

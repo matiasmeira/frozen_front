@@ -153,6 +153,16 @@ function CrearOrdenDeVenta() {
 		return clientesNuevos;
 	};
 
+	// Nueva función para obtener opciones de productos formateadas para react-select
+	const obtenerOpcionesProductos = (currentFieldId) => {
+		return products.map((product) => ({
+			value: product.id_producto,
+			label: `${product.nombre} - ${product.descripcion}`,
+			isDisabled: isProductoSeleccionado(product.id_producto, currentFieldId),
+			data: product // Guardamos toda la información del producto para uso posterior
+		}));
+	};
+
 	const addField = () => {
 		setCantidadElementos(cantidadElementos + 1);
 		const newField = {
@@ -174,28 +184,37 @@ function CrearOrdenDeVenta() {
 		}
 	};
 
-	const updateProduct = async (id, id_producto) => {
-		const productoYaSeleccionado = fields.some(
-			(field) => field.id !== id && field.id_producto === id_producto
-		);
-
-		if (productoYaSeleccionado && id_producto !== "") {
-			alert(
-				"Este producto ya ha sido seleccionado. Por favor, elige otro producto."
+	// Función modificada para manejar el cambio de producto con react-select
+	const handleProductChange = async (selectedOption, fieldId) => {
+		if (!selectedOption) {
+			// Si se deselecciona el producto
+			setFields(
+				fields.map((field) =>
+					field.id === fieldId
+						? {
+								...field,
+								id_producto: "",
+								unidad_medida: "",
+								cantidad_disponible: 0,
+								precio_unitario: 0,
+								subtotal: 0,
+								cantidad: 1
+						  }
+						: field
+				)
 			);
 			return;
 		}
 
-		// Encontrar el producto seleccionado para obtener su unidad de medida y precio
+		const id_producto = selectedOption.value;
 		const productoSeleccionado = products.find(
 			(product) => product.id_producto === parseInt(id_producto)
 		);
-		const unidadMedida = productoSeleccionado
-			? productoSeleccionado.unidad_medida
-			: "";
-		const precioUnitario = productoSeleccionado
-			? productoSeleccionado.precio
-			: 0;
+
+		if (!productoSeleccionado) return;
+
+		const unidadMedida = productoSeleccionado.unidad_medida;
+		const precioUnitario = productoSeleccionado.precio;
 
 		// Obtener la cantidad disponible del producto
 		let cantidadDisponible = 0;
@@ -204,13 +223,12 @@ function CrearOrdenDeVenta() {
 		}
 
 		// Calcular subtotal inicial
-		const cantidadActual =
-			fields.find((field) => field.id === id)?.cantidad || 1;
+		const cantidadActual = fields.find((field) => field.id === fieldId)?.cantidad || 1;
 		const subtotal = cantidadActual * precioUnitario;
 
 		setFields(
 			fields.map((field) =>
-				field.id === id
+				field.id === fieldId
 					? {
 							...field,
 							id_producto,
@@ -420,6 +438,20 @@ function CrearOrdenDeVenta() {
 		);
 	};
 
+	// Función para obtener el valor seleccionado actual para un campo específico
+	const getSelectedProductValue = (fieldId) => {
+		const field = fields.find(f => f.id === fieldId);
+		if (!field || !field.id_producto) return null;
+		
+		const product = products.find(p => p.id_producto === parseInt(field.id_producto));
+		if (!product) return null;
+		
+		return {
+			value: product.id_producto,
+			label: `${product.nombre} - ${product.descripcion}`
+		};
+	};
+
 	// Función para formatear precio en formato monetario
 	const formatearPrecio = (precio) => {
 		return new Intl.NumberFormat("es-AR", {
@@ -457,7 +489,7 @@ function CrearOrdenDeVenta() {
 								options={obtenerClientesNombres()}
 								isClearable
 								isSearchable
-								className={`${styles.formInput} ${
+								className={`${
 									errors.cliente ? styles.inputError : ""
 								} ${creatingOrder ? styles.disabledInput : ""}`}
 								placeholder="Seleccione una opción"
@@ -563,7 +595,7 @@ function CrearOrdenDeVenta() {
 										</div>
 
 										<div className={styles.productGrid}>
-											{/* Producto */}
+											{/* Producto - Ahora con react-select */}
 											<div className={styles.productField}>
 												<label
 													htmlFor={`producto-${field.id}`}
@@ -571,41 +603,20 @@ function CrearOrdenDeVenta() {
 												>
 													Producto
 												</label>
-												<select
+												<Select
 													id={`producto-${field.id}`}
-													value={field.id_producto}
-													onChange={(e) =>
-														updateProduct(field.id, e.target.value)
+													value={getSelectedProductValue(field.id)}
+													onChange={(selectedOption) => 
+														handleProductChange(selectedOption, field.id)
 													}
-													disabled={creatingOrder}
-													className={`${styles.formInput} ${
-														styles.inputField
-													} ${creatingOrder ? styles.disabledInput : ""}`}
-												>
-													<option value="" disabled hidden>
-														Seleccione una opción
-													</option>
-													{products.map((product) => (
-														<option
-															key={product.id_producto}
-															disabled={isProductoSeleccionado(
-																product.id_producto,
-																field.id
-															)}
-															value={product.id_producto}
-															style={{
-																color: isProductoSeleccionado(
-																	product.id_producto,
-																	field.id
-																)
-																	? "#999"
-																	: "inherit",
-															}}
-														>
-															{product.nombre} - {product.descripcion}
-														</option>
-													))}
-												</select>
+													options={obtenerOpcionesProductos(field.id)}
+													isDisabled={creatingOrder}
+													isClearable
+													isSearchable
+													className={`${creatingOrder ? styles.disabledInput : ""}`}
+													placeholder="Seleccione un producto"
+													noOptionsMessage={() => "No hay productos disponibles"}
+												/>
 											</div>
 
 											{/* Cantidad */}
