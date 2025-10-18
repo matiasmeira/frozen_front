@@ -189,6 +189,15 @@
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
+/* TEXTAREA para dirección de entrega */
+.textarea {
+  min-height: 80px !important;
+  height: auto !important;
+  resize: vertical;
+  padding: 0.75rem;
+  line-height: 1.5;
+}
+
 /* REACT-SELECT (Cliente) - ESTILOS ESPECÍFICOS PARA ALTURA */
 .formGroup :global(.react-select__control) {
   min-height: var(--input-height) !important;
@@ -233,13 +242,79 @@
   padding: 8px !important;
 }
 
+/* ESTILOS ESPECÍFICOS PARA LOS SELECTS DE PRODUCTO - MÁS LARGOS */
+.productField :global(.react-select__control) {
+  min-height: var(--input-height) !important;
+  height: var(--input-height) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: var(--border-radius) !important;
+  font-size: 0.875rem !important;
+  box-shadow: none !important;
+  transition: all 0.2s ease !important;
+  min-width: 300px !important;
+  width: 100% !important;
+}
+
+.productField :global(.react-select__control--is-focused) {
+  border-color: var(--focus-color) !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+.productField :global(.react-select__value-container) {
+  height: 100% !important;
+  padding: 0 12px !important;
+  align-items: center !important;
+  min-width: 250px !important;
+}
+
+.productField :global(.react-select__placeholder) {
+  margin: 0 !important;
+  color: var(--text-muted) !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.productField :global(.react-select__single-value) {
+  margin: 0 !important;
+  max-width: 280px !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.productField :global(.react-select__input-container) {
+  margin: 0 !important;
+  padding: 0 !important;
+  min-width: 200px !important;
+}
+
+.productField :global(.react-select__menu) {
+  min-width: 350px !important;
+  z-index: 1000 !important;
+}
+
+.productField :global(.react-select__option) {
+  padding: 10px 12px !important;
+  font-size: 0.875rem !important;
+  white-space: normal !important;
+  word-wrap: break-word !important;
+}
+
+.productField :global(.react-select__option--is-disabled) {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  background-color: #f3f4f6 !important;
+}
+
 /* Estados de error unificados */
 .inputError {
   border-color: var(--error-color) !important;
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
 }
 
-.formGroup :global(.react-select__control.inputError) {
+.formGroup :global(.react-select__control.inputError),
+.productField :global(.react-select__control.inputError) {
   border-color: var(--error-color) !important;
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
 }
@@ -304,10 +379,10 @@
   background-color: #dc2626;
 }
 
-/* Grid de productos */
+/* Grid de productos - MODIFICADO para dar más espacio al select de producto */
 .productGrid {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr;
+  grid-template-columns: 3fr 1fr 1fr 1fr 1fr 1fr; /* Primera columna más ancha */
   gap: 1rem;
   align-items: start;
 }
@@ -458,6 +533,14 @@
     grid-template-columns: 1fr 1fr;
     gap: 1rem;
   }
+  
+  .productGrid {
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+  }
+  
+  .productField :global(.react-select__control) {
+    min-width: 250px !important;
+  }
 }
 
 @media (max-width: 768px) {
@@ -478,6 +561,14 @@
   .productCard {
     padding: 1rem;
   }
+  
+  .productField :global(.react-select__control) {
+    min-width: 200px !important;
+  }
+  
+  .productField :global(.react-select__menu) {
+    min-width: 280px !important;
+  }
 }
 
 @media (max-width: 640px) {
@@ -488,6 +579,14 @@
   
   .actionsContainer {
     flex-direction: column;
+  }
+  
+  .productField :global(.react-select__control) {
+    min-width: 100% !important;
+  }
+  
+  .productField :global(.react-select__menu) {
+    min-width: 250px !important;
   }
 }
 

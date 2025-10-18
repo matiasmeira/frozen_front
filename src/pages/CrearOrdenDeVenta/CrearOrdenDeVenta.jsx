@@ -1,7 +1,7 @@
 import React from "react";
 import axios from "axios";
 import styles from "./CrearOrdenDeVenta.module.css";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Select from "react-select";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
@@ -9,6 +9,14 @@ const baseURL = import.meta.env.VITE_API_BASE_URL;
 const api = axios.create({
 	baseURL: baseURL,
 });
+
+// Función para formatear precio
+const formatearPrecio = (precio) => {
+	return new Intl.NumberFormat("es-AR", {
+		style: "currency",
+		currency: "ARS",
+	}).format(precio);
+};
 
 function CrearOrdenDeVenta() {
 	const [cantidadElementos, setCantidadElementos] = useState(1);
@@ -18,6 +26,7 @@ function CrearOrdenDeVenta() {
 	const [loading, setLoading] = useState(true);
 	const [creatingOrder, setCreatingOrder] = useState(false);
 	const [totalVenta, setTotalVenta] = useState(0);
+	
 	const [fields, setFields] = useState([
 		{
 			id: "1",
@@ -29,16 +38,20 @@ function CrearOrdenDeVenta() {
 			subtotal: 0,
 		},
 	]);
+	
 	const [orden, setOrden] = useState({
 		id_cliente: "",
 		id_prioridad: "",
 		fecha_entrega: "",
+		direccion_entrega: "", // Nuevo campo agregado
 		productos: [],
 	});
+	
 	const [errors, setErrors] = useState({
 		cliente: "",
 		prioridad: "",
 		fecha_entrega: "",
+		direccion_entrega: "", // Nuevo campo de error
 		productos: "",
 	});
 
@@ -47,13 +60,12 @@ function CrearOrdenDeVenta() {
 		calcularTotalVenta();
 	}, [fields]);
 
-	const calcularTotalVenta = () => {
-		const total = fields.reduce((sum, field) => {
-			return sum + field.subtotal;
-		}, 0);
+	const calcularTotalVenta = useCallback(() => {
+		const total = fields.reduce((sum, field) => sum + field.subtotal, 0);
 		setTotalVenta(total);
-	};
+	}, [fields]);
 
+	// Obtener datos iniciales
 	useEffect(() => {
 		const fetchApis = async () => {
 			try {
@@ -63,7 +75,7 @@ function CrearOrdenDeVenta() {
 						obtenerProductos(),
 						obtenerPrioridades(),
 					]);
-				console.log(productosResponse);
+				
 				setProducts(productosResponse);
 				setClientes(clientesResponse.data.results);
 				setPrioridades(prioridadesResponse.data.results);
@@ -79,8 +91,7 @@ function CrearOrdenDeVenta() {
 
 	const obtenerProductos = async () => {
 		const response = await api.get("/productos/productos/");
-		console.log(response.data.results);
-		const productos = response.data.results.map((prod) => ({
+		return response.data.results.map((prod) => ({
 			id_producto: prod.id_producto,
 			nombre: prod.nombre,
 			descripcion: prod.descripcion,
@@ -88,9 +99,6 @@ function CrearOrdenDeVenta() {
 			umbral_minimo: prod.umbral_minimo,
 			precio: prod.precio,
 		}));
-
-		console.log(productos);
-		return productos;
 	};
 
 	const obtenerClientes = async () => {
@@ -119,68 +127,71 @@ function CrearOrdenDeVenta() {
 
 	const handleChange = (e) => {
 		const { name, value } = e.target;
-		setOrden({
-			...orden,
+		setOrden(prev => ({
+			...prev,
 			[name]: value,
-		});
+		}));
+		
 		if (errors[name]) {
-			setErrors({
-				...errors,
+			setErrors(prev => ({
+				...prev,
 				[name]: "",
-			});
+			}));
 		}
 	};
 
-	const handleCliente = (e) => {
-		console.log(e);
-		const {value } = e;
-		setOrden({
-			...orden,
-			["id_cliente"]: value,
-		});
-		if (errors["id_cliente"]) {
-			setErrors({
-				...errors,
-				["id_cliente"]: "",
-			});
+	const handleCliente = (selectedOption) => {
+		const value = selectedOption?.value || "";
+		setOrden(prev => ({
+			...prev,
+			id_cliente: value,
+		}));
+		
+		if (errors.id_cliente) {
+			setErrors(prev => ({
+				...prev,
+				id_cliente: "",
+			}));
 		}
 	};
 
-	const obtenerClientesNombres = () => {
-		const clientesNuevos = clientes.map((clientes) => {
-			return { value: clientes.id_cliente, label: clientes.nombre };
-		});
-		return clientesNuevos;
-	};
+	const obtenerClientesNombres = useCallback(() => {
+		return clientes.map(cliente => ({
+			value: cliente.id_cliente, 
+			label: cliente.nombre 
+		}));
+	}, [clientes]);
 
 	// Nueva función para obtener opciones de productos formateadas para react-select
-	const obtenerOpcionesProductos = (currentFieldId) => {
+	const obtenerOpcionesProductos = useCallback((currentFieldId) => {
 		return products.map((product) => ({
 			value: product.id_producto,
-			label: `${product.nombre} - ${product.descripcion}`,
+			label: `${product.nombre}`,
 			isDisabled: isProductoSeleccionado(product.id_producto, currentFieldId),
-			data: product // Guardamos toda la información del producto para uso posterior
+			data: product
 		}));
-	};
+	}, [products, fields]);
 
 	const addField = () => {
-		setCantidadElementos(cantidadElementos + 1);
-		const newField = {
-			id: Date.now().toString(),
-			id_producto: "",
-			cantidad: 1,
-			unidad_medida: "",
-			cantidad_disponible: 0,
-			precio_unitario: 0,
-			subtotal: 0,
-		};
-		setFields([...fields, newField]);
+		if (cantidadElementos < products.length) {
+			setCantidadElementos(prev => prev + 1);
+			const newField = {
+				id: Date.now().toString(),
+				id_producto: "",
+				cantidad: 1,
+				unidad_medida: "",
+				cantidad_disponible: 0,
+				precio_unitario: 0,
+				subtotal: 0,
+			};
+			setFields(prev => [...prev, newField]);
+		}
 	};
 
 	const removeField = (id) => {
-		setCantidadElementos(cantidadElementos - 1);
 		if (fields.length > 1) {
-			setFields(fields.filter((field) => field.id !== id));
+			setCantidadElementos(prev => prev - 1);
+			setFields(prev => prev.filter((field) => field.id !== id));
 		}
 	};
 
@@ -188,8 +199,8 @@ function CrearOrdenDeVenta() {
 	const handleProductChange = async (selectedOption, fieldId) => {
 		if (!selectedOption) {
 			// Si se deselecciona el producto
-			setFields(
-				fields.map((field) =>
+			setFields(prev =>
+				prev.map((field) =>
 					field.id === fieldId
 						? {
 								...field,
@@ -226,8 +237,8 @@ function CrearOrdenDeVenta() {
 		const cantidadActual = fields.find((field) => field.id === fieldId)?.cantidad || 1;
 		const subtotal = cantidadActual * precioUnitario;
 
-		setFields(
-			fields.map((field) =>
+		setFields(prev =>
+			prev.map((field) =>
 				field.id === fieldId
 					? {
 							...field,
@@ -242,18 +253,18 @@ function CrearOrdenDeVenta() {
 		);
 
 		if (errors.productos) {
-			setErrors({
-				...errors,
+			setErrors(prev => ({
+				...prev,
 				productos: "",
-			});
+			}));
 		}
 	};
 
 	const updateQuantity = (id, cantidad) => {
 		const cantidadNumerica = Math.max(1, cantidad);
 
-		setFields(
-			fields.map((field) => {
+		setFields(prev =>
+			prev.map((field) => {
 				if (field.id === id) {
 					const subtotal = cantidadNumerica * field.precio_unitario;
 					return {
@@ -269,30 +280,24 @@ function CrearOrdenDeVenta() {
 
 	/* VALIDACIONES */
 	const validarFormulario = () => {
-		setErrors({
-			cliente: "",
-			prioridad: "",
-			fecha_entrega: "",
-			productos: "",
-		});
-
 		const nuevosErrores = {
 			cliente: "",
 			prioridad: "",
 			fecha_entrega: "",
+			direccion_entrega: "",
 			productos: "",
 		};
 
 		let esValido = true;
 
 		// Validar cliente
-		if (!orden.id_cliente || orden.id_cliente === "") {
+		if (!orden.id_cliente) {
 			nuevosErrores.cliente = "Debes seleccionar un cliente";
 			esValido = false;
 		}
 
 		// Validar prioridad
-		if (!orden.id_prioridad || orden.id_prioridad === "") {
+		if (!orden.id_prioridad) {
 			nuevosErrores.prioridad = "Debes seleccionar una prioridad";
 			esValido = false;
 		}
@@ -316,29 +321,32 @@ function CrearOrdenDeVenta() {
 			}
 		}
 
+		// Validar dirección de entrega
+		if (!orden.direccion_entrega?.trim()) {
+			nuevosErrores.direccion_entrega = "Debes ingresar una dirección de entrega";
+			esValido = false;
+		} else if (orden.direccion_entrega.trim().length < 10) {
+			nuevosErrores.direccion_entrega = "La dirección debe tener al menos 10 caracteres";
+			esValido = false;
+		}
+
 		// Validar productos
 		const productosSeleccionados = fields.filter(
 			(field) => field.id_producto !== ""
 		);
+		
 		if (productosSeleccionados.length === 0) {
 			nuevosErrores.productos = "Debes seleccionar al menos un producto";
 			esValido = false;
-		}
+		} else {
+			const idsProductos = productosSeleccionados.map((field) => field.id_producto);
+			const productosUnicos = new Set(idsProductos);
 
-		const idsProductos = fields
-			.filter((field) => field.id_producto !== "")
-			.map((field) => field.id_producto);
-		const productosUnicos = new Set(idsProductos);
-
-		if (idsProductos.length !== fields.length) {
-			nuevosErrores.productos = "No puedes dejar productos sin seleccionar";
-			esValido = false;
-		}
-
-		if (idsProductos.length !== productosUnicos.size) {
-			nuevosErrores.productos =
-				"No puedes seleccionar el mismo producto más de una vez";
-			esValido = false;
+			if (idsProductos.length !== productosUnicos.size) {
+				nuevosErrores.productos =
+					"No puedes seleccionar el mismo producto más de una vez";
+				esValido = false;
+			}
 		}
 
 		setErrors(nuevosErrores);
@@ -347,13 +355,13 @@ function CrearOrdenDeVenta() {
 
 	const handleSubmit = async (event) => {
 		event.preventDefault();
-		const productosConIdDinamico = [...fields];
-		let productos = agregarSinId(productosConIdDinamico);
-		const nuevaOrden = { ...orden, productos: productos };
-
+		
 		if (!validarFormulario()) {
 			return;
 		}
+
+		const productos = fields.map(({ id, cantidad_disponible, precio_unitario, subtotal, ...resto }) => resto);
+		const nuevaOrden = { ...orden, productos };
 
 		setCreatingOrder(true);
 
@@ -370,6 +378,7 @@ function CrearOrdenDeVenta() {
 					id_cliente: "",
 					id_prioridad: "",
 					fecha_entrega: "",
+					direccion_entrega: "",
 					productos: [],
 				});
 				setFields([
@@ -388,36 +397,28 @@ function CrearOrdenDeVenta() {
 					cliente: "",
 					prioridad: "",
 					fecha_entrega: "",
+					direccion_entrega: "",
 					productos: "",
 				});
 				alert("Orden de venta creada exitosamente");
 			}
 		} catch (error) {
 			console.error("Error al crear orden:", error);
+			let errorMessage = "Error inesperado al crear la orden";
+			
 			if (error.response) {
-				console.error("Detalles del error:", error.response.data);
-				alert(
-					`Error al crear la orden: ${error.response.status} - ${
-						error.response.data.message || "Error del servidor"
-					}`
-				);
+				errorMessage = `Error al crear la orden: ${error.response.status} - ${
+					error.response.data.message || "Error del servidor"
+				}`;
 			} else if (error.request) {
-				alert("Error de conexión: No se pudo contactar al servidor");
-			} else {
-				alert("Error inesperado al crear la orden");
+				errorMessage = "Error de conexión: No se pudo contactar al servidor";
 			}
+			
+			alert(errorMessage);
 		} finally {
 			setCreatingOrder(false);
 		}
 	};
-
-	function agregarSinId(arrayOrigen) {
-		const sinId = arrayOrigen.map(
-			({ id, cantidad_disponible, precio_unitario, subtotal, ...resto }) =>
-				resto
-		);
-		return sinId;
-	}
 
 	const obtenerFechaMinima = () => {
 		const fecha = new Date();
@@ -448,16 +449,8 @@ function CrearOrdenDeVenta() {
 		
 		return {
 			value: product.id_producto,
-			label: `${product.nombre} - ${product.descripcion}`
+			label: `${product.nombre}`
 		};
-	};
-
-	// Función para formatear precio en formato monetario
-	const formatearPrecio = (precio) => {
-		return new Intl.NumberFormat("es-AR", {
-			style: "currency",
-			currency: "ARS",
-		}).format(precio);
 	};
 
 	if (loading) {
@@ -473,7 +466,7 @@ function CrearOrdenDeVenta() {
 		<div className={styles.container}>
 			<h1 className={styles.title}>Crear Orden de Venta</h1>
 
-			<div className="divFormulario">
+			<div className={styles.divFormulario}>
 				<form onSubmit={handleSubmit}>
 					<div className={styles.formGrid}>
 						{/* Cliente */}
@@ -493,7 +486,7 @@ function CrearOrdenDeVenta() {
 									errors.cliente ? styles.inputError : ""
 								} ${creatingOrder ? styles.disabledInput : ""}`}
 								placeholder="Seleccione una opción"
-							></Select>
+							/>
 							{errors.cliente && (
 								<span className={styles.errorText}>{errors.cliente}</span>
 							)}
@@ -502,7 +495,7 @@ function CrearOrdenDeVenta() {
 						{/* Fecha de Entrega */}
 						<div className={styles.formGroup}>
 							<label htmlFor="FechaEntrega" className={styles.formLabel}>
-								Fecha Requerida
+								Fecha Solicitada de Entrega
 							</label>
 							<input
 								type="date"
@@ -511,12 +504,7 @@ function CrearOrdenDeVenta() {
 								value={orden.fecha_entrega}
 								min={obtenerFechaMinima()}
 								max={obtenerFechaMaxima()}
-								onChange={(e) =>
-									setOrden({
-										...orden,
-										fecha_entrega: e.target.value,
-									})
-								}
+								onChange={handleChange}
 								disabled={creatingOrder}
 								className={`${styles.formInput} ${
 									errors.fecha_entrega ? styles.inputError : ""
@@ -527,7 +515,7 @@ function CrearOrdenDeVenta() {
 							)}
 						</div>
 
-						{/* Prioridad - Ahora desde la API */}
+						{/* Prioridad */}
 						<div className={styles.formGroup}>
 							<label htmlFor="Prioridad" className={styles.formLabel}>
 								Prioridad:
@@ -556,6 +544,28 @@ function CrearOrdenDeVenta() {
 							</select>
 							{errors.prioridad && (
 								<span className={styles.errorText}>{errors.prioridad}</span>
+							)}
+						</div>
+
+						{/* Dirección de Entrega - NUEVO CAMPO */}
+						<div className={styles.formGroup}>
+							<label htmlFor="DireccionEntrega" className={styles.formLabel}>
+								Dirección de Entrega:
+							</label>
+							<textarea
+								id="DireccionEntrega"
+								name="direccion_entrega"
+								value={orden.direccion_entrega}
+								onChange={handleChange}
+								disabled={creatingOrder}
+								rows={3}
+								placeholder="Ingrese la dirección completa de entrega"
+								className={`${styles.formInput} ${styles.textarea} ${
+									errors.direccion_entrega ? styles.inputError : ""
+								} ${creatingOrder ? styles.disabledInput : ""}`}
+							/>
+							{errors.direccion_entrega && (
+								<span className={styles.errorText}>{errors.direccion_entrega}</span>
 							)}
 						</div>
 
@@ -595,7 +605,7 @@ function CrearOrdenDeVenta() {
 										</div>
 
 										<div className={styles.productGrid}>
-											{/* Producto - Ahora con react-select */}
+											{/* Producto */}
 											<div className={styles.productField}>
 												<label
 													htmlFor={`producto-${field.id}`}
@@ -638,7 +648,7 @@ function CrearOrdenDeVenta() {
 															Number.parseInt(e.target.value) || 1
 														)
 													}
-													disabled={creatingOrder}
+													disabled={creatingOrder || !field.id_producto}
 													className={`${styles.formInput} ${
 														styles.inputField
 													} ${creatingOrder ? styles.disabledInput : ""} ${
@@ -672,7 +682,11 @@ function CrearOrdenDeVenta() {
 												<div
 													className={`${styles.stockDisplay} ${
 														styles.displayField
-													} ${creatingOrder ? styles.disabledInput : ""}`}
+													} ${creatingOrder ? styles.disabledInput : ""} ${
+														field.id_producto && field.cantidad > field.cantidad_disponible 
+															? styles.stockLow 
+															: ""
+													}`}
 												>
 													{field.id_producto
 														? `${field.cantidad_disponible} ${field.unidad_medida}`
