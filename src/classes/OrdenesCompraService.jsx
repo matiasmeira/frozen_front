@@ -1,158 +1,117 @@
-// Datos mockeados para Órdenes de Compra
-const ordenesCompraMock = [
-	{
-		id_orden_compra: 1,
-		proveedor: {
-			id_proveedor: 101,
-			nombre: "Distribuidora Alimentos S.A.",
-			contacto: "Juan Pérez",
-			telefono: "+54 11 1234-5678",
-			email: "juan.perez@alimentossa.com",
-		},
-		producto: {
-			id_producto: 2,
-			nombre: "Empanada",
-			descripcion: "Empanada de carne",
-			unidad_medida: "Docenas",
-			precio_unitario: 4500.0,
-		},
-		cantidad: 50,
-		fecha_pedido: "2025-01-15",
-		fecha_entrega_estimada: "2025-01-22",
-		estado: "pendiente",
-		total: 225000.0,
-		numero_orden: "OC-2025-001",
-	},
-	{
-		id_orden_compra: 2,
-		proveedor: {
-			id_proveedor: 102,
-			nombre: "Pizzas y Masas Premium",
-			contacto: "María González",
-			telefono: "+54 11 2345-6789",
-			email: "ventas@pizzaspremium.com",
-		},
-		producto: {
-			id_producto: 3,
-			nombre: "Pizza",
-			descripcion: "Pizza base",
-			unidad_medida: "Cajas",
-			precio_unitario: 12000.0,
-		},
-		cantidad: 20,
-		fecha_pedido: "2025-01-14",
-		fecha_entrega_estimada: "2025-01-18",
-		estado: "en_camino",
-		total: 240000.0,
-		numero_orden: "OC-2025-002",
-	},
-	{
-		id_orden_compra: 3,
-		proveedor: {
-			id_proveedor: 103,
-			nombre: "Pescados del Atlántico",
-			contacto: "Carlos Rodríguez",
-			telefono: "+54 11 3456-7890",
-			email: "carlos.rodriguez@pescadosatlantic.com",
-		},
-		producto: {
-			id_producto: 4,
-			nombre: "Pescado",
-			descripcion: "Pescado fresco",
-			unidad_medida: "Kilogramos",
-			precio_unitario: 8500.0,
-		},
-		cantidad: 100,
-		fecha_pedido: "2025-01-13",
-		fecha_entrega_estimada: "2025-01-16",
-		estado: "entregado",
-		total: 850000.0,
-		numero_orden: "OC-2025-003",
-	},
-	{
-		id_orden_compra: 4,
-		proveedor: {
-			id_proveedor: 104,
-			nombre: "Avícola del Norte",
-			contacto: "Ana López",
-			telefono: "+54 11 4567-8901",
-			email: "ana.lopez@avicolanorte.com",
-		},
-		producto: {
-			id_producto: 1,
-			nombre: "Pollo",
-			descripcion: "Medallón de Pollo",
-			unidad_medida: "Kilogramos",
-			precio_unitario: 5200.0,
-		},
-		cantidad: 150,
-		fecha_pedido: "2025-01-12",
-		fecha_entrega_estimada: "2025-01-19",
-		estado: "pendiente",
-		total: 780000.0,
-		numero_orden: "OC-2025-004",
-	},
-	{
-		id_orden_compra: 5,
-		proveedor: {
-			id_proveedor: 105,
-			nombre: "Congelados Express",
-			contacto: "Roberto Sánchez",
-			telefono: "+54 11 5678-9012",
-			email: "roberto.sanchez@congeladosexpress.com",
-		},
-		producto: {
-			id_producto: 2,
-			nombre: "Empanada",
-			descripcion: "Empanada de carne",
-			unidad_medida: "Docenas",
-			precio_unitario: 4400.0,
-		},
-		cantidad: 30,
-		fecha_pedido: "2025-01-11",
-		fecha_entrega_estimada: "2025-01-15",
-		estado: "cancelado",
-		total: 132000.0,
-		numero_orden: "OC-2025-005",
-	},
-];
-
 class OrdenCompraService {
-	static async obtenerOrdenesCompra() {
-		// Simulamos una llamada API con delay
-		return new Promise((resolve) => {
-			setTimeout(() => {
-				resolve(ordenesCompraMock);
-			}, 1000);
-		});
+	static async obtenerOrdenesCompra(page = 1) {
+		try {
+			const response = await fetch(
+				`https://frozenback-test.up.railway.app/api/compras/ordenes-compra/?page=${page}`
+			);
+
+			if (response.status !== 200) {
+				throw new Error(`Error HTTP: ${response.status}`);
+			}
+
+			const data = await response.json();
+
+			// Obtener datos adicionales necesarios
+			const [proveedores, estados] = await Promise.all([
+				this.obtenerProveedores(),
+				this.obtenerEstadosCompra(),
+			]);
+
+			// Transformar cada orden
+			const ordenesTransformadas = data.results.map((orden) =>
+				this.transformarOrdenCompraDTO(orden, proveedores, estados)
+			);
+
+			console.log(ordenesTransformadas)
+
+			return {
+				ordenes: ordenesTransformadas,
+				paginacion: {
+					count: data.count,
+					next: data.next,
+					previous: data.previous,
+				},
+			};
+		} catch (error) {
+			console.error("Error en obtenerOrdenesCompra:", error);
+			throw error;
+		}
+	}
+
+	static async obtenerProveedores() {
+		try {
+			const response = await fetch(
+				"https://frozenback-test.up.railway.app/api/materias_primas/proveedores/"
+			);
+			const data = await response.json();
+			return data.results;
+		} catch (error) {
+			console.error("Error obteniendo proveedores:", error);
+			return [];
+		}
+	}
+
+	static async obtenerEstadosCompra() {
+		try {
+			const response = await fetch(
+				"https://frozenback-test.up.railway.app/api/compras/estados/"
+			);
+			const data = await response.json();
+
+			return data.results;
+		} catch (error) {
+			console.error("Error obteniendo estados:", error);
+			return [];
+		}
+	}
+
+	static transformarOrdenCompraDTO(ordenBackend, proveedores, estados) {
+		// Buscar proveedor
+		const proveedor = proveedores.find(
+			(p) => p.id_proveedor === ordenBackend.id_proveedor
+		);
+
+		// Buscar estado
+		const estadoObj = estados.find(
+			(e) => e.id_estado_orden_compra === ordenBackend.id_estado_orden_compra
+		);
+
+		return {
+			id_orden_compra: ordenBackend.id_orden_compra,
+			numero_orden: `OC-${ordenBackend.id_orden_compra
+				.toString()
+				.padStart(4, "0")}`,
+			materias_primas: ordenBackend.materias_primas,
+			fecha_solicitud: ordenBackend.fecha_solicitud,
+			fecha_entrega_estimada: ordenBackend.fecha_entrega_estimada,
+			fecha_entrega_real: ordenBackend.fecha_entrega_real,
+			estado: estadoObj ? estadoObj.descripcion : "Desconocido",
+			estado_id: ordenBackend.id_estado_orden_compra,
+			proveedor: proveedor || { nombre: "Proveedor no encontrado" },
+			// Nota: No incluimos 'total' ya que no está disponible en la API
+			// Nota: No incluimos 'producto' ya que ahora tenemos array de materias_primas
+		};
 	}
 
 	static async obtenerOrdenCompraPorId(id) {
-		return new Promise((resolve) => {
-			setTimeout(() => {
-				const orden = ordenesCompraMock.find((oc) => oc.id_orden_compra === id);
-				resolve(orden || null);
-			}, 500);
-		});
-	}
+		try {
+			const response = await fetch(
+				`https://frozenback-test.up.railway.app/api/compras/ordenes-compra/${id}/`
+			);
+			if (!response.ok) throw new Error("Orden no encontrada");
+			const data = await response.json();
 
-	static async crearOrdenCompra(nuevaOrden) {
-		return new Promise((resolve) => {
-			setTimeout(() => {
-				const orden = {
-					...nuevaOrden,
-					id_orden_compra:
-						Math.max(...ordenesCompraMock.map((oc) => oc.id_orden_compra)) + 1,
-					numero_orden: `OC-2025-${String(
-						Math.max(...ordenesCompraMock.map((oc) => oc.id_orden_compra)) + 1
-					).padStart(3, "0")}`,
-					fecha_pedido: new Date().toISOString().split("T")[0],
-				};
-				ordenesCompraMock.push(orden);
-				resolve(orden);
-			}, 800);
-		});
+			const [proveedores, estados] = await Promise.all([
+				this.obtenerProveedores(),
+				this.obtenerEstadosCompra(),
+			]);
+
+			return this.transformarOrdenCompraDTO(data, proveedores, estados);
+		} catch (error) {
+			console.error("Error en obtenerOrdenCompraPorId:", error);
+			throw error;
+		}
 	}
 }
 
-export { ordenesCompraMock, OrdenCompraService };
+export { OrdenCompraService };

@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import Modal from 'react-modal';
 import styles from "./VerOrdenesCompra.module.css";
 import { OrdenCompraService } from "../../classes/OrdenesCompraService";
+
+// Configurar el modal para accesibilidad
+Modal.setAppElement('#root');
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -15,18 +19,43 @@ const VerOrdenesCompra = () => {
 	const [cargando, setCargando] = useState(true);
 	const [error, setError] = useState(null);
 
+	// Estados para paginación
+	const [paginacion, setPaginacion] = useState({
+		currentPage: 1,
+		totalPages: 1,
+		count: 0,
+		next: null,
+		previous: null
+	});
+
 	// Estados para los filtros
-	const [filtroProducto, setFiltroProducto] = useState("todos");
 	const [filtroEstado, setFiltroEstado] = useState("todos");
 	const [filtroFecha, setFiltroFecha] = useState("todos");
+
+	// Estados para el modal de cancelación
+	const [modalCancelarAbierto, setModalCancelarAbierto] = useState(false);
+	const [ordenSeleccionada, setOrdenSeleccionada] = useState(null);
+	const [cancelando, setCancelando] = useState(false);
+
+	// Estados para el modal de recibir
+	const [modalRecibirAbierto, setModalRecibirAbierto] = useState(false);
+	const [materiasRecibidas, setMateriasRecibidas] = useState([]);
+	const [recibiendo, setRecibiendo] = useState(false);
 
 	useEffect(() => {
 		const obtenerOrdenes = async () => {
 			try {
 				setCargando(true);
-				const datos = await OrdenCompraService.obtenerOrdenesCompra();
-				setOrdenes(datos);
-				setOrdenesFiltradas(datos);
+				const response = await OrdenCompraService.obtenerOrdenesCompra(1);
+				setOrdenes(response.ordenes);
+				setOrdenesFiltradas(response.ordenes);
+				setPaginacion({
+					currentPage: 1,
+					totalPages: Math.ceil(response.paginacion.count / 10),
+					count: response.paginacion.count,
+					next: response.paginacion.next,
+					previous: response.paginacion.previous
+				});
 			} catch (err) {
 				setError("Error al cargar las órdenes de compra");
 				console.error("Error:", err);
@@ -38,16 +67,31 @@ const VerOrdenesCompra = () => {
 		obtenerOrdenes();
 	}, []);
 
+	// Función para cambiar de página
+	const cambiarPagina = async (page) => {
+		try {
+			setCargando(true);
+			const response = await OrdenCompraService.obtenerOrdenesCompra(page);
+			setOrdenes(response.ordenes);
+			setOrdenesFiltradas(response.ordenes);
+			setPaginacion({
+				currentPage: page,
+				totalPages: Math.ceil(response.paginacion.count / 10),
+				count: response.paginacion.count,
+				next: response.paginacion.next,
+				previous: response.paginacion.previous
+			});
+		} catch (err) {
+			setError("Error al cargar las órdenes");
+			console.error("Error:", err);
+		} finally {
+			setCargando(false);
+		}
+	};
+
 	// Aplicar filtros cuando cambien los valores
 	useEffect(() => {
 		let resultado = [...ordenes];
-
-		// Filtro por producto
-		if (filtroProducto !== "todos") {
-			resultado = resultado.filter(
-				(orden) => orden.producto.id_producto === parseInt(filtroProducto)
-			);
-		}
 
 		// Filtro por estado
 		if (filtroEstado !== "todos") {
@@ -70,34 +114,14 @@ const VerOrdenesCompra = () => {
 		}
 
 		setOrdenesFiltradas(resultado);
-	}, [ordenes, filtroProducto, filtroEstado, filtroFecha]);
-
-	// Obtener productos únicos para el filtro
-	const productosUnicos = [
-		...new Set(ordenes.map((orden) => orden.producto.id_producto)),
-	].map((id) => {
-		const producto = ordenes.find(
-			(orden) => orden.producto.id_producto === id
-		)?.producto;
-		return {
-			id: id,
-			nombre: producto?.nombre || "Producto desconocido",
-		};
-	});
+	}, [ordenes, filtroEstado, filtroFecha]);
 
 	// Estados únicos para el filtro
 	const estadosUnicos = [...new Set(ordenes.map((orden) => orden.estado))];
 
-	// Función para formatear precio en formato monetario
-	const formatearPrecio = (precio) => {
-		return new Intl.NumberFormat("es-AR", {
-			style: "currency",
-			currency: "ARS",
-		}).format(precio);
-	};
-
 	// Función para formatear fecha
 	const formatearFecha = (fechaISO) => {
+		if (!fechaISO) return "No especificada";
 		const fecha = new Date(fechaISO);
 		return `${fecha.getDate()}/${fecha.getMonth() + 1}/${fecha.getFullYear()}`;
 	};
@@ -105,77 +129,192 @@ const VerOrdenesCompra = () => {
 	// Función para obtener el color del estado
 	const getColorEstado = (estado) => {
 		const colores = {
-			pendiente: "#f39c12", // Naranja
-			en_camino: "#3498db", // Azul
-			entregado: "#27ae60", // Verde
-			cancelado: "#e74c3c", // Rojo
+			'En proceso': "#f39c12", // Naranja
+			'Recibido': "#27ae60", // Verde
+			'Cancelado': "#e74c3c", // Rojo
 		};
 		return colores[estado] || "#95a5a6";
 	};
 
 	// Función para limpiar todos los filtros
 	const limpiarFiltros = () => {
-		setFiltroProducto("todos");
 		setFiltroEstado("todos");
 		setFiltroFecha("todos");
 	};
 
-	// Funciones para los botones (ahora usando la instancia de axios)
-	const manejarRecibir = async (orden) => {
+	// Función para abrir el modal de cancelación
+	const abrirModalCancelar = (orden) => {
+		setOrdenSeleccionada(orden);
+		setModalCancelarAbierto(true);
+	};
+
+	// Función para cerrar el modal de cancelación
+	const cerrarModalCancelar = () => {
+		setModalCancelarAbierto(false);
+		setOrdenSeleccionada(null);
+		setCancelando(false);
+	};
+
+	// Función para manejar la cancelación de la orden
+	const manejarCancelarOrden = async () => {
+		if (!ordenSeleccionada) return;
+
+		setCancelando(true);
 		try {
-			console.log("Recibiendo orden:", orden.numero_orden);
+			console.log("Cancelando orden:", ordenSeleccionada.numero_orden);
 			
-			// Aquí irá la lógica para recibir la orden usando la instancia de axios
-			const response = await api.patch(`/compras/ordenes/${orden.id_orden_compra}/recibir/`);
+			const response = await api.patch(
+				`/compras/ordenes-compra/${ordenSeleccionada.id_orden_compra}/actualizar_estado/`,
+				{ 
+					"id_estado_orden_compra": 3  // 3 = Cancelado
+				}
+			);
+			
+			if (response.status === 200) {
+				console.log("Orden cancelada exitosamente");
+				alert(`Orden ${ordenSeleccionada.numero_orden} cancelada correctamente`);
+				
+				// Recargar las órdenes para reflejar el cambio
+				const nuevaResponse = await OrdenCompraService.obtenerOrdenesCompra(paginacion.currentPage);
+				setOrdenes(nuevaResponse.ordenes);
+				setOrdenesFiltradas(nuevaResponse.ordenes);
+				
+				cerrarModalCancelar();
+			}
+		} catch (error) {
+			console.error("Error al cancelar la orden:", error);
+			alert("Error al cancelar la orden. Por favor, intenta nuevamente.");
+		} finally {
+			setCancelando(false);
+		}
+	};
+
+	// Función para abrir el modal de recibir
+	const abrirModalRecibir = (orden) => {
+		setOrdenSeleccionada(orden);
+		// Inicializar las cantidades recibidas con los valores originales
+		const materiasIniciales = orden.materias_primas.map(mp => ({
+			...mp,
+			cantidad_recibida: mp.cantidad // Inicialmente igual a la cantidad pedida
+		}));
+		setMateriasRecibidas(materiasIniciales);
+		setModalRecibirAbierto(true);
+	};
+
+	// Función para cerrar el modal de recibir
+	const cerrarModalRecibir = () => {
+		setModalRecibirAbierto(false);
+		setOrdenSeleccionada(null);
+		setMateriasRecibidas([]);
+		setRecibiendo(false);
+	};
+
+	// Función para actualizar la cantidad recibida de una materia prima
+	const actualizarCantidadRecibida = (idMateriaPrima, nuevaCantidad) => {
+		setMateriasRecibidas(prev => 
+			prev.map(mp => 
+				mp.id_materia_prima === idMateriaPrima 
+					? { ...mp, cantidad_recibida: Number(nuevaCantidad) }
+					: mp
+			)
+		);
+	};
+
+	// Función para manejar la recepción de la orden
+	const manejarRecibirOrden = async () => {
+		if (!ordenSeleccionada) return;
+
+		// Validar que todas las cantidades sean válidas
+		const cantidadesInvalidas = materiasRecibidas.some(mp => 
+			mp.cantidad_recibida < 1 || mp.cantidad_recibida > mp.cantidad
+		);
+
+		if (cantidadesInvalidas) {
+			alert("Por favor, verifica las cantidades. Deben ser mayores a 0 y no superar la cantidad original.");
+			return;
+		}
+
+		setRecibiendo(true);
+		try {
+			console.log("Recibiendo orden:", ordenSeleccionada.numero_orden);
+			
+			// Preparar el payload para el endpoint
+			const payload = {
+				"id_estado_orden_compra": 2, // 2 = Recibido
+				"materias_recibidas": materiasRecibidas.map(mp => ({
+					"id_materia_prima": mp.id_materia_prima,
+					"cantidad": mp.cantidad_recibida
+				}))
+			};
+
+			console.log("Payload enviado:", payload);
+			
+			const response = await api.patch(
+				`/compras/ordenes-compra/${ordenSeleccionada.id_orden_compra}/actualizar_estado/`,
+				payload
+			);
 			
 			if (response.status === 200) {
 				console.log("Orden recibida exitosamente");
+				
+				// Mostrar resumen de lo recibido
+				const resumen = materiasRecibidas.map(mp => 
+					`${mp.materia_prima_nombre}: ${mp.cantidad_recibida}/${mp.cantidad} unidades`
+				).join('\n');
+				
+				alert(`Orden ${ordenSeleccionada.numero_orden} recibida correctamente\n\n${resumen}`);
+				
 				// Recargar las órdenes para reflejar el cambio
-				const datos = await OrdenCompraService.obtenerOrdenesCompra();
-				setOrdenes(datos);
-				setOrdenesFiltradas(datos);
+				const nuevaResponse = await OrdenCompraService.obtenerOrdenesCompra(paginacion.currentPage);
+				setOrdenes(nuevaResponse.ordenes);
+				setOrdenesFiltradas(nuevaResponse.ordenes);
+				
+				cerrarModalRecibir();
 			}
 		} catch (error) {
 			console.error("Error al recibir la orden:", error);
+			alert("Error al recibir la orden. Por favor, intenta nuevamente.");
+		} finally {
+			setRecibiendo(false);
 		}
 	};
 
+	// Función placeholder para rechazar (próximamente)
 	const manejarRechazar = async (orden) => {
 		try {
 			console.log("Rechazando orden:", orden.numero_orden);
-			
-			// Aquí irá la lógica para rechazar la orden usando la instancia de axios
-			const response = await api.patch(`/compras/ordenes/${orden.id_orden_compra}/rechazar/`);
-			
-			if (response.status === 200) {
-				console.log("Orden rechazada exitosamente");
-				// Recargar las órdenes para reflejar el cambio
-				const datos = await OrdenCompraService.obtenerOrdenesCompra();
-				setOrdenes(datos);
-				setOrdenesFiltradas(datos);
-			}
+			// TODO: Implementar cuando tengamos el endpoint
+			alert("Función de rechazar orden - Próximamente");
 		} catch (error) {
 			console.error("Error al rechazar la orden:", error);
+			alert("Error al rechazar la orden");
 		}
 	};
 
-	const manejarVerDetalles = async (orden) => {
-		try {
-			console.log("Obteniendo detalles de orden:", orden.numero_orden);
-			
-			// Aquí irá la lógica para obtener detalles usando la instancia de axios
-			const response = await api.get(`/compras/ordenes/${orden.id_orden_compra}/`);
-			
-			if (response.status === 200) {
-				console.log("Detalles de la orden:", response.data);
-				// Aquí puedes mostrar los detalles en un modal o redirigir a otra página
-			}
-		} catch (error) {
-			console.error("Error al obtener detalles de la orden:", error);
+	// Generar números de página para la paginación
+	const generarNumerosPagina = () => {
+		const paginas = [];
+		const paginaActual = paginacion.currentPage;
+		const totalPaginas = paginacion.totalPages;
+
+		let inicio = Math.max(1, paginaActual - 2);
+		let fin = Math.min(totalPaginas, paginaActual + 2);
+
+		if (paginaActual <= 3) {
+			fin = Math.min(5, totalPaginas);
 		}
+		if (paginaActual >= totalPaginas - 2) {
+			inicio = Math.max(1, totalPaginas - 4);
+		}
+
+		for (let i = inicio; i <= fin; i++) {
+			paginas.push(i);
+		}
+
+		return paginas;
 	};
 
-	if (cargando) {
+	if (cargando && ordenes.length === 0) {
 		return (
 			<div className={styles.cargando}>
 				<div className={styles.spinner}></div>
@@ -195,25 +334,6 @@ const VerOrdenesCompra = () => {
 			{/* Controles de Filtrado */}
 			<div className={styles.controles}>
 				<div className={styles.filtroGrupo}>
-					<label htmlFor="filtroProducto" className={styles.label}>
-						Filtrar por Producto:
-					</label>
-					<select
-						id="filtroProducto"
-						value={filtroProducto}
-						onChange={(e) => setFiltroProducto(e.target.value)}
-						className={styles.select}
-					>
-						<option value="todos">Todos los productos</option>
-						{productosUnicos.map((producto) => (
-							<option key={producto.id} value={producto.id}>
-								{producto.nombre}
-							</option>
-						))}
-					</select>
-				</div>
-
-				<div className={styles.filtroGrupo}>
 					<label htmlFor="filtroEstado" className={styles.label}>
 						Filtrar por Estado:
 					</label>
@@ -226,8 +346,7 @@ const VerOrdenesCompra = () => {
 						<option value="todos">Todos los estados</option>
 						{estadosUnicos.map((estado) => (
 							<option key={estado} value={estado}>
-								{estado.charAt(0).toUpperCase() +
-									estado.slice(1).replace("_", " ")}
+								{estado}
 							</option>
 						))}
 					</select>
@@ -256,8 +375,8 @@ const VerOrdenesCompra = () => {
 
 			{/* Contador de resultados */}
 			<div className={styles.contador}>
-				Mostrando {ordenesFiltradas.length} de {ordenes.length} órdenes de
-				compra
+				Mostrando {ordenesFiltradas.length} de {paginacion.count} órdenes de compra
+				{paginacion.totalPages > 1 && ` (Página ${paginacion.currentPage} de ${paginacion.totalPages})`}
 			</div>
 
 			{/* Lista de órdenes */}
@@ -271,62 +390,75 @@ const VerOrdenesCompra = () => {
 									className={styles.estado}
 									style={{ backgroundColor: getColorEstado(orden.estado) }}
 								>
-									{orden.estado.toUpperCase().replace("_", " ")}
+									{orden.estado.toUpperCase()}
 								</span>
 							</div>
 
 							<div className={styles.cardBody}>
 								<div className={styles.infoGrupo}>
-									<strong>
-										Proveedor: <span >{orden.proveedor.nombre}</span>
-									</strong>
-									<p className={styles.fechaInfo}>Fecha Pedido: <span>{formatearFecha(orden.fecha_pedido)}</span></p>
-									
+									<strong>Proveedor:</strong>
+									<span>{orden.proveedor.nombre}</span>
 								</div>
 
 								<div className={styles.infoGrupo}>
-									<strong>Total:</strong>
-									<span className={styles.total}>
-										{formatearPrecio(orden.total)}
-									</span>
+									<strong>Fecha Solicitud:</strong>
+									<span>{formatearFecha(orden.fecha_solicitud)}</span>
 								</div>
 
-
 								<div className={styles.infoGrupo}>
-									<strong>Fecha Estimada de llegada:</strong>
+									<strong>Entrega Estimada:</strong>
 									<span>{formatearFecha(orden.fecha_entrega_estimada)}</span>
 								</div>
 
-								<div className={styles.infoProducto}>
-									<h2>Producto:</h2>
-									<div className={styles.descripcionProducto}>
-										<strong>{orden.producto.nombre}</strong>
-										<span>
-											{orden.cantidad} {orden.producto.unidad_medida}
-										</span>
+								{orden.fecha_entrega_real && (
+									<div className={styles.infoGrupo}>
+										<strong>Entrega Real:</strong>
+										<span>{formatearFecha(orden.fecha_entrega_real)}</span>
+									</div>
+								)}
+
+								<div className={styles.materiasPrimas}>
+									<strong>Materias Primas:</strong>
+									<div className={styles.listaMateriasPrimas}>
+										{orden.materias_primas.map((mp, index) => (
+											<div key={index} className={styles.materiaPrimaItem}>
+												<span className={styles.materiaPrimaNombre}>
+													{mp.materia_prima_nombre}
+												</span>
+												<span className={styles.materiaPrimaCantidad}>
+													{mp.cantidad} unidades
+												</span>
+											</div>
+										))}
 									</div>
 								</div>
 							</div>
 
 							<div className={styles.cardFooter}>
-								<button
-									className={styles.btnRecibir}
-									onClick={() => manejarRecibir(orden)}
-								>
-									Recibir
-								</button>
-								<button
-									className={styles.btnRechazar}
-									onClick={() => manejarRechazar(orden)}
-								>
-									Rechazar
-								</button>
-								<button
-									className={styles.btnDetalles}
-									onClick={() => manejarVerDetalles(orden)}
-								>
-									Ver Detalles
-								</button>
+								{orden.estado === "En proceso" && (
+									<>
+										<button
+											className={styles.btnRecibir}
+											onClick={() => abrirModalRecibir(orden)}
+										>
+											Recibir
+										</button>
+										{/* 
+										Aun no lo agregaremos. pero queda ahí la funcionalidad.
+										<button
+											className={styles.btnRechazar}
+											onClick={() => manejarRechazar(orden)}
+										>
+											Rechazar
+										</button> */}
+										<button
+											className={styles.btnCancelar}
+											onClick={() => abrirModalCancelar(orden)}
+										>
+											Cancelar
+										</button>
+									</>
+								)}
 							</div>
 						</div>
 					))
@@ -336,6 +468,183 @@ const VerOrdenesCompra = () => {
 					</div>
 				)}
 			</div>
+
+			{/* Paginación */}
+			{paginacion.totalPages > 1 && (
+				<div className={styles.paginacion}>
+					<button
+						className={`${styles.btnPagina} ${styles.btnPaginaAnterior}`}
+						onClick={() => cambiarPagina(paginacion.currentPage - 1)}
+						disabled={!paginacion.previous}
+					>
+						‹ Anterior
+					</button>
+
+					{generarNumerosPagina().map((numero) => (
+						<button
+							key={numero}
+							className={`${styles.btnPagina} ${
+								numero === paginacion.currentPage ? styles.btnPaginaActiva : ""
+							}`}
+							onClick={() => cambiarPagina(numero)}
+						>
+							{numero}
+						</button>
+					))}
+
+					<button
+						className={`${styles.btnPagina} ${styles.btnPaginaSiguiente}`}
+						onClick={() => cambiarPagina(paginacion.currentPage + 1)}
+						disabled={!paginacion.next}
+					>
+						Siguiente ›
+					</button>
+				</div>
+			)}
+
+			{/* Modal de Cancelación */}
+			<Modal
+				isOpen={modalCancelarAbierto}
+				onRequestClose={cerrarModalCancelar}
+				className={styles.modal}
+				overlayClassName={styles.overlay}
+				contentLabel="Cancelar Orden de Compra"
+			>
+				<div className={styles.modalContent}>
+					<h2 className={styles.modalTitulo}>Cancelar Orden de Compra</h2>
+					
+					{ordenSeleccionada && (
+						<div className={styles.modalInfo}>
+							<p><strong>Orden #:</strong> {ordenSeleccionada.numero_orden}</p>
+							<p><strong>Proveedor:</strong> {ordenSeleccionada.proveedor.nombre}</p>
+							<p><strong>Fecha Estimada:</strong> {formatearFecha(ordenSeleccionada.fecha_entrega_estimada)}</p>
+							<div className={styles.materiasPrimasResumen}>
+								<strong>Materias Primas:</strong>
+								<ul>
+									{ordenSeleccionada.materias_primas.map((mp, index) => (
+										<li key={index}>{mp.materia_prima_nombre} - {mp.cantidad} unidades</li>
+									))}
+								</ul>
+							</div>
+						</div>
+					)}
+
+					<div className={styles.modalAdvertencia}>
+						⚠️ <strong>Advertencia:</strong> Esta acción no se puede deshacer. La orden será cancelada permanentemente.
+					</div>
+
+					<div className={styles.modalActions}>
+						<button
+							onClick={cerrarModalCancelar}
+							className={styles.btnModalCancelar}
+							disabled={cancelando}
+						>
+							Volver
+						</button>
+						<button
+							onClick={manejarCancelarOrden}
+							className={styles.btnModalConfirmar}
+							disabled={cancelando}
+						>
+							{cancelando ? (
+								<>
+									<div className={styles.spinnerSmall}></div>
+									Cancelando...
+								</>
+							) : (
+								'Confirmar Cancelación'
+							)}
+						</button>
+					</div>
+				</div>
+			</Modal>
+
+			{/* Modal de Recibir */}
+			<Modal
+				isOpen={modalRecibirAbierto}
+				onRequestClose={cerrarModalRecibir}
+				className={styles.modal}
+				overlayClassName={styles.overlay}
+				contentLabel="Recibir Orden de Compra"
+			>
+				<div className={styles.modalContent}>
+					<h2 className={styles.modalTitulo}>Recibir Orden de Compra</h2>
+					
+					{ordenSeleccionada && (
+						<div className={styles.modalInfo}>
+							<p><strong>Orden #:</strong> {ordenSeleccionada.numero_orden}</p>
+							<p><strong>Proveedor:</strong> {ordenSeleccionada.proveedor.nombre}</p>
+							<p><strong>Fecha Estimada:</strong> {formatearFecha(ordenSeleccionada.fecha_entrega_estimada)}</p>
+						</div>
+					)}
+
+					<div className={styles.materiasPrimasForm}>
+						<h3 className={styles.formTitulo}>Cantidades Recibidas</h3>
+						<p className={styles.formInstrucciones}>
+							Ajusta las cantidades recibidas de cada materia prima. 
+							Puedes recibir menos de lo pedido si la orden llegó incompleta.
+						</p>
+						
+						<div className={styles.listaMateriasForm}>
+							{materiasRecibidas.map((materia, index) => (
+								<div key={materia.id_materia_prima} className={styles.materiaPrimaFormItem}>
+									<div className={styles.materiaPrimaInfo}>
+										<strong>{materia.materia_prima_nombre}</strong>
+										<span className={styles.cantidadOriginal}>
+											Pedido: {materia.cantidad} unidades
+										</span>
+									</div>
+									<div className={styles.cantidadInputGroup}>
+										<label htmlFor={`cantidad-${materia.id_materia_prima}`}>
+											Cantidad Recibida:
+										</label>
+										<input
+											type="number"
+											id={`cantidad-${materia.id_materia_prima}`}
+											value={materia.cantidad_recibida}
+											onChange={(e) => actualizarCantidadRecibida(materia.id_materia_prima, e.target.value)}
+											className={styles.cantidadInput}
+											min="1"
+											max={materia.cantidad}
+											step="1"
+										/>
+										<span className={styles.unidadMedida}>unidades</span>
+									</div>
+									{materia.cantidad_recibida < materia.cantidad && (
+										<div className={styles.advertenciaIncompleta}>
+											⚠️ Recibiendo menos de lo pedido
+										</div>
+									)}
+								</div>
+							))}
+						</div>
+					</div>
+
+					<div className={styles.modalActions}>
+						<button
+							onClick={cerrarModalRecibir}
+							className={styles.btnModalCancelar}
+							disabled={recibiendo}
+						>
+							Cancelar
+						</button>
+						<button
+							onClick={manejarRecibirOrden}
+							className={styles.btnModalConfirmarVerde}
+							disabled={recibiendo}
+						>
+							{recibiendo ? (
+								<>
+									<div className={styles.spinnerSmall}></div>
+									Registrando...
+								</>
+							) : (
+								'Confirmar Recepción'
+							)}
+						</button>
+					</div>
+				</div>
+			</Modal>
 		</div>
 	);
 };
