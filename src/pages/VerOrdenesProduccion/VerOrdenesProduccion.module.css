@@ -253,6 +253,40 @@
 	transform: translateY(-1px);
 }
 
+/* Nuevo botón para No Conformidad */
+.btnNoConformidad {
+	background-color: #d35400; /* Naranja oscuro */
+	color: white;
+	border: none;
+	padding: 10px 16px;
+	border-radius: 6px;
+	cursor: pointer;
+	font-size: 0.85em;
+	font-weight: 600;
+	transition: all 0.3s ease;
+	flex: 1;
+	text-align: center;
+}
+
+.btnNoConformidad:hover {
+	background-color: #e67e22; /* Naranja más claro */
+	transform: translateY(-2px);
+	box-shadow: 0 4px 8px rgba(211, 84, 0, 0.3);
+}
+
+.btnNoConformidad:active {
+	background-color: #a04000; /* Naranja más oscuro */
+	transform: translateY(0);
+}
+
+.btnNoConformidad:disabled {
+	background-color: #f39c12; /* Naranja claro deshabilitado */
+	color: #bdc3c7;
+	cursor: not-allowed;
+	transform: none;
+	box-shadow: none;
+}
+
 .btnControlCalidad {
 	background-color: #2196f3; /* Azul profesional */
 	color: white;
@@ -616,6 +650,20 @@
 .modalContent[aria-label="Control de Calidad"]
 	.btnModalConfirmar:hover:not(:disabled) {
 	background-color: #8e44ad;
+}
+
+/* Estilos específicos para el modal de No Conformidad */
+.modalContent[aria-label="Agregar No Conformidad"] .modalInfo {
+	border-left-color: #d35400; /* Naranja oscuro para coincidir con el botón */
+}
+
+.modalContent[aria-label="Agregar No Conformidad"] .btnModalConfirmar {
+	background-color: #d35400; /* Naranja oscuro */
+}
+
+.modalContent[aria-label="Agregar No Conformidad"]
+	.btnModalConfirmar:hover:not(:disabled) {
+	background-color: #e67e22; /* Naranja más claro al hover */
 }
 
 /* Paleta de colores marrón para el botón de desperdicio */

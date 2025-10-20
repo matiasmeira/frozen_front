@@ -8,6 +8,7 @@ const NuevaOrdenCompra = () => {
   const [proveedores, setProveedores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Estado del formulario
   const [formData, setFormData] = useState({
@@ -80,7 +81,7 @@ const NuevaOrdenCompra = () => {
   };
 
   // Manejar envío del formulario
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     // Validaciones básicas
@@ -94,23 +95,64 @@ const NuevaOrdenCompra = () => {
       return;
     }
 
-    // Aquí iría la lógica para enviar los datos al backend
-    console.log('Datos del formulario:', {
-      id_proveedor: formData.proveedor,
-      id_materia_prima: formData.materiaPrima.value,
-      cantidad: formData.cantidad,
-      unidad_medida: unidadMedida
-    });
+    try {
+      setIsSubmitting(true);
 
-    // Resetear formulario
-    setFormData({
-      proveedor: '',
-      materiaPrima: null,
-      cantidad: ''
-    });
-    setUnidadMedida('');
-    
-    alert('Orden de compra creada exitosamente');
+      // Preparar los datos en el formato requerido por la API
+      const ordenCompraData = {
+        id_proveedor: parseInt(formData.proveedor),
+        materias_primas: [
+          {
+            id_materia_prima: parseInt(formData.materiaPrima.value),
+            cantidad: parseFloat(formData.cantidad)
+          }
+        ]
+      };
+
+      console.log('Enviando datos a la API:', ordenCompraData);
+
+      // Hacer el POST a la API
+      const response = await axios.post(
+        'https://frozenback-test.up.railway.app/api/compras/ordenes-compra/',
+        ordenCompraData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        }
+      );
+
+      console.log('Respuesta de la API:', response.data);
+      
+      // Resetear formulario
+      setFormData({
+        proveedor: '',
+        materiaPrima: null,
+        cantidad: ''
+      });
+      setUnidadMedida('');
+      
+      alert('Orden de compra creada exitosamente');
+      
+    } catch (err) {
+      console.error('Error al crear la orden de compra:', err);
+      let errorMessage = 'Error al crear la orden de compra';
+      
+      if (err.response) {
+        // El servidor respondió con un código de error
+        errorMessage += `: ${err.response.status} - ${err.response.data.message || JSON.stringify(err.response.data)}`;
+      } else if (err.request) {
+        // La petición fue hecha pero no se recibió respuesta
+        errorMessage += ': No se pudo conectar con el servidor';
+      } else {
+        // Algo pasó en la configuración de la petición
+        errorMessage += `: ${err.message}`;
+      }
+      
+      alert(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Estilos personalizados para react-select
@@ -210,8 +252,12 @@ const NuevaOrdenCompra = () => {
         </div>
 
         {/* Botón de envío */}
-        <button type="submit" className={styles.submitButton}>
-          Crear Orden de Compra
+        <button 
+          type="submit" 
+          className={styles.submitButton}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? 'Creando...' : 'Crear Orden de Compra'}
         </button>
       </form>
     </div>

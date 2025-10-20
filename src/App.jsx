@@ -16,6 +16,7 @@ import GeneradorFactura from "./pages/GeneradorFactura/GeneradorFactura";
 import VerOrdenesCompra from "./pages/VerOrdenesCompra/VerOrdenesCompra";
 import GestionarEntrega from './pages/GestionarEntrega/GestionarEntrega';
 import NuevaOrdenCompra from './pages/CrearOrdenDeCompra/NuevaOrdenCompra';
+import LotesProductos from './pages/ListaLotesProductos/LotesProductos';
 //Pages
 
 import "./App.css";
@@ -55,6 +56,8 @@ function App() {
 							<Route path="/crearOrdenCompra" element={<NuevaOrdenCompra />}/>
 							<Route path="/verOrdenesProduccion" element={<VerOrdenesProduccion />}/>
 							<Route path="/verStockProductos" element={<TablaStockProductos />}/>
+							<Route path="/lotesProductos" element={<LotesProductos />}/>
+							
 							<Route path="/GestionMateriasPrimas" element={<GestionMateriasPrimas/>}/>
 							<Route path="/VerOrdenesCompra" element={<VerOrdenesCompra/>}/>
 							<Route path="/gestionar-entrega/:idOrdenVenta" element={<GestionarEntrega />} />

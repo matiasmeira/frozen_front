@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Modal from 'react-modal';
+import { useNavigate } from "react-router-dom";
 import styles from "./VerOrdenesCompra.module.css";
 import { OrdenCompraService } from "../../classes/OrdenesCompraService";
 
@@ -14,6 +15,7 @@ const api = axios.create({
 });
 
 const VerOrdenesCompra = () => {
+	const navigate = useNavigate();
 	const [ordenes, setOrdenes] = useState([]);
 	const [ordenesFiltradas, setOrdenesFiltradas] = useState([]);
 	const [cargando, setCargando] = useState(true);
@@ -41,6 +43,11 @@ const VerOrdenesCompra = () => {
 	const [modalRecibirAbierto, setModalRecibirAbierto] = useState(false);
 	const [materiasRecibidas, setMateriasRecibidas] = useState([]);
 	const [recibiendo, setRecibiendo] = useState(false);
+
+	// Función para redirigir a crear orden de compra
+	const handleCrearOrdenCompra = () => {
+		navigate("/crearOrdenCompra");
+	};
 
 	useEffect(() => {
 		const obtenerOrdenes = async () => {
@@ -329,7 +336,15 @@ const VerOrdenesCompra = () => {
 
 	return (
 		<div className={styles.ordenesCompra}>
-			<h2 className={styles.titulo}>Órdenes de Compra</h2>
+			<div className={styles.header}>
+				<h2 className={styles.titulo}>Órdenes de Compra</h2>
+				<button 
+					className={styles.btnCrearOrden}
+					onClick={handleCrearOrdenCompra}
+				>
+					Crear Orden de Compra
+				</button>
+			</div>
 
 			{/* Controles de Filtrado */}
 			<div className={styles.controles}>
@@ -581,8 +596,8 @@ const VerOrdenesCompra = () => {
 					<div className={styles.materiasPrimasForm}>
 						<h3 className={styles.formTitulo}>Cantidades Recibidas</h3>
 						<p className={styles.formInstrucciones}>
-							Ajusta las cantidades recibidas de cada materia prima. 
-							Puedes recibir menos de lo pedido si la orden llegó incompleta.
+							Ajuste las cantidades recibidas de cada materia prima. 
+							Puede recibir menos de lo pedido si la orden llegó incompleta.
 						</p>
 						
 						<div className={styles.listaMateriasForm}>
