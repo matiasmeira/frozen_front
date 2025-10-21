@@ -1,10 +1,12 @@
+/* --- Estilos Generales y Fondo --- */
 .home {
   padding: 2rem;
-  min-height: calc(100vh - 140px);
+  min-height: calc(100vh - 140px); /* Ajusta si tu header es diferente */
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
+/* Título para "Cargando..." o "Error" */
 .title {
   text-align: center;
   font-size: 3rem;
@@ -14,6 +16,7 @@
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
+/* --- Grid de Tarjetas --- */
 .content {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -23,6 +26,7 @@
   padding: 2rem;
 }
 
+/* --- Estilo de Tarjeta (Glassmorphism) --- */
 .card {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
@@ -33,8 +37,15 @@
     0 2px 8px rgba(0, 0, 0, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.2);
   transition: all 0.3s ease;
-  text-align: center;
   cursor: pointer;
+  min-height: 180px; /* Ayuda a que todas tengan un alto similar */
+
+  /* Centra el contenido */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
 }
 
 .card:hover {
@@ -45,33 +56,22 @@
   background: rgba(255, 255, 255, 1);
 }
 
-.cardTitle {
-  margin: 0 0 1rem 0;
-  color: #333;
-  font-size: 1.3rem;
+/* --- Estilos del Ícono y Descripción --- */
+.cardIcon {
+  font-size: 3.5rem; /* Ícono grande */
+  margin-bottom: 1rem; /* Espacio entre ícono y texto */
+  color: #764ba2; /* Color morado del gradiente para que combine */
 }
 
 .cardDescription {
   margin: 0;
-  color: #666;
+  font-size: 1.05rem; /* Un poco más grande */
+  font-weight: 500; /* Grosor medio */
+  color: #444; /* Color de texto oscuro para legibilidad */
   line-height: 1.5;
 }
 
-.cardButton {
-  margin-top: 1rem;
-  padding: 0.5rem 1rem;
-  background: linear-gradient(135deg, #007bff, #0056b3);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-}
-
-.cardButton:hover {
-  transform: translateY(-2px);
-}
-
+/* --- Estilos de Carga y Error --- */
 .loading {
   display: flex;
   justify-content: center;
@@ -115,7 +115,7 @@
   100% { transform: rotate(360deg); }
 }
 
-/* Responsive */
+/* --- Responsive --- */
 @media (max-width: 768px) {
   .home {
     padding: 1rem;
@@ -133,5 +133,6 @@
   
   .card {
     padding: 1.5rem;
+    min-height: 150px;
   }
 }
