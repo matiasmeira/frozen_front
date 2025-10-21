@@ -361,6 +361,99 @@
 	}
 }
 
+.cardFooter {
+	display: flex;
+	justify-content: space-between;
+	gap: 8px;
+	margin-top: 15px;
+	padding-top: 15px;
+	border-top: 1px solid #eee;
+}
+
+/* Ajustar los botones existentes para que tengan el mismo tamaño */
+.btnAgregar,
+.btnQuitar,
+.btnVerLotes {
+	flex: 1;
+	margin: 0 2px;
+	padding: 8px 12px;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 14px;
+	font-weight: 500;
+	transition: all 0.3s ease;
+	text-align: center;
+}
+
+.btnVerLotes{
+	background-color: #3498db;
+	color: white;
+}
+
+/* Mantener los estilos existentes de los otros botones */
+.btnAgregar {
+	background-color: #27ae60;
+	color: white;
+}
+
+.btnAgregar:hover {
+	background-color: #219a52;
+}
+
+.btnQuitar {
+	background-color: #e74c3c;
+	color: white;
+}
+
+.btnQuitar:hover {
+	background-color: #c0392b;
+}
+
+.cardFooter {
+	display: flex;
+	justify-content: space-between;
+	gap: 8px;
+	margin-top: 15px;
+	padding-top: 15px;
+	border-top: 1px solid #eee;
+}
+
+/* Ajustar los botones existentes para que tengan el mismo tamaño */
+.btnAgregar,
+.btnQuitar,
+.btnVerLotes {
+	flex: 1;
+	margin: 0 2px;
+	padding: 8px 12px;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 14px;
+	font-weight: 500;
+	transition: all 0.3s ease;
+	text-align: center;
+}
+
+/* Mantener los estilos existentes de los otros botones */
+.btnAgregar {
+	background-color: #27ae60;
+	color: white;
+}
+
+.btnAgregar:hover {
+	background-color: #219a52;
+}
+
+.btnQuitar {
+	background-color: #e74c3c;
+	color: white;
+}
+
+.btnQuitar:hover {
+	background-color: #c0392b;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
 	.listaMateriasPrimas {

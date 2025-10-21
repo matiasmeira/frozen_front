@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Modal from "react-modal";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import styles from "./GestionMateriaPrima.module.css";
 import MateriasPrimasService from "../../classes/DTOS/MateriasPrimasService";
 
@@ -10,7 +11,7 @@ Modal.setAppElement("#root");
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 const api = axios.create({
-  baseURL: baseURL,
+	baseURL: baseURL,
 });
 
 // Servicio para las llamadas API de materias primas
@@ -18,6 +19,7 @@ const GestionMateriasPrimas = () => {
 	const [materiasPrimas, setMateriasPrimas] = useState([]);
 	const [cargando, setCargando] = useState(true);
 	const [error, setError] = useState(null);
+	const navigate = useNavigate();
 
 	// Estados para el modal de agregar
 	const [modalAgregarAbierto, setModalAgregarAbierto] = useState(false);
@@ -32,7 +34,6 @@ const GestionMateriasPrimas = () => {
 
 	useEffect(() => {
 		obtenerMateriasPrimas();
-
 	}, []);
 
 	const obtenerMateriasPrimas = async () => {
@@ -40,7 +41,7 @@ const GestionMateriasPrimas = () => {
 			setCargando(true);
 			setError(null);
 			const datos = await MateriasPrimasService.obtenerMateriasPrimas();
-			console.log(datos)
+			console.log(datos);
 			setMateriasPrimas(datos);
 		} catch (err) {
 			setError("Error al cargar las materias primas");
@@ -48,6 +49,11 @@ const GestionMateriasPrimas = () => {
 		} finally {
 			setCargando(false);
 		}
+	};
+
+	// Función para ver los lotes de una materia prima
+	const verLotes = (idMateriaPrima) => {
+		navigate(`/VerLotesMateriaPrima/${idMateriaPrima}`);
 	};
 
 	// Funciones para el modal de agregar
@@ -72,9 +78,10 @@ const GestionMateriasPrimas = () => {
 
 		setAgregando(true);
 		try {
-
-			await MateriasPrimasService.agregarMateriaPrima(materiaPrimaSeleccionada.id_materia_prima, cantidadAgregar)
-
+			await MateriasPrimasService.agregarMateriaPrima(
+				materiaPrimaSeleccionada.id_materia_prima,
+				cantidadAgregar
+			);
 
 			// Recargar la lista
 			await obtenerMateriasPrimas();
@@ -87,7 +94,6 @@ const GestionMateriasPrimas = () => {
 			setAgregando(false);
 		}
 	};
-
 
 	// Funciones para el modal de quitar
 	const abrirModalQuitar = (materiaPrima) => {
@@ -111,8 +117,10 @@ const GestionMateriasPrimas = () => {
 
 		setQuitando(true);
 		try {
-			await MateriasPrimasService.quitarMateriaPrima(materiaPrimaSeleccionada.id_materia_prima, cantidadQuitar)
-
+			await MateriasPrimasService.quitarMateriaPrima(
+				materiaPrimaSeleccionada.id_materia_prima,
+				cantidadQuitar
+			);
 
 			// Recargar la lista
 			await obtenerMateriasPrimas();
@@ -156,12 +164,10 @@ const GestionMateriasPrimas = () => {
 							</div>
 
 							<div className={styles.cardBody}>
-
 								<div className={styles.infoGrupo}>
 									<strong>{materiaPrima.unidad_medida}:</strong>
 									<span>{materiaPrima.cantidad_disponible}</span>
 								</div>
-
 							</div>
 
 							<div className={styles.cardFooter}>
@@ -176,6 +182,13 @@ const GestionMateriasPrimas = () => {
 									onClick={() => abrirModalQuitar(materiaPrima)}
 								>
 									Quitar
+								</button>
+								{/* Nuevo botón Ver Lotes */}
+								<button
+									className={styles.btnVerLotes}
+									onClick={() => verLotes(materiaPrima.id_materia_prima)}
+								>
+									Ver Lotes
 								</button>
 							</div>
 						</div>

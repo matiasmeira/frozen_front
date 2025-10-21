@@ -25,6 +25,7 @@ import ProtectedAuth from "./utils/ProtectedAuth";
 import ProtectedRoutes from "./utils/ProtectedRoutes";
 import ProtectedLogin from "./utils/ProtectedLogin";
 import GestionMateriasPrimas from "./pages/GestionMateriaPrima/GestionMateriaPrima";
+import VerLotesMateriaPrima from "./pages/VerLotesMateriaPrima/VerLotesMateriaPrima";
 
 function App() {
 	return (
@@ -61,6 +62,7 @@ function App() {
 							<Route path="/GestionMateriasPrimas" element={<GestionMateriasPrimas/>}/>
 							<Route path="/VerOrdenesCompra" element={<VerOrdenesCompra/>}/>
 							<Route path="/gestionar-entrega/:idOrdenVenta" element={<GestionarEntrega />} />
+							<Route path="/VerLotesMateriaPrima/:id_Materia_Prima" element={<VerLotesMateriaPrima/>}/>
 						{/*</Route>*/}
 					</Routes>
 				</main>
