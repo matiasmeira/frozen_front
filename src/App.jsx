@@ -17,6 +17,7 @@ import VerOrdenesCompra from "./pages/VerOrdenesCompra/VerOrdenesCompra";
 import GestionarEntrega from './pages/GestionarEntrega/GestionarEntrega';
 import NuevaOrdenCompra from './pages/CrearOrdenDeCompra/NuevaOrdenCompra';
 import LotesProductos from './pages/ListaLotesProductos/LotesProductos';
+import TrazarLoteMateriaPrima from "./pages/TrazarLoteMateriaPrima/TrazarLoteMateriaPrima";
 //Pages
 
 import "./App.css";
@@ -63,6 +64,7 @@ function App() {
 							<Route path="/VerOrdenesCompra" element={<VerOrdenesCompra/>}/>
 							<Route path="/gestionar-entrega/:idOrdenVenta" element={<GestionarEntrega />} />
 							<Route path="/VerLotesMateriaPrima/:id_Materia_Prima" element={<VerLotesMateriaPrima/>}/>
+							<Route path="/trazar_lote_materia_prima/:id_Materia_Prima" element={<TrazarLoteMateriaPrima/>}/>
 						{/*</Route>*/}
 					</Routes>
 				</main>
