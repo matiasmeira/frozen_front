@@ -43,17 +43,32 @@ function CrearOrdenDeVenta() {
 		id_cliente: "",
 		id_prioridad: "",
 		fecha_entrega: "",
-		direccion_entrega: "", // Nuevo campo agregado
+		calle: "",
+		altura: "",
+		localidad: "",
+		zona: "",
 		productos: [],
+		tipo_venta: "EMP"
 	});
 	
 	const [errors, setErrors] = useState({
 		cliente: "",
 		prioridad: "",
 		fecha_entrega: "",
-		direccion_entrega: "", // Nuevo campo de error
+		calle: "",
+		altura: "",
+		localidad: "",
+		zona: "",
 		productos: "",
 	});
+
+	// Opciones para el dropdown de zona
+	const opcionesZona = [
+		{ value: "N", label: "Norte (N)" },
+		{ value: "S", label: "Sur (S)" },
+		{ value: "E", label: "Este (E)" },
+		{ value: "O", label: "Oeste (O)" }
+	];
 
 	// Calcular el total cada vez que cambien los fields
 	useEffect(() => {
@@ -140,6 +155,24 @@ function CrearOrdenDeVenta() {
 		}
 	};
 
+	// Función para manejar solo números en el campo altura
+	const handleAlturaChange = (e) => {
+		const { value } = e.target;
+		// Solo permite números y elimina cualquier carácter que no sea número
+		const soloNumeros = value.replace(/[^0-9]/g, '');
+		setOrden(prev => ({
+			...prev,
+			altura: soloNumeros,
+		}));
+		
+		if (errors.altura) {
+			setErrors(prev => ({
+				...prev,
+				altura: "",
+			}));
+		}
+	};
+
 	const handleCliente = (selectedOption) => {
 		const value = selectedOption?.value || "";
 		setOrden(prev => ({
@@ -151,6 +184,22 @@ function CrearOrdenDeVenta() {
 			setErrors(prev => ({
 				...prev,
 				id_cliente: "",
+			}));
+		}
+	};
+
+	// Función para manejar el cambio de zona
+	const handleZonaChange = (selectedOption) => {
+		const value = selectedOption?.value || "";
+		setOrden(prev => ({
+			...prev,
+			zona: value,
+		}));
+		
+		if (errors.zona) {
+			setErrors(prev => ({
+				...prev,
+				zona: "",
 			}));
 		}
 	};
@@ -284,7 +333,10 @@ function CrearOrdenDeVenta() {
 			cliente: "",
 			prioridad: "",
 			fecha_entrega: "",
-			direccion_entrega: "",
+			calle: "",
+			altura: "",
+			localidad: "",
+			zona: "",
 			productos: "",
 		};
 
@@ -321,12 +373,24 @@ function CrearOrdenDeVenta() {
 			}
 		}
 
-		// Validar dirección de entrega
-		if (!orden.direccion_entrega?.trim()) {
-			nuevosErrores.direccion_entrega = "Debes ingresar una dirección de entrega";
+		// Validar campos de dirección
+		if (!orden.calle?.trim()) {
+			nuevosErrores.calle = "Debes ingresar la calle";
 			esValido = false;
-		} else if (orden.direccion_entrega.trim().length < 10) {
-			nuevosErrores.direccion_entrega = "La dirección debe tener al menos 10 caracteres";
+		}
+
+		if (!orden.altura?.trim()) {
+			nuevosErrores.altura = "Debes ingresar la altura";
+			esValido = false;
+		}
+
+		if (!orden.localidad?.trim()) {
+			nuevosErrores.localidad = "Debes ingresar la localidad";
+			esValido = false;
+		}
+
+		if (!orden.zona?.trim()) {
+			nuevosErrores.zona = "Debes seleccionar una zona";
 			esValido = false;
 		}
 
@@ -378,7 +442,10 @@ function CrearOrdenDeVenta() {
 					id_cliente: "",
 					id_prioridad: "",
 					fecha_entrega: "",
-					direccion_entrega: "",
+					calle: "",
+					altura: "",
+					localidad: "",
+					zona: "",
 					productos: [],
 				});
 				setFields([
@@ -397,7 +464,10 @@ function CrearOrdenDeVenta() {
 					cliente: "",
 					prioridad: "",
 					fecha_entrega: "",
-					direccion_entrega: "",
+					calle: "",
+					altura: "",
+					localidad: "",
+					zona: "",
 					productos: "",
 				});
 				alert("Orden de venta creada exitosamente");
@@ -451,6 +521,12 @@ function CrearOrdenDeVenta() {
 			value: product.id_producto,
 			label: `${product.nombre}`
 		};
+	};
+
+	// Función para obtener el valor seleccionado de zona
+	const getSelectedZonaValue = () => {
+		if (!orden.zona) return null;
+		return opcionesZona.find(opcion => opcion.value === orden.zona);
 	};
 
 	if (loading) {
@@ -546,29 +622,102 @@ function CrearOrdenDeVenta() {
 								<span className={styles.errorText}>{errors.prioridad}</span>
 							)}
 						</div>
+								{/* Calle */}
+								<div className={styles.formGroup}>
+									<label htmlFor="Calle" className={styles.fieldLabel}>
+										Calle
+									</label>
+									<input
+										type="text"
+										id="Calle"
+										name="calle"
+										value={orden.calle}
+										onChange={handleChange}
+										disabled={creatingOrder}
+										placeholder="Ingrese la calle"
+										className={`${styles.formInput} ${
+											errors.calle ? styles.inputError : ""
+										} ${creatingOrder ? styles.disabledInput : ""}`}
+									/>
+									{errors.calle && (
+										<span className={styles.errorText}>{errors.calle}</span>
+									)}
+								</div>
 
-						{/* Dirección de Entrega - NUEVO CAMPO */}
-						<div className={styles.formGroup}>
-							<label htmlFor="DireccionEntrega" className={styles.formLabel}>
-								Dirección de Entrega:
-							</label>
-							<textarea
-								id="DireccionEntrega"
-								name="direccion_entrega"
-								value={orden.direccion_entrega}
-								onChange={handleChange}
-								disabled={creatingOrder}
-								rows={3}
-								placeholder="Ingrese la dirección completa de entrega"
-								className={`${styles.formInput} ${styles.textarea} ${
-									errors.direccion_entrega ? styles.inputError : ""
-								} ${creatingOrder ? styles.disabledInput : ""}`}
-							/>
-							{errors.direccion_entrega && (
-								<span className={styles.errorText}>{errors.direccion_entrega}</span>
-							)}
-						</div>
+								{/* Altura - Solo números */}
+								<div className={styles.formGroup}>
+									<label htmlFor="Altura" className={styles.fieldLabel}>
+										Altura
+									</label>
+									<input
+										type="text"
+										id="Altura"
+										name="altura"
+										value={orden.altura}
+										onChange={handleAlturaChange}
+										disabled={creatingOrder}
+										placeholder="Número"
+										className={`${styles.formInput} ${
+											errors.altura ? styles.inputError : ""
+										} ${creatingOrder ? styles.disabledInput : ""}`}
+										// Pattern para HTML5 validation (opcional)
+										pattern="[0-9]*"
+										inputMode="numeric"
+									/>
+									{errors.altura && (
+										<span className={styles.errorText}>{errors.altura}</span>
+									)}
+								</div>
 
+								{/* Localidad */}
+								<div className={styles.formGroup}>
+									<label htmlFor="Localidad" className={styles.fieldLabel}>
+										Localidad
+									</label>
+									<input
+										type="text"
+										id="Localidad"
+										name="localidad"
+										value={orden.localidad}
+										onChange={handleChange}
+										disabled={creatingOrder}
+										placeholder="Ingrese la localidad"
+										className={`${styles.formInput} ${
+											errors.localidad ? styles.inputError : ""
+										} ${creatingOrder ? styles.disabledInput : ""}`}
+									/>
+									{errors.localidad && (
+										<span className={styles.errorText}>{errors.localidad}</span>
+									)}
+								</div>
+
+								{/* Zona - Dropdown */}
+								<div className={styles.formGroup}>
+									<label htmlFor="Zona" className={styles.fieldLabel}>
+										Zona
+									</label>
+									<Select
+										id="Zona"
+										name="zona"
+										value={getSelectedZonaValue()}
+										onChange={handleZonaChange}
+										disabled={creatingOrder}
+										options={opcionesZona}
+										isClearable
+										isSearchable
+										className={`${
+											errors.zona ? styles.inputError : ""
+										} ${creatingOrder ? styles.disabledInput : ""}`}
+										placeholder="Seleccione una zona"
+									/>
+									{errors.zona && (
+										<span className={styles.errorText}>{errors.zona}</span>
+									)}
+								</div>
+
+
+
+						{/* Resto del código permanece igual... */}
 						{/* Productos */}
 						<div className={styles.productsSection}>
 							<div className={styles.productsContainer}>

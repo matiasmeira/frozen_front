@@ -56,6 +56,14 @@
   color: var(--text-color);
 }
 
+.direccionGrid{
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+
 .disabledInput {
   background-color: var(--disabled-bg) !important;
   color: var(--text-muted) !important;
