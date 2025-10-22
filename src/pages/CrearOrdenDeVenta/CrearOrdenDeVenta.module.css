@@ -603,4 +603,56 @@
     flex-direction: row;
     align-items: center;
   }
+
+
+/* Clase para el DIV que mostrará la prioridad de forma estilizada */
+/* --- Reemplaza esta sección en CrearOrdenDeVenta.module.css --- */
+
+/* Clase base para el DIV (mantiene el tamaño ajustado) */
+.prioridadDisplayDiv {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.75rem;
+  height: var(--input-height); /* Misma altura que otros inputs */
+  min-height: var(--input-height);
+  border: 1px solid var(--border-color, #ccc);
+  border-radius: var(--border-radius, 0.5rem);
+  background-color: var(--disabled-bg-color, #e9ecef); /* Fondo por defecto */
+  color: var(--text-color, #495057); /* Texto por defecto */
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: not-allowed;
+  transition: all 0.2s ease-in-out;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* --- COLORES USANDO VARIABLES DE Ventas.module.css --- */
+/* (Asegúrate que estas variables --prioridad-X estén definidas en tu CSS global) */
+
+.prioridadBaja { /* ID 1 = Baja */
+  --disabled-bg-color: var(--prioridad-baja, #cff4fc); /* Usa tu variable, fallback a celeste */
+  --text-color: var(--bg-white, #ffffff); /* Texto blanco como en Ventas */
+  --border-color: var(--prioridad-baja, #b6effb); /* Borde igual al fondo o un poco más oscuro */
+}
+
+.prioridadMedia { /* ID 2 = Media */
+  --disabled-bg-color: var(--prioridad-media, #d1e7dd); /* Usa tu variable, fallback a verde */
+  --text-color: var(--text-primary, #374151); /* Texto primario como en Ventas */
+  --border-color: var(--prioridad-media, #badbcc);
+}
+
+.prioridadAlta { /* ID 3 = Alta */
+  --disabled-bg-color: var(--prioridad-alta, #fed7aa); /* Usa tu variable, fallback a naranja */
+  --text-color: var(--bg-white, #ffffff); /* Texto blanco como en Ventas */
+  --border-color: var(--prioridad-alta, #fcd34d);
+}
+
+.prioridadUrgente { /* ID 4 = Urgente */
+  --disabled-bg-color: var(--prioridad-urgente, #f8d7da); /* Usa tu variable, fallback a rojo */
+  --text-color: var(--bg-white, #ffffff); /* Texto blanco como en Ventas */
+  --border-color: var(--prioridad-urgente, #f5c2c7);
+  font-weight: bold;
+}
 }
