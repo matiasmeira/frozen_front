@@ -4,7 +4,7 @@ class LotesMateriaPrimaService {
         console.log(id_materia_prima)
 		try {
 			const response = await fetch(
-				`http://127.0.0.1:8000/api/stock/lotes-materias/por-materia/${id_materia_prima}/`
+				`https://frozenback-test.up.railway.app/api/stock/lotes-materias/por-materia/${id_materia_prima}/`
 			);
 
 			if (!response.ok) {
