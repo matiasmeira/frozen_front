@@ -65,7 +65,7 @@ function App() {
 							<Route path="/gestionar-entrega/:idOrdenVenta" element={<GestionarEntrega />} />
 							<Route path="/VerLotesMateriaPrima/:id_Materia_Prima" element={<VerLotesMateriaPrima/>}/>
 							<Route path="/trazar_lote_materia_prima/:id_Materia_Prima" element={<TrazarLoteMateriaPrima/>}/>
-							<Route path="/trazabilidadLote/:id_lote" element={<TrazarLoteProducto/>}/>
+							{/* <Route path="/trazabilidadLote/:id_lote" element={<TrazarLoteProducto/>}/> */}
 							<Route path="/lotesMateriasPrimas" element={<VerLotesMateriaPrimaGeneral/>}/>
 						{/*</Route>*/}
 					</Routes>
