@@ -309,7 +309,16 @@ const VerLotesMateriaPrima = () => {
 							</div>
 
 							<div className={styles.cardFooter}>
-								<button className={styles.btnDetalles}>Ver Detalles</button>
+								<button
+									className={styles.btnDetalles}
+									onClick={() =>
+										navigate(
+											`/trazar_lote_materia_prima/${lote.id_lote_materia_prima}`
+										)
+									}
+								>
+									Trazar Lote
+								</button>
 								<button className={styles.btnAjustar}>Ajustar Stock</button>
 								<button
 									className={styles.btnQR}

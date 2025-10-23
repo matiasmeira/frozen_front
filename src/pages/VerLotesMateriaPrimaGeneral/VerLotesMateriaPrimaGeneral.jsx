@@ -229,6 +229,8 @@ const ListaLotesMateriaPrima = () => {
 	}
 
 	return (
+
+        
 		<div className={styles.lotesMateriaPrima}>
 			{/* Header */}
 			<div className={styles.header}>
