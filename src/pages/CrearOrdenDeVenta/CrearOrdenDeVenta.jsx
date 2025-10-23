@@ -2,9 +2,7 @@ import React from "react";
 import axios from "axios";
 import styles from "./CrearOrdenDeVenta.module.css";
 import { useState, useEffect, useCallback } from "react";
-import Select from "react-select"; // Make sure react-select is imported
-
-// Import React Toastify
+import Select from "react-select";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -14,7 +12,7 @@ const api = axios.create({
   baseURL: baseURL,
 });
 
-// Helper function to format currency
+// Función para formatear precio
 const formatearPrecio = (precio) => {
   return new Intl.NumberFormat("es-AR", {
     style: "currency",
@@ -23,7 +21,6 @@ const formatearPrecio = (precio) => {
 };
 
 function CrearOrdenDeVenta() {
-  // States
   const [cantidadElementos, setCantidadElementos] = useState(1);
   const [clientes, setClientes] = useState([]);
   const [products, setProducts] = useState([]);
@@ -31,31 +28,35 @@ function CrearOrdenDeVenta() {
   const [loading, setLoading] = useState(true);
   const [creatingOrder, setCreatingOrder] = useState(false);
   const [totalVenta, setTotalVenta] = useState(0);
+
   const [fields, setFields] = useState([
     { id: "1", id_producto: "", cantidad: 1, unidad_medida: "", cantidad_disponible: 0, precio_unitario: 0, subtotal: 0, },
   ]);
+
   const [orden, setOrden] = useState({
     id_cliente: "", id_prioridad: "", fecha_entrega: "", calle: "", altura: "", localidad: "", zona: "", productos: [], tipo_venta: "EMP"
   });
+
   const [errors, setErrors] = useState({
     cliente: "", prioridad: "", fecha_entrega: "", calle: "", altura: "", localidad: "", zona: "", productos: "",
   });
 
+  // Opciones para el dropdown de zona
   const opcionesZona = [
     { value: "N", label: "Norte (N)" }, { value: "S", label: "Sur (S)" }, { value: "E", label: "Este (E)" }, { value: "O", label: "Oeste (O)" }
   ];
 
-  // Calculate total whenever fields change
+  // Calcular el total cada vez que cambien los fields
+  useEffect(() => {
+    calcularTotalVenta();
+  }, [fields]);
+
   const calcularTotalVenta = useCallback(() => {
     const total = fields.reduce((sum, field) => sum + field.subtotal, 0);
     setTotalVenta(total);
   }, [fields]);
 
-  useEffect(() => {
-    calcularTotalVenta();
-  }, [fields, calcularTotalVenta]);
-
-  // Fetch initial data (clients, products, priorities)
+  // Obtener datos iniciales
   useEffect(() => {
     const fetchApis = async () => {
       try {
@@ -79,134 +80,211 @@ function CrearOrdenDeVenta() {
     fetchApis();
   }, []);
 
-  // API call functions with error handling
   const obtenerProductos = async () => {
     try {
-      const response = await api.get("/productos/productos/");
-      return response.data.results.map((prod) => ({
-        id_producto: prod.id_producto, nombre: prod.nombre, descripcion: prod.descripcion,
-        unidad_medida: prod.unidad?.descripcion || 'N/A', umbral_minimo: prod.umbral_minimo, precio: prod.precio,
-      }));
-    } catch (error) { console.error("Error obteniendo productos:", error); toast.error("No se pudieron cargar productos"); return []; }
+        const response = await api.get("/productos/productos/");
+        return response.data.results.map((prod) => ({
+            id_producto: prod.id_producto,
+            nombre: prod.nombre,
+            descripcion: prod.descripcion,
+            unidad_medida: prod.unidad?.descripcion || 'N/A',
+            umbral_minimo: prod.umbral_minimo,
+            precio: prod.precio,
+        }));
+    } catch (error) {
+        console.error("Error obteniendo productos:", error);
+        toast.error("No se pudieron cargar los productos");
+        return [];
+    }
   };
 
   const obtenerClientes = async () => {
-    try { return await api.get("/ventas/clientes/"); }
-    catch (error) { console.error("Error obteniendo clientes:", error); toast.error("No se pudieron cargar clientes"); return { data: { results: [] } }; }
+    try {
+        return await api.get("/ventas/clientes/");
+    } catch (error) {
+        console.error("Error obteniendo clientes:", error);
+        toast.error("No se pudieron cargar los clientes");
+        return { data: { results: [] } };
+    }
   };
 
   const obtenerPrioridades = async () => {
-    try { return await api.get("/ventas/prioridades/"); }
-    catch (error) { console.error("Error obteniendo prioridades:", error); toast.error("No se pudieron cargar prioridades"); return { data: { results: [] } }; }
+    try {
+        return await api.get("/ventas/prioridades/");
+    } catch (error) {
+        console.error("Error obteniendo prioridades:", error);
+        toast.error("No se pudieron cargar las prioridades");
+        return { data: { results: [] } };
+    }
   };
 
   const obtenerCantidadDisponible = async (id_producto) => {
-    try { const response = await api.get(`/stock/cantidad-disponible/${id_producto}/`); return response.data.cantidad_disponible; }
-    catch (error) { console.error(`Error stock prod ${id_producto}:`, error); return 0; }
-  };
-
-  // Handle client selection and auto-fill priority
-  const handleCliente = (selectedOption) => {
-    const clienteId = selectedOption?.value || "";
-    let clientePrioridadId = "";
-    if (clienteId) {
-      const clienteSel = clientes.find(c => c.id_cliente === parseInt(clienteId));
-      if (clienteSel && clienteSel.id_prioridad != null) { clientePrioridadId = clienteSel.id_prioridad.toString(); }
-      else if (clienteSel) { toast.warn(`Cliente sin prioridad predefinida.`); }
+    try {
+      const response = await api.get(`/stock/cantidad-disponible/${id_producto}/`);
+      return response.data.cantidad_disponible;
+    } catch (error) {
+      console.error(`Error obteniendo stock para producto ${id_producto}:`, error);
+      return 0;
     }
-    setOrden(prev => ({ ...prev, id_cliente: clienteId, id_prioridad: clientePrioridadId, }));
-    if (errors.cliente || errors.prioridad) { setErrors(prev => ({ ...prev, cliente: clienteId ? "" : prev.cliente, prioridad: clientePrioridadId ? "" : (clienteId ? prev.prioridad : ""), })); }
   };
 
-  // Handle generic input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setOrden(prev => ({ ...prev, [name]: value, }));
     if (errors[name]) { setErrors(prev => ({ ...prev, [name]: "", })); }
   };
 
-  // Handle "altura" input (numbers only)
   const handleAlturaChange = (e) => {
-    const { value } = e.target; const soloNumeros = value.replace(/[^0-9]/g, '');
+    const { value } = e.target;
+    const soloNumeros = value.replace(/[^0-9]/g, '');
     setOrden(prev => ({ ...prev, altura: soloNumeros, }));
     if (errors.altura) { setErrors(prev => ({ ...prev, altura: "", })); }
   };
 
-  // Handle Zona selection
+  // --- LÓGICA DE PRIORIDAD AUTOMÁTICA ---
+  const handleCliente = (selectedOption) => {
+    const clienteId = selectedOption?.value || "";
+    let clientePrioridadId = "";
+
+    if (clienteId) {
+      // Buscar el cliente en la lista completa
+      const clienteSeleccionado = clientes.find(c => c.id_cliente === parseInt(clienteId));
+      if (clienteSeleccionado && clienteSeleccionado.id_prioridad != null) {
+        // Asignar la prioridad del cliente
+        clientePrioridadId = clienteSeleccionado.id_prioridad.toString();
+      } else if (clienteSeleccionado) {
+        toast.warn(`El cliente seleccionado no tiene una prioridad predefinida.`);
+      }
+    }
+
+    setOrden(prev => ({
+      ...prev,
+      id_cliente: clienteId,
+      id_prioridad: clientePrioridadId, // Setea la prioridad automáticamente
+    }));
+
+    if (errors.cliente || errors.prioridad) {
+      setErrors(prev => ({
+        ...prev,
+        cliente: clienteId ? "" : prev.cliente,
+        prioridad: clientePrioridadId ? "" : (clienteId ? prev.prioridad : ""),
+      }));
+    }
+  };
+  // --- FIN LÓGICA PRIORIDAD ---
+
   const handleZonaChange = (selectedOption) => {
     const value = selectedOption?.value || "";
     setOrden(prev => ({ ...prev, zona: value, }));
     if (errors.zona) { setErrors(prev => ({ ...prev, zona: "", })); }
   };
 
-  // Get client options for Select, sorted
   const obtenerClientesNombres = useCallback(() => {
-    const clientesOrd = [...clientes].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
-    return clientesOrd.map(c => ({ value: c.id_cliente, label: c.nombre || `ID: ${c.id_cliente}` }));
+    return clientes.sort((a,b) => (a.nombre || '').localeCompare(b.nombre || ''))
+                   .map(cliente => ({ value: cliente.id_cliente, label: cliente.nombre }));
   }, [clientes]);
 
-  // Get product options for Select, disabling already selected ones
   const obtenerOpcionesProductos = useCallback((currentFieldId) => {
-    return products.map((p) => ({
-      value: p.id_producto, label: `${p.nombre}`,
-      isDisabled: fields.some(f => f.id !== currentFieldId && f.id_producto === p.id_producto.toString()), data: p
+    return products.map((product) => ({
+      value: product.id_producto,
+      label: `${product.nombre}`,
+      isDisabled: fields.some(f => f.id !== currentFieldId && f.id_producto === product.id_producto.toString()),
+      data: product
     }));
   }, [products, fields]);
 
-  // Add a new product row
   const addField = () => {
     if (cantidadElementos < products.length) {
       setCantidadElementos(prev => prev + 1);
       const newField = { id: Date.now().toString(), id_producto: "", cantidad: 1, unidad_medida: "", cantidad_disponible: 0, precio_unitario: 0, subtotal: 0, };
       setFields(prev => [...prev, newField]);
-    } else { toast.info("Ya se agregaron todos los productos."); }
+    } else {
+      toast.info("Ya se han agregado todos los productos disponibles.");
+    }
   };
 
-  // Remove a product row
   const removeField = (id) => {
-    if (fields.length > 1) { setCantidadElementos(prev => prev - 1); setFields(prev => prev.filter(f => f.id !== id)); }
+    if (fields.length > 1) {
+      setCantidadElementos(prev => prev - 1);
+      setFields(prev => prev.filter((field) => field.id !== id));
+    }
   };
 
-  // Handle product selection in a row
   const handleProductChange = async (selectedOption, fieldId) => {
     if (!selectedOption) {
-      setFields(prev => prev.map(f => f.id === fieldId ? { ...f, id_producto: "", unidad_medida: "", cantidad_disponible: 0, precio_unitario: 0, subtotal: 0, cantidad: 1 } : f)); return;
+      setFields(prev => prev.map((field) => field.id === fieldId ? { ...field, id_producto: "", unidad_medida: "", cantidad_disponible: 0, precio_unitario: 0, subtotal: 0, cantidad: 1 } : field));
+      return;
     }
     const id_producto = selectedOption.value.toString();
-    const prodData = selectedOption.data; if (!prodData) return;
-    let cantDisp = 0; if (id_producto) { cantDisp = await obtenerCantidadDisponible(id_producto); }
-    const subtotal = 1 * prodData.precio;
-    setFields(prev => prev.map(f => f.id === fieldId ? { ...f, id_producto, unidad_medida: prodData.unidad_medida, cantidad_disponible: cantDisp, precio_unitario: prodData.precio, subtotal: subtotal, cantidad: 1 } : f));
+    const productoSeleccionado = products.find((product) => product.id_producto.toString() === id_producto);
+    if (!productoSeleccionado) return;
+    const unidadMedida = productoSeleccionado.unidad_medida;
+    const precioUnitario = productoSeleccionado.precio;
+    let cantidadDisponible = 0;
+    if (id_producto) {
+      cantidadDisponible = await obtenerCantidadDisponible(id_producto);
+    }
+    const cantidadActual = fields.find((field) => field.id === fieldId)?.cantidad || 1;
+    const subtotal = cantidadActual * precioUnitario;
+    setFields(prev =>
+      prev.map((field) =>
+        field.id === fieldId
+          ? { ...field, id_producto, unidad_medida: unidadMedida, cantidad_disponible: cantidadDisponible, precio_unitario: precioUnitario, subtotal: subtotal, cantidad: 1 }
+          : field
+      )
+    );
     if (errors.productos) { setErrors(prev => ({ ...prev, productos: "", })); }
   };
 
-  // Update quantity and subtotal for a product row
   const updateQuantity = (id, cantidad) => {
-    const cantNum = Math.max(1, parseInt(cantidad) || 1);
-    setFields(prev => prev.map(f => { if (f.id === id) { const sub = cantNum * f.precio_unitario; return { ...f, cantidad: cantNum, subtotal: sub, }; } return f; }));
+    const cantidadNumerica = Math.max(1, cantidad);
+    setFields(prev =>
+      prev.map((field) => {
+        if (field.id === id) { const subtotal = cantidadNumerica * field.precio_unitario; return { ...field, cantidad: cantidadNumerica, subtotal: subtotal, }; }
+        return field;
+      })
+    );
   };
 
-  // Validate the entire form
   const validarFormulario = () => {
-    const newErrors = { cliente: "", prioridad: "", fecha_entrega: "", calle: "", altura: "", localidad: "", zona: "", productos: "" };
-    let isValid = true;
-    if (!orden.id_cliente) { newErrors.cliente = "Seleccione cliente"; isValid = false; }
-    if (!orden.id_prioridad && orden.id_cliente) { newErrors.prioridad = "Cliente sin prioridad"; /* Not an error, just info */ }
-    else if (!orden.id_prioridad && !orden.id_cliente) { newErrors.prioridad = "Seleccione cliente"; isValid = false;} // Error if no client
-    if (!orden.fecha_entrega) { newErrors.fecha_entrega = "Indique fecha"; isValid = false; }
-    else { const hoy=new Date(); hoy.setHours(0,0,0,0); const fechaEnt=new Date(orden.fecha_entrega); if(isNaN(fechaEnt.getTime())){newErrors.fecha_entrega="Fecha inválida";isValid=false;}else{const diff=Math.ceil((fechaEnt - hoy)/(1000*60*60*24)); if(diff<3){newErrors.fecha_entrega="Min. +3 días";isValid=false;}}}
-    if (!orden.calle?.trim()) { newErrors.calle = "Ingrese calle"; isValid = false; }
-    if (!orden.altura?.trim()) { newErrors.altura = "Ingrese altura"; isValid = false; }
-    if (!orden.localidad?.trim()) { newErrors.localidad = "Ingrese localidad"; isValid = false; }
-    if (!orden.zona?.trim()) { newErrors.zona = "Seleccione zona"; isValid = false; }
-    const prodsSel = fields.filter(f => f.id_producto);
-    if (prodsSel.length === 0) { newErrors.productos = "Agregue producto(s)"; isValid = false; }
-    else { const ids = prodsSel.map(f => f.id_producto); if (ids.length !== new Set(ids).size) { newErrors.productos = "Productos duplicados"; isValid = false; } const sinStock = prodsSel.find(f => f.cantidad > f.cantidad_disponible); if(sinStock) { newErrors.productos=`Stock insuf. p/ ${products.find(p=>p.id_producto.toString() === sinStock.id_producto)?.nombre}`; isValid=false;}}
-    setErrors(newErrors); return isValid;
+    const nuevosErrores = { cliente: "", prioridad: "", fecha_entrega: "", calle: "", altura: "", localidad: "", zona: "", productos: "" };
+    let esValido = true;
+
+    if (!orden.id_cliente) { nuevosErrores.cliente = "Debes seleccionar un cliente"; esValido = false; }
+    // Validar prioridad autocompletada
+    if (!orden.id_prioridad) { 
+        nuevosErrores.prioridad = "El cliente no tiene prioridad (o no seleccionó cliente)"; 
+        esValido = false; 
+    }
+    if (!orden.fecha_entrega) { nuevosErrores.fecha_entrega = "Debes indicar una fecha de entrega"; esValido = false; }
+    else {
+      const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+      const fechaEntrega = new Date(orden.fecha_entrega);
+      if (isNaN(fechaEntrega.getTime())) { nuevosErrores.fecha_entrega = "Fecha inválida"; esValido = false; }
+      else {
+          const diferenciaDias = Math.ceil((fechaEntrega - hoy) / (1000 * 60 * 60 * 24));
+          if (diferenciaDias < 3) { nuevosErrores.fecha_entrega = "La fecha debe ser al menos 3 días mayor"; esValido = false; }
+      }
+    }
+    if (!orden.calle?.trim()) { nuevosErrores.calle = "Debes ingresar la calle"; esValido = false; }
+    if (!orden.altura?.trim()) { nuevosErrores.altura = "Debes ingresar la altura"; esValido = false; }
+    if (!orden.localidad?.trim()) { nuevosErrores.localidad = "Debes ingresar la localidad"; esValido = false; }
+    if (!orden.zona?.trim()) { nuevosErrores.zona = "Debes seleccionar una zona"; esValido = false; }
+
+    const productosSeleccionados = fields.filter((field) => field.id_producto !== "");
+    if (productosSeleccionados.length === 0) { nuevosErrores.productos = "Debes seleccionar al menos un producto"; esValido = false; }
+    else {
+      const idsProductos = productosSeleccionados.map((field) => field.id_producto);
+      const productosUnicos = new Set(idsProductos);
+      if (idsProductos.length !== productosUnicos.size) { nuevosErrores.productos = "No puedes seleccionar el mismo producto más de una vez"; esValido = false; }
+      // Validación de stock (eliminada según tu pedido)
+      // const sinStock = productosSeleccionados.find(f => f.cantidad > f.cantidad_disponible);
+      // if(sinStock) { nuevosErrores.productos=`Stock insuf. p/ ${products.find(p=>p.id_producto.toString() === sinStock.id_producto)?.nombre}`; esValido=false;}
+    }
+    setErrors(nuevosErrores);
+    return esValido;
   };
 
-  // Handle form submission
-  // Handle form submission
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!validarFormulario()) {
@@ -215,39 +293,34 @@ function CrearOrdenDeVenta() {
       return;
     }
 
-    // --- NUEVO: Obtener ID del empleado logueado ---
     let idEmpleadoLogueado = null;
     try {
-        const usuarioData = localStorage.getItem('usuario');
-        if (usuarioData) {
-            const parsedData = JSON.parse(usuarioData);
-            // AJUSTA 'id_empleado' si la propiedad se llama diferente (ej: 'id', 'userId')
-            if (parsedData && parsedData.id_empleado) {
-                 idEmpleadoLogueado = parseInt(parsedData.id_empleado); // Asegurarse que sea número si la API lo espera así
-            } else {
-                 console.warn("No se encontró 'id_empleado' en los datos de usuario del localStorage.");
-                 toast.error("Error: No se pudo identificar al empleado. Intenta re-loguearte.");
-                 return; // Detener el envío si no se puede identificar al empleado
-            }
+      const usuarioData = localStorage.getItem('usuario');
+      if (usuarioData) {
+        const parsedData = JSON.parse(usuarioData);
+        // Asegúrate que 'id_empleado' sea el nombre correcto
+        if (parsedData && parsedData.id_empleado) {
+          idEmpleadoLogueado = parseInt(parsedData.id_empleado);
         } else {
-            console.warn("No se encontraron datos de usuario en localStorage.");
-            toast.error("Error: No estás logueado. Por favor, inicia sesión.");
-            return; // Detener el envío si no hay usuario
+          console.warn("No se encontró 'id_empleado' en localStorage.");
+          toast.error("Error: No se pudo identificar al empleado. Re-loguear.");
+          return;
         }
+      } else {
+        console.warn("No se encontraron datos de usuario en localStorage.");
+        toast.error("Error: No estás logueado.");
+        return;
+      }
     } catch (e) {
-        console.error("Error al leer datos de usuario:", e);
-        toast.error("Error al procesar la información del usuario.");
-        return; // Detener en caso de error
+      console.error("Error al leer datos de usuario:", e);
+      toast.error("Error al procesar la información del usuario.");
+      return;
     }
-    // --- FIN OBTENER ID EMPLEADO ---
-
 
     const prodsEnviar = fields
       .filter(f => f.id_producto && f.cantidad > 0)
       .map(({ id, unidad_medida, cantidad_disponible, precio_unitario, subtotal, ...resto }) => ({
-        ...resto,
-        id_producto: parseInt(resto.id_producto),
-        cantidad: parseInt(resto.cantidad)
+        ...resto, id_producto: parseInt(resto.id_producto), cantidad: parseInt(resto.cantidad)
       }));
 
     if (prodsEnviar.length === 0) {
@@ -256,25 +329,20 @@ function CrearOrdenDeVenta() {
       return;
     }
 
-    // --- CAMBIO: Agregar id_empleado al objeto ---
     const nuevaOrden = {
-        ...orden,
-        productos: prodsEnviar,
-        id_empleado: idEmpleadoLogueado // <-- AGREGADO
+      ...orden,
+      productos: prodsEnviar,
+      id_empleado: idEmpleadoLogueado // ID del empleado agregado
     };
-    // --- FIN CAMBIO ---
 
-    console.log("Enviando orden:", nuevaOrden); // Para verificar que se incluye el id_empleado
-
+    console.log("Enviando orden:", nuevaOrden);
     setCreatingOrder(true);
     const toastId = toast.loading("Creando orden...");
 
     try {
-      const response = await api.post("/ventas/ordenes-venta/crear/", nuevaOrden); // Enviar el objeto con id_empleado
-
+      const response = await api.post("/ventas/ordenes-venta/crear/", nuevaOrden);
       if (response.status === 200 || response.status === 201) {
         toast.update(toastId, { render: `¡Orden #${response.data?.id_orden_venta || ''} creada!`, type: "success", isLoading: false, autoClose: 4000 });
-        // Resetear formulario
         setOrden({ id_cliente: "", id_prioridad: "", fecha_entrega: "", calle: "", altura: "", localidad: "", zona: "", productos: [], tipo_venta: "EMP" });
         setFields([{ id: "1", id_producto: "", cantidad: 1, unidad_medida: "", cantidad_disponible: 0, precio_unitario: 0, subtotal: 0, }]); setTotalVenta(0);
         setErrors({ cliente: "", prioridad: "", fecha_entrega: "", calle: "", altura: "", localidad: "", zona: "", productos: "" });
@@ -283,42 +351,38 @@ function CrearOrdenDeVenta() {
       }
     } catch (error) {
       console.error("Error al crear orden:", error.response || error);
-      let errMsg = "Error inesperado al crear la orden";
+      let errMsg = "Error inesperado";
       if (error.response) {
-          const data = error.response.data;
-          // Intenta obtener mensajes de error específicos del backend
-          if (data?.id_empleado) { // Si el error específico es sobre el empleado
-              errMsg = `Error con el empleado: ${data.id_empleado.join(', ')}`;
-          } else {
-              errMsg = data?.detail || data?.message || data?.error || (typeof data === 'string' ? data : JSON.stringify(data)) || `Error ${error.response.status}`;
-          }
-      } else if (error.request) {
-          errMsg = "Error de conexión con el servidor";
-      }
-      toast.update(toastId, { render: `Error al crear orden: ${errMsg}`, type: "error", isLoading: false, autoClose: 5000 });
+        const data = error.response.data;
+        if (data?.id_empleado) { errMsg = `Error empleado: ${data.id_empleado.join(', ')}`; }
+        else { errMsg = data?.detail || data?.message || data?.error || (typeof data === 'string' ? data : JSON.stringify(data)) || `Error ${error.response.status}`; }
+      } else if (error.request) { errMsg = "Error de conexión"; }
+      toast.update(toastId, { render: `Error: ${errMsg}`, type: "error", isLoading: false, autoClose: 5000 });
     } finally {
       setCreatingOrder(false);
     }
   };
 
-  // Get min/max dates for delivery
-  const obtenerFechaMinima = () => { const f=new Date(); f.setDate(f.getDate()+3); return f.toISOString().split("T")[0]; };
-  const obtenerFechaMaxima = () => { const f=new Date(); f.setDate(f.getDate()+30); return f.toISOString().split("T")[0]; };
+  const obtenerFechaMinima = () => { const f = new Date(); f.setDate(f.getDate() + 3); return f.toISOString().split("T")[0]; };
+  const obtenerFechaMaxima = () => { const f = new Date(); f.setDate(f.getDate() + 30); return f.toISOString().split("T")[0]; };
+  const getSelectedProductValue = (fieldId) => { const f = fields.find(fi => fi.id === fieldId); if (!f || !f.id_producto) return null; const p = products.find(pr => pr.id_producto.toString() === f.id_producto); return p ? { value: p.id_producto, label: `${p.nombre}` } : null; };
+  const getSelectedZonaValue = () => { if (!orden.zona) return null; return opcionesZona.find(opcion => opcion.value === orden.zona); };
 
-  // Get selected values for react-select components
-  const getSelectedZonaValue = () => opcionesZona.find(op => op.value === orden.zona) || null;
-  const getSelectedProductValue = (fieldId) => { const f=fields.find(fi=>fi.id===fieldId); if(!f||!f.id_producto) return null; const p=products.find(pr=>pr.id_producto.toString()===f.id_producto); return p?{value:p.id_producto,label:`${p.nombre}`}:null; };
-
-  // Get CSS class name based on priority ID
+  // Función para obtener la clase CSS de prioridad
   const getPrioridadClassName = (idPrioridad) => {
-    const classMap = { '1': styles.prioridadBaja, '2': styles.prioridadMedia, '3': styles.prioridadAlta, '4': styles.prioridadUrgente };
-    return classMap[idPrioridad] || styles.prioridadDisplayDiv; // Use base div class if no ID
+    const classMap = {
+      '1': styles.prioridadBaja,
+      '2': styles.prioridadMedia,
+      '3': styles.prioridadAlta,
+      '4': styles.prioridadUrgente
+    };
+    return classMap[idPrioridad] || styles.prioridadDisplayDiv;
   };
 
-  // Loading state render
-  if (loading) return ( <div className={styles.loading}><div className={styles.spinner}></div><p>Cargando datos...</p></div> );
+  if (loading) {
+    return (<div className={styles.loading}><div className={styles.spinner}></div><p>Cargando datos...</p></div>);
+  }
 
-  // Main component render
   return (
     <div className={styles.container}>
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover theme="colored" />
@@ -326,39 +390,79 @@ function CrearOrdenDeVenta() {
       <div className={styles.divFormulario}>
         <form onSubmit={handleSubmit}>
           <div className={styles.formGrid}>
-            {/* Client Select */}
             <div className={styles.formGroup}>
               <label htmlFor="Cliente" className={styles.formLabel}>Cliente:</label>
-              <Select name="id_cliente" id="Cliente"
+              <Select
+                name="id_cliente" id="Cliente"
                 value={obtenerClientesNombres().find(c => c.value === parseInt(orden.id_cliente)) || null}
-                onChange={handleCliente} isDisabled={creatingOrder} options={obtenerClientesNombres()}
-                isClearable isSearchable className={`${errors.cliente ? styles.inputError : ""} ${creatingOrder ? styles.disabledInput : ""}`}
-                placeholder="Seleccione un cliente..." noOptionsMessage={() => "No hay clientes"}
+                onChange={handleCliente}
+                isDisabled={creatingOrder}
+                options={obtenerClientesNombres()}
+                isClearable isSearchable
+                className={`${errors.cliente ? styles.inputError : ""} ${creatingOrder ? styles.disabledInput : ""}`}
+                placeholder="Seleccione una opción"
               />
               {errors.cliente && (<span className={styles.errorText}>{errors.cliente}</span>)}
             </div>
-            {/* Delivery Date Input */}
             <div className={styles.formGroup}>
-              <label htmlFor="FechaEntrega" className={styles.formLabel}>Fecha Entrega Solicitada:</label>
-              <input type="date" id="FechaEntrega" name="fecha_entrega" value={orden.fecha_entrega} min={obtenerFechaMinima()} max={obtenerFechaMaxima()} onChange={handleChange} disabled={creatingOrder} className={`${styles.formInput} ${errors.fecha_entrega ? styles.inputError : ""} ${creatingOrder ? styles.disabledInput : ""}`} />
+              <label htmlFor="FechaEntrega" className={styles.formLabel}>Fecha Solicitada de Entrega</label>
+              <input
+                type="date" id="FechaEntrega" name="fecha_entrega"
+                value={orden.fecha_entrega}
+                min={obtenerFechaMinima()} max={obtenerFechaMaxima()}
+                onChange={handleChange} disabled={creatingOrder}
+                className={`${styles.formInput} ${errors.fecha_entrega ? styles.inputError : ""} ${creatingOrder ? styles.disabledInput : ""}`}
+              />
               {errors.fecha_entrega && (<span className={styles.errorText}>{errors.fecha_entrega}</span>)}
             </div>
-            {/* Priority Display Div (colored) */}
+
+            {/* Div de Prioridad (readonly y coloreado) */}
             <div className={styles.formGroup}>
               <label htmlFor="Prioridad" className={styles.formLabel}>Prioridad:</label>
-              <div id="Prioridad" className={`${styles.prioridadDisplayDiv} ${getPrioridadClassName(orden.id_prioridad)} ${errors.prioridad ? styles.inputError : ""}`}>
-                {orden.id_cliente ? (orden.id_prioridad ? prioridades.find(p => p.id_prioridad.toString() === orden.id_prioridad)?.descripcion || 'Desconocida' : 'Cliente sin prioridad') : 'Seleccione cliente'}
+              <div
+                id="Prioridad"
+                className={`${styles.prioridadDisplayDiv} ${getPrioridadClassName(orden.id_prioridad)} ${!orden.id_cliente ? styles.placeholder : ''} ${errors.prioridad ? styles.inputError : ""}`}
+              >
+                {orden.id_cliente
+                  ? (orden.id_prioridad
+                      ? prioridades.find(p => p.id_prioridad.toString() === orden.id_prioridad)?.descripcion || 'Desconocida'
+                      : 'Cliente sin prioridad')
+                  : 'Seleccione cliente'
+                }
               </div>
               {errors.prioridad && (<span className={styles.errorText}>{errors.prioridad}</span>)}
-              {!orden.id_cliente && (<small className={styles.formHelpText}></small>)}
             </div>
-            {/* Address Fields */}
-            <div className={styles.formGroup}><label htmlFor="Calle" className={styles.fieldLabel}>Calle:</label><input type="text" id="Calle" name="calle" value={orden.calle} onChange={handleChange} disabled={creatingOrder} placeholder="Ingrese la calle" className={`${styles.formInput} ${errors.calle ? styles.inputError : ""} ${creatingOrder ? styles.disabledInput : ""}`} />{errors.calle && (<span className={styles.errorText}>{errors.calle}</span>)}</div>
-            <div className={styles.formGroup}><label htmlFor="Altura" className={styles.fieldLabel}>Altura:</label><input type="text" id="Altura" name="altura" value={orden.altura} onChange={handleAlturaChange} disabled={creatingOrder} placeholder="Número" className={`${styles.formInput} ${errors.altura ? styles.inputError : ""} ${creatingOrder ? styles.disabledInput : ""}`} pattern="[0-9]*" inputMode="numeric" />{errors.altura && (<span className={styles.errorText}>{errors.altura}</span>)}</div>
-            <div className={styles.formGroup}><label htmlFor="Localidad" className={styles.fieldLabel}>Localidad:</label><input type="text" id="Localidad" name="localidad" value={orden.localidad} onChange={handleChange} disabled={creatingOrder} placeholder="Ingrese la localidad" className={`${styles.formInput} ${errors.localidad ? styles.inputError : ""} ${creatingOrder ? styles.disabledInput : ""}`} />{errors.localidad && (<span className={styles.errorText}>{errors.localidad}</span>)}</div>
-            <div className={styles.formGroup}><label htmlFor="Zona" className={styles.fieldLabel}>Zona:</label><Select id="Zona" name="zona" value={getSelectedZonaValue()} onChange={handleZonaChange} isDisabled={creatingOrder} options={opcionesZona} isClearable isSearchable className={`${errors.zona ? styles.inputError : ""} ${creatingOrder ? styles.disabledInput : ""}`} placeholder="Seleccione una zona" />{errors.zona && (<span className={styles.errorText}>{errors.zona}</span>)}</div>
 
-            {/* Products Section */}
+            <div className={styles.formGroup}>
+              <label htmlFor="Calle" className={styles.fieldLabel}>Calle</label>
+              <input type="text" id="Calle" name="calle" value={orden.calle} onChange={handleChange} disabled={creatingOrder} placeholder="Ingrese la calle" className={`${styles.formInput} ${errors.calle ? styles.inputError : ""} ${creatingOrder ? styles.disabledInput : ""}`} />
+              {errors.calle && (<span className={styles.errorText}>{errors.calle}</span>)}
+            </div>
+            <div className={styles.formGroup}>
+              <label htmlFor="Altura" className={styles.fieldLabel}>Altura</label>
+              <input type="text" id="Altura" name="altura" value={orden.altura} onChange={handleAlturaChange} disabled={creatingOrder} placeholder="Número" className={`${styles.formInput} ${errors.altura ? styles.inputError : ""} ${creatingOrder ? styles.disabledInput : ""}`} pattern="[0-9]*" inputMode="numeric" />
+              {errors.altura && (<span className={styles.errorText}>{errors.altura}</span>)}
+            </div>
+            <div className={styles.formGroup}>
+              <label htmlFor="Localidad" className={styles.fieldLabel}>Localidad</label>
+              <input type="text" id="Localidad" name="localidad" value={orden.localidad} onChange={handleChange} disabled={creatingOrder} placeholder="Ingrese la localidad" className={`${styles.formInput} ${errors.localidad ? styles.inputError : ""} ${creatingOrder ? styles.disabledInput : ""}`} />
+              {errors.localidad && (<span className={styles.errorText}>{errors.localidad}</span>)}
+            </div>
+            <div className={styles.formGroup}>
+              <label htmlFor="Zona" className={styles.fieldLabel}>Zona</label>
+              <Select
+                id="Zona" name="zona"
+                value={getSelectedZonaValue()}
+                onChange={handleZonaChange}
+                disabled={creatingOrder}
+                options={opcionesZona}
+                isClearable isSearchable
+                className={`${errors.zona ? styles.inputError : ""} ${creatingOrder ? styles.disabledInput : ""}`}
+                placeholder="Seleccione una zona"
+              />
+              {errors.zona && (<span className={styles.errorText}>{errors.zona}</span>)}
+            </div>
+
             <div className={styles.productsSection}>
               <h2 className={styles.sectionTitle}>Productos</h2>
               <div className={styles.productsContainer}>
@@ -366,24 +470,81 @@ function CrearOrdenDeVenta() {
                   <div key={field.id} className={styles.productCard}>
                     <div className={styles.productHeader}>
                       <label className={styles.productTitle}>Producto {index + 1}</label>
-                      {fields.length > 1 && (<button type="button" onClick={() => removeField(field.id)} disabled={creatingOrder} className={`${styles.removeButton} ${creatingOrder?styles.disabledButton:''}`}><svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>)}
+                      {fields.length > 1 && (<button type="button" onClick={() => removeField(field.id)} disabled={creatingOrder} className={`${styles.removeButton} ${creatingOrder ? styles.disabledButton : ""}`}><svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>)}
                     </div>
                     <div className={styles.productGrid}>
-                      <div className={styles.productField}><label htmlFor={`producto-${field.id}`} className={styles.fieldLabel}>Producto:</label><Select id={`producto-${field.id}`} value={getSelectedProductValue(field.id)} onChange={(opt)=>handleProductChange(opt,field.id)} options={obtenerOpcionesProductos(field.id)} isDisabled={creatingOrder} isClearable isSearchable className={`${creatingOrder?styles.disabledInput:''}`} placeholder="Seleccione..." noOptionsMessage={() => "No hay más"} /></div>
-                      <div className={styles.productField}><label htmlFor={`cantidad-${field.id}`} className={styles.fieldLabel}>Cantidad:</label><input id={`cantidad-${field.id}`} type="number" min="1" value={field.cantidad} onChange={(e)=>updateQuantity(field.id,parseInt(e.target.value)||1)} disabled={creatingOrder||!field.id_producto} className={`${styles.formInput} ${styles.inputField} ${creatingOrder?styles.disabledInput:''} ${field.id_producto&&field.cantidad>field.cantidad_disponible?styles.inputError:''}`}/></div>
-                      <div className={styles.productField}><label className={styles.fieldLabel}>Unidad:</label><div className={`${styles.measurementDisplay} ${styles.displayField} ${creatingOrder?styles.disabledInput:''}`}>{field.unidad_medida||"-"}</div></div>
-                      <div className={styles.productField}><label className={styles.fieldLabel}>Stock Disp.:</label><div className={`${styles.stockDisplay} ${styles.displayField} ${creatingOrder?styles.disabledInput:''} ${field.id_producto&&field.cantidad>field.cantidad_disponible?styles.stockLow:''}`}>{field.id_producto?`${field.cantidad_disponible}`:"-"}</div></div>
-                      <div className={styles.productField}><label className={styles.fieldLabel}>Precio Unit.:</label><div className={`${styles.priceDisplay} ${styles.displayField} ${creatingOrder?styles.disabledInput:''}`}>{field.id_producto?formatearPrecio(field.precio_unitario):"-"}</div></div>
-                      <div className={styles.productField}><label className={styles.fieldLabel}>Subtotal:</label><div className={`${styles.subtotalDisplay} ${styles.displayField} ${creatingOrder?styles.disabledInput:''}`}>{field.id_producto?formatearPrecio(field.subtotal):"-"}</div></div>
+                      <div className={styles.productField}>
+                        <label htmlFor={`producto-${field.id}`} className={styles.fieldLabel}>Producto</label>
+                        <Select
+                          id={`producto-${field.id}`}
+                          value={getSelectedProductValue(field.id)}
+                          onChange={(selectedOption) => handleProductChange(selectedOption, field.id)}
+                          options={obtenerOpcionesProductos(field.id)}
+                          isDisabled={creatingOrder} isClearable isSearchable
+                          className={`${creatingOrder ? styles.disabledInput : ""}`}
+                          placeholder="Seleccione un producto"
+                          noOptionsMessage={() => "No hay productos disponibles"}
+                        />
+                      </div>
+                      <div className={styles.productField}>
+                        <label htmlFor={`cantidad-${field.id}`} className={styles.fieldLabel}>Cantidad</label>
+                        <input
+                          id={`cantidad-${field.id}`} type="number" min="1"
+                          value={field.cantidad}
+                          onChange={(e) => updateQuantity(field.id, Number.parseInt(e.target.value) || 1)}
+                          disabled={creatingOrder || !field.id_producto}
+                          className={`${styles.formInput} ${styles.inputField} ${creatingOrder ? styles.disabledInput : ""}`}
+                        />
+                      </div>
+                      <div className={styles.productField}>
+                        <label className={styles.fieldLabel}>Unidad de Medida</label>
+                        <div className={`${styles.measurementDisplay} ${styles.displayField} ${creatingOrder ? styles.disabledInput : ""}`}>
+                          {field.unidad_medida || "-"}
+                        </div>
+                      </div>
+                      <div className={styles.productField}>
+                        <label className={styles.fieldLabel}>Stock Disponible</label>
+                        <div className={`${styles.stockDisplay} ${styles.displayField} ${creatingOrder ? styles.disabledInput : ""}`}>
+                          {field.id_producto ? `${field.cantidad_disponible} ${field.unidad_medida}` : "-"}
+                        </div>
+                      </div>
+                      <div className={styles.productField}>
+                        <label className={styles.fieldLabel}>Precio Unitario</label>
+                        <div className={`${styles.priceDisplay} ${styles.displayField} ${creatingOrder ? styles.disabledInput : ""}`}>
+                          {field.id_producto ? formatearPrecio(field.precio_unitario) : "-"}
+                        </div>
+                      </div>
+                      <div className={styles.productField}>
+                        <label className={styles.fieldLabel}>Subtotal</label>
+                        <div className={`${styles.subtotalDisplay} ${styles.displayField} ${creatingOrder ? styles.disabledInput : ""}`}>
+                          {field.id_producto ? formatearPrecio(field.subtotal) : "$0.00"}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ))}
                 {errors.productos && (<div className={styles.productsError}><span className={styles.errorText}>{errors.productos}</span></div>)}
                 <div className={styles.actionsContainer}>
-                  {cantidadElementos < products.length && (<button type="button" onClick={addField} disabled={creatingOrder} className={`${styles.addButton} ${creatingOrder?styles.disabledButton:''}`}><svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>Agregar Producto</button>)}
-                  <button type="submit" disabled={creatingOrder} className={`${styles.submitButton} ${creatingOrder?styles.submitButtonLoading:''}`}>{creatingOrder?(<div className={styles.buttonLoadingContent}><div className={styles.spinnerSmall}></div><span>Creando Orden...</span></div>):(`Enviar Pedido - ${formatearPrecio(totalVenta)}`)}</button>
+                  {cantidadElementos < products.length && (
+                    <button type="button" onClick={addField} disabled={creatingOrder} className={`${styles.addButton} ${creatingOrder ? styles.disabledButton : ""}`}>
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                      Agregar Producto
+                    </button>
+                  )}
+                  <button type="submit" disabled={creatingOrder} className={`${styles.submitButton} ${creatingOrder ? styles.submitButtonLoading : ""}`}>
+                    {creatingOrder ? (
+                      <div className={styles.buttonLoadingContent}><div className={styles.spinnerSmall}></div><span>Creando Orden...</span></div>
+                    ) : (`Enviar Pedido - ${formatearPrecio(totalVenta)}`)}
+                  </button>
                 </div>
-                {creatingOrder && (<div className={styles.creatingOverlay}><div className={styles.creatingContent}><div className={styles.spinner}></div><p className={styles.creatingText}>Creando orden...</p></div></div>)}
+                {creatingOrder && (
+                  <div className={styles.creatingOverlay}>
+                    <div className={styles.creatingContent}>
+                      <div className={styles.spinner}></div>
+                      <p className={styles.creatingText}>Creando orden de venta, por favor espere...</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
