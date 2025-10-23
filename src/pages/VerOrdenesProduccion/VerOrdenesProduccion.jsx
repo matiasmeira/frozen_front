@@ -536,7 +536,7 @@ const VerOrdenesProduccion = () => {
 
       {/* Lista de órdenes */}
       <div className={styles.listaOrdenes}>
-        {ordenesFiltradas.length > 0 ? (
+        {ordenesFiltradas.length > 0 ?           console.log(ordenesFiltradas)(
           ordenesFiltradas.map((orden) => (
             <div key={orden.id} className={styles.cardOrden}>
               <div className={styles.cardHeader}>
@@ -562,6 +562,7 @@ const VerOrdenesProduccion = () => {
 
                 <div className={styles.infoGrupo}>
                   <strong>Línea:</strong>
+                  
                   <span>#{orden.id_linea}</span>
                 </div>
 

@@ -434,6 +434,7 @@
 }
 
 .qrImage {
+  justify-self: center;
   max-width: 100%;
   height: auto;
   border: 1px solid #e0e0e0;
