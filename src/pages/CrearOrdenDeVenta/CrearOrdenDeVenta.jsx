@@ -206,26 +206,99 @@ function CrearOrdenDeVenta() {
   };
 
   // Handle form submission
+  // Handle form submission
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (!validarFormulario()) { Object.values(errors).forEach(e => { if(e) toast.warn(e); }); if(errors.productos) toast.warn(errors.productos); return; }
-    const prodsEnviar = fields.filter(f => f.id_producto && f.cantidad > 0).map(({ id, unidad_medida, cantidad_disponible, precio_unitario, subtotal, ...resto }) => ({ ...resto, id_producto: parseInt(resto.id_producto), cantidad: parseInt(resto.cantidad) }));
-    if (prodsEnviar.length === 0) { setErrors(prev => ({ ...prev, productos: "Agregue productos válidos" })); toast.error("Orden sin productos válidos."); return; }
-    const nuevaOrden = { ...orden, productos: prodsEnviar };
-    setCreatingOrder(true); const toastId = toast.loading("Creando orden...");
+    if (!validarFormulario()) {
+      Object.values(errors).forEach(e => { if (e) toast.warn(e); });
+      if (errors.productos) toast.warn(errors.productos);
+      return;
+    }
+
+    // --- NUEVO: Obtener ID del empleado logueado ---
+    let idEmpleadoLogueado = null;
     try {
-      const response = await api.post("/ventas/ordenes-venta/crear/", nuevaOrden);
+        const usuarioData = localStorage.getItem('usuario');
+        if (usuarioData) {
+            const parsedData = JSON.parse(usuarioData);
+            // AJUSTA 'id_empleado' si la propiedad se llama diferente (ej: 'id', 'userId')
+            if (parsedData && parsedData.id_empleado) {
+                 idEmpleadoLogueado = parseInt(parsedData.id_empleado); // Asegurarse que sea número si la API lo espera así
+            } else {
+                 console.warn("No se encontró 'id_empleado' en los datos de usuario del localStorage.");
+                 toast.error("Error: No se pudo identificar al empleado. Intenta re-loguearte.");
+                 return; // Detener el envío si no se puede identificar al empleado
+            }
+        } else {
+            console.warn("No se encontraron datos de usuario en localStorage.");
+            toast.error("Error: No estás logueado. Por favor, inicia sesión.");
+            return; // Detener el envío si no hay usuario
+        }
+    } catch (e) {
+        console.error("Error al leer datos de usuario:", e);
+        toast.error("Error al procesar la información del usuario.");
+        return; // Detener en caso de error
+    }
+    // --- FIN OBTENER ID EMPLEADO ---
+
+
+    const prodsEnviar = fields
+      .filter(f => f.id_producto && f.cantidad > 0)
+      .map(({ id, unidad_medida, cantidad_disponible, precio_unitario, subtotal, ...resto }) => ({
+        ...resto,
+        id_producto: parseInt(resto.id_producto),
+        cantidad: parseInt(resto.cantidad)
+      }));
+
+    if (prodsEnviar.length === 0) {
+      setErrors(prev => ({ ...prev, productos: "Agregue productos válidos" }));
+      toast.error("Orden sin productos válidos.");
+      return;
+    }
+
+    // --- CAMBIO: Agregar id_empleado al objeto ---
+    const nuevaOrden = {
+        ...orden,
+        productos: prodsEnviar,
+        id_empleado: idEmpleadoLogueado // <-- AGREGADO
+    };
+    // --- FIN CAMBIO ---
+
+    console.log("Enviando orden:", nuevaOrden); // Para verificar que se incluye el id_empleado
+
+    setCreatingOrder(true);
+    const toastId = toast.loading("Creando orden...");
+
+    try {
+      const response = await api.post("/ventas/ordenes-venta/crear/", nuevaOrden); // Enviar el objeto con id_empleado
+
       if (response.status === 200 || response.status === 201) {
-        toast.update(toastId, { render: `¡Orden #${response.data?.id_orden_venta || ''} creada!`, type: "success", isLoading: false, autoClose: 3000 });
+        toast.update(toastId, { render: `¡Orden #${response.data?.id_orden_venta || ''} creada!`, type: "success", isLoading: false, autoClose: 4000 });
+        // Resetear formulario
         setOrden({ id_cliente: "", id_prioridad: "", fecha_entrega: "", calle: "", altura: "", localidad: "", zona: "", productos: [], tipo_venta: "EMP" });
         setFields([{ id: "1", id_producto: "", cantidad: 1, unidad_medida: "", cantidad_disponible: 0, precio_unitario: 0, subtotal: 0, }]); setTotalVenta(0);
         setErrors({ cliente: "", prioridad: "", fecha_entrega: "", calle: "", altura: "", localidad: "", zona: "", productos: "" });
-      } else { throw new Error(response.data?.message || `Error ${response.status}`); }
+      } else {
+        throw new Error(response.data?.message || `Error ${response.status}`);
+      }
     } catch (error) {
       console.error("Error al crear orden:", error.response || error);
-      let errMsg = "Error inesperado"; if (error.response) { const d=error.response.data; errMsg = d?.detail||d?.message||d?.error||(typeof d==='string'?d:JSON.stringify(d))||`Error ${error.response.status}`; } else if (error.request) { errMsg = "Error de conexión"; }
-      toast.update(toastId, { render: `Error: ${errMsg}`, type: "error", isLoading: false, autoClose: 5000 });
-    } finally { setCreatingOrder(false); }
+      let errMsg = "Error inesperado al crear la orden";
+      if (error.response) {
+          const data = error.response.data;
+          // Intenta obtener mensajes de error específicos del backend
+          if (data?.id_empleado) { // Si el error específico es sobre el empleado
+              errMsg = `Error con el empleado: ${data.id_empleado.join(', ')}`;
+          } else {
+              errMsg = data?.detail || data?.message || data?.error || (typeof data === 'string' ? data : JSON.stringify(data)) || `Error ${error.response.status}`;
+          }
+      } else if (error.request) {
+          errMsg = "Error de conexión con el servidor";
+      }
+      toast.update(toastId, { render: `Error al crear orden: ${errMsg}`, type: "error", isLoading: false, autoClose: 5000 });
+    } finally {
+      setCreatingOrder(false);
+    }
   };
 
   // Get min/max dates for delivery
