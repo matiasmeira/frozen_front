@@ -116,7 +116,7 @@ const TrazarLoteMateriaPrima = () => {
 			</div>
 
 			<div className={styles.lotesSection}>
-				<h2 className={styles.subtitle}>Lotes de Producción Afectados</h2>
+				<h2 className={styles.subtitle}>Lotes de Producción Relacionados</h2>
 
 				{datosTrazabilidad.lotes_produccion_afectados.length === 0 ? (
 					<div className={styles.sinLotes}>
@@ -171,7 +171,7 @@ const TrazarLoteMateriaPrima = () => {
 										className={styles.verClientesBtn}
 										onClick={() => abrirModalClientes(lote)}
 									>
-										Ver Clientes Afectados ({lote.clientes_afectados.length})
+										Ver Ordenes de Compra Relacionadas({lote.clientes_afectados.length})
 									</button>
 								</div>
 							</div>
