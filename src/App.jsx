@@ -19,6 +19,7 @@ import NuevaOrdenCompra from './pages/CrearOrdenDeCompra/NuevaOrdenCompra';
 import LotesProductos from './pages/ListaLotesProductos/LotesProductos';
 import TrazarLoteMateriaPrima from "./pages/TrazarLoteMateriaPrima/TrazarLoteMateriaPrima";
 import VerLotesMateriaPrimaGeneral from "./pages/VerLotesMateriaPrimaGeneral/VerLotesMateriaPrimaGeneral"
+import TrazabilidadOrdenVenta from "./pages/TrazabilidadOrdenVenta/TrazabilidadOrdenVenta";
 //Pages
 
 import "./App.css";
@@ -65,6 +66,7 @@ function App() {
 							<Route path="/gestionar-entrega/:idOrdenVenta" element={<GestionarEntrega />} />
 							<Route path="/VerLotesMateriaPrima/:id_Materia_Prima" element={<VerLotesMateriaPrima/>}/>
 							<Route path="/trazar_lote_materia_prima/:id_Materia_Prima" element={<TrazarLoteMateriaPrima/>}/>
+							<Route path="/trazabilidadOrdenVenta" element={<TrazabilidadOrdenVenta />}/>
 							{/* <Route path="/trazabilidadLote/:id_lote" element={<TrazarLoteProducto/>}/> */}
 							<Route path="/lotesMateriasPrimas" element={<VerLotesMateriaPrimaGeneral/>}/>
 						{/*</Route>*/}
