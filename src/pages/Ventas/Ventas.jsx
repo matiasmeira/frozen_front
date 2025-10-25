@@ -4,6 +4,7 @@ import axios from 'axios';
 import styles from './Ventas.module.css';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Select from 'react-select';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -91,7 +92,7 @@ const Ventas = () => {
         }
       }
 
-      console.log('Fetching órdenes con parámetros:', params.toString());
+      
 
       const response = await api.get(`/ventas/ordenes-venta/?${params.toString()}`);
       
@@ -100,7 +101,7 @@ const Ventas = () => {
       setTotalOrdenes(data.count || 0);
       setTotalPaginas(Math.ceil((data.count || 1) / (data.results?.length || 1)));
       setPaginaActual(pagina);
-      
+     
     } catch (err) {
 // Manejar error 404 si se busca un ID y no se encuentra
       if (err.response && err.response.status === 404 && filtroId.trim() !== '') {
@@ -609,6 +610,86 @@ const Ventas = () => {
     iniciarEdicion(orden);
   };
 
+// 1. Mapea tus clientes al formato que espera react-select
+  const opcionesClienteParaSelect = clientesDisponibles.map((cliente) => {
+    const nombre = cliente.nombre || cliente.nombre_cliente || `Cliente ${cliente.id_cliente}`;
+    
+    // ----- LÍNEA NUEVA -----
+    // Asumimos que la propiedad se llama 'apellido'. Si no, ajustalo.
+    const apellido = cliente.apellido || ''; 
+    
+    const cuit = cliente.cuit || cliente.cuil || '';
+    const nombreCompleto = `${nombre} ${apellido}`.trim();
+
+    return {
+      value: nombre,       // Mantenemos el 'value' original para tu filtro
+      label: nombreCompleto, // <-- MODIFICADO: Ahora el 'label' es el nombre completo
+      cuit: cuit
+    };
+  });
+
+  // 2. Agregamos la opción "Todos los clientes" al INICIO del array
+  opcionesClienteParaSelect.unshift({
+    value: 'todos',
+    label: 'Todos los clientes',
+    cuit: ''
+  });
+
+  // 3. Función para formatear cómo se ve CADA opción en el desplegable
+  const formatOptionLabel = ({ label, cuit }) => (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      {/* El nombre del cliente */}
+      <span style={{ fontWeight: 500 }}>{label}</span>
+      
+      {/* El CUIT, solo si existe, en color gris */}
+      {cuit && (
+        <span style={{ color: '#666', marginLeft: '10px', fontSize: '0.9em' }}>
+          {cuit}
+        </span>
+      )}
+    </div>
+  );
+
+  // 4. Mapea tus ESTADOS al formato de react-select
+  const opcionesEstadoParaSelect = estadosDisponibles.map((estado) => ({
+    value: estado.id_estado_venta,
+    label: estado.descripcion
+  }));
+  // 5. Agregamos "Todos los estados" al inicio
+  opcionesEstadoParaSelect.unshift({
+    value: 'todos',
+    label: 'Todos los estados'
+  });
+
+  // 6. Mapea tus PRIORIDADES al formato de react-select
+  const opcionesPrioridadParaSelect = prioridades.map((prioridad) => ({
+    value: prioridad.id_prioridad,
+    label: prioridad.descripcion
+  }));
+  // 7. Agregamos "Todas las prioridades" al inicio
+  opcionesPrioridadParaSelect.unshift({
+    value: 'todos',
+    label: 'Todas las prioridades'
+  });
+
+  // 8. Estilos comunes para TODOS los Select, para que sean idénticos
+  const customSelectStyles = {
+    control: (baseStyles) => {
+      const newStyles = Object.assign({}, baseStyles, {
+        minWidth: '315px', // Puedes ajustar este ancho
+        minHeight: '40px', // Ajusta esta altura
+        height: '40px'     // Ajusta esta altura
+      });
+      return newStyles;
+    },
+    indicatorsContainer: (baseStyles) => {
+      const newStyles = Object.assign({}, baseStyles, {
+        height: '34px' // Debe coincidir con la altura del control
+      });
+      return newStyles;
+    }
+  };
+  
   if (loading) return (
     <div className={styles.loading}>
       <div className={styles.spinner}></div>
@@ -644,61 +725,47 @@ const Ventas = () => {
       <div className={styles.controles}>
         <div className={styles.filtroGrupo}>
           <label htmlFor="filtroEstado" className={styles.label}>
-            Filtrar por Estado:
-          </label>
-          <select
-            id="filtroEstado"
-            value={filtroEstado}
-            onChange={(e) => manejarCambioEstado(e.target.value)}
-            className={styles.select}
-          >
-            <option value="todos">Todos los estados</option>
-            {estadosDisponibles.map((estado) => (
-              <option key={estado.id_estado_venta} value={estado.id_estado_venta}>
-                {estado.descripcion}
-              </option>
-            ))}
-          </select>
+            Filtrar por Estado:
+          </label>
+          <Select
+            id="filtroEstado"
+            options={opcionesEstadoParaSelect}
+            styles={customSelectStyles}
+            value={opcionesEstadoParaSelect.find(op => op.value === filtroEstado)}
+            onChange={(opcion) => manejarCambioEstado(opcion.value)}
+          />
         </div>
+
+
+            
+
+        <div className={styles.filtroGrupo}>
+        <label htmlFor="filtroCliente" className={styles.label}>
+                    Filtrar por Cliente:
+                  </label>
+                  <Select
+                    id="filtroCliente"
+                    options={opcionesClienteParaSelect}
+                    formatOptionLabel={formatOptionLabel}
+                    styles={customSelectStyles} 
+                    value={opcionesClienteParaSelect.find(op => op.value === filtroCliente)}
+                    onChange={(opcion) => manejarCambioCliente(opcion.value)}
+                  />
+                </div>
 
 
 
         <div className={styles.filtroGrupo}>
-          <label htmlFor="filtroCliente" className={styles.label}>
-            Filtrar por Cliente:
-          </label>
-          <select
-            id="filtroCliente"
-            value={filtroCliente}
-            onChange={(e) => manejarCambioCliente(e.target.value)}
-            className={styles.select}
-          >
-            <option value="todos">Todos los clientes</option>
-            {clientesDisponibles.map((cliente) => (
-              <option key={cliente.id_cliente} value={cliente.nombre || cliente.nombre_cliente}>
-                {cliente.nombre || cliente.nombre_cliente || `Cliente ${cliente.id_cliente}`}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className={styles.filtroGrupo}>
-          <label htmlFor="filtroPrioridad" className={styles.label}>
-            Filtrar por Prioridad:
-          </label>
-          <select
-            id="filtroPrioridad"
-            value={filtroPrioridad}
-            onChange={(e) => manejarCambioPrioridad(e.target.value)}
-            className={styles.select}
-          >
-            <option value="todos">Todas las prioridades</option>
-            {prioridades.map((prioridad) => (
-              <option key={prioridad.id_prioridad} value={prioridad.id_prioridad}>
-                {prioridad.descripcion}
-              </option>
-            ))}
-          </select>
+         <label htmlFor="filtroPrioridad" className={styles.label}>
+            Filtrar por Prioridad:
+          </label>
+          <Select
+            id="filtroPrioridad"
+            options={opcionesPrioridadParaSelect}
+            styles={customSelectStyles}
+            value={opcionesPrioridadParaSelect.find(op => op.value === filtroPrioridad)}
+            onChange={(opcion) => manejarCambioPrioridad(opcion.value)}
+          />
         </div>
 
         <button onClick={limpiarFiltros} className={styles.btnLimpiar}>
@@ -749,14 +816,15 @@ const Ventas = () => {
                       <span className={styles.clienteNombre}> {getNombreCliente(orden.cliente)}</span>
                     </div>
                     
+                    {/* Contenedor para agrupar fecha y creador */}
                     <div className={styles.metaInfoContainer}>
                       <div className={styles.fechaInfo}>Creada: {formatFecha(orden.fecha)}</div>
-                      {/* Asegurate que tu API envíe 'orden.empleado.nombre' */}
-                      {orden.empleado && orden.empleado.nombre && (
-                        <div className={styles.creadorInfo}>
-                          Por: {orden.empleado.nombre}
-                        </div>
-                      )}
+                      
+{orden.id_empleado && (
+                    <div className={styles.creadorInfo}>
+                      Por (ID): {orden.id_empleado}
+                    </div>
+                  )}
                     </div>
                   </div>
               
