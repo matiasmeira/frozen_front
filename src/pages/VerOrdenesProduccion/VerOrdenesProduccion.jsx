@@ -612,7 +612,8 @@ const VerOrdenesProduccion = () => {
                   </>
                 ) : null}
 
-                {orden.id_estado === 2 ? (
+                {/* CAMBIO AQUÍ: Mostrar solo cuando id_estado = 4 (En proceso) */}
+                {orden.id_estado === 4 ? (
                   <button
                     className={styles.btnNoConformidad}
                     onClick={() => abrirModalNoConformidad(orden)}

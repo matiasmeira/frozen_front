@@ -41,6 +41,11 @@ const CrearOrdenProduccion = () => {
 		startDate: false,
 	});
 
+	// Nuevos estados para el porcentaje de desperdicio
+	const [porcentajeDesperdicio, setPorcentajeDesperdicio] = useState(null);
+	const [cantidadRecomendada, setCantidadRecomendada] = useState(null);
+	const [loadingDesperdicio, setLoadingDesperdicio] = useState(false);
+
 	// Estado para controlar si el formulario es válido
 	const [isFormValid, setIsFormValid] = useState(false);
 	// Estado para controlar si se intentó enviar el formulario
@@ -166,6 +171,43 @@ const CrearOrdenProduccion = () => {
 		obtenerUsuario();
 		fetchData();
 	}, []);
+
+	// Función para obtener el porcentaje de desperdicio
+	const fetchPorcentajeDesperdicio = async (idProducto) => {
+		if (!idProducto) {
+			setPorcentajeDesperdicio(null);
+			setCantidadRecomendada(null);
+			return;
+		}
+
+		try {
+			setLoadingDesperdicio(true);
+			const response = await api.get(`produccion/porcentaje-desperdicio/?id_producto=${idProducto}`);
+			
+			const porcentaje = response.data.porcentaje_desperdicio;
+			setPorcentajeDesperdicio(porcentaje);
+			
+		} catch (error) {
+			console.error("Error al cargar porcentaje de desperdicio:", error);
+			setPorcentajeDesperdicio(null);
+			setCantidadRecomendada(null);
+			// No mostramos alerta para no molestar al usuario, ya que es información adicional
+		} finally {
+			setLoadingDesperdicio(false);
+		}
+	};
+
+	// Función para calcular la cantidad recomendada
+	const calcularCantidadRecomendada = (cantidadSolicitada, porcentaje) => {
+		if (!cantidadSolicitada || !porcentaje) return null;
+		
+		const cantidad = parseFloat(cantidadSolicitada);
+		const factorDesperdicio = 1 + (porcentaje / 100);
+		const cantidadCalculada = cantidad * factorDesperdicio;
+		
+		// Redondear a 2 decimales
+		return Math.round(cantidadCalculada * 100) / 100;
+	};
 
 	// Función para obtener líneas de producción compatibles con el producto
 	const fetchLineasPorProducto = async (idProducto) => {
@@ -361,14 +403,23 @@ const CrearOrdenProduccion = () => {
 
 			if (value) {
 				fetchLineasPorProducto(value);
+				fetchPorcentajeDesperdicio(value); // Cargar porcentaje de desperdicio
 			} else {
 				setFilteredLineOptions([]);
+				setPorcentajeDesperdicio(null);
+				setCantidadRecomendada(null);
 			}
 		} else {
 			setFormData((prev) => ({
 				...prev,
 				[name]: value,
 			}));
+
+			// Recalcular cantidad recomendada cuando cambia la cantidad
+			if (name === "quantity" && value && porcentajeDesperdicio) {
+				const recomendada = calcularCantidadRecomendada(value, porcentajeDesperdicio);
+				setCantidadRecomendada(recomendada);
+			}
 		}
 
 		// Si el campo ya fue tocado, validar en tiempo real
@@ -493,6 +544,8 @@ const CrearOrdenProduccion = () => {
 		});
 		setIsFormValid(false);
 		setSubmitAttempted(false);
+		setPorcentajeDesperdicio(null);
+		setCantidadRecomendada(null);
 	};
 
 	// Función para verificar si un campo debe mostrar error
@@ -634,6 +687,32 @@ const CrearOrdenProduccion = () => {
 									/>
 									{shouldShowError("quantity") && (
 										<span className={styles.errorText}>{errors.quantity}</span>
+									)}
+
+									{/* Información de desperdicio y recomendación */}
+									{formData.product && formData.quantity && (
+										<div className={styles.desperdicioInfo}>
+											{loadingDesperdicio ? (
+												<small className={styles.loadingText}>
+													Calculando porcentaje de desperdicio...
+												</small>
+											) : porcentajeDesperdicio !== null ? (
+												<>
+													<small className={styles.warningText}>
+														📊 Porcentaje de desperdicio histórico: <strong>{porcentajeDesperdicio}%</strong>
+													</small>
+													{cantidadRecomendada && (
+														<small className={styles.recommendationText}>
+															💡 Recomendación: Produzca <strong>{cantidadRecomendada} {selectedProductUnit}</strong> para obtener {formData.quantity} {selectedProductUnit} netos
+														</small>
+													)}
+												</>
+											) : (
+												<small className={styles.infoText}>
+													ℹ️ No hay datos históricos de desperdicio para este producto
+												</small>
+											)}
+										</div>
 									)}
 								</div>
 							</div>

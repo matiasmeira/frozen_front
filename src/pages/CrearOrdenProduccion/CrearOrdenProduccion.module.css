@@ -356,3 +356,42 @@
     max-width: 900px;
   }
 }
+
+/* Agregar estos estilos al archivo CSS existente */
+
+.desperdicioInfo {
+  margin-top: 8px;
+  padding: 8px;
+  border-radius: 4px;
+  background-color: #f8f9fa;
+  border-left: 4px solid #ffc107;
+}
+
+.warningText {
+  color: #856404;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.recommendationText {
+  color: #155724;
+  display: block;
+  font-weight: 500;
+}
+
+.infoText {
+  color: #0c5460;
+  display: block;
+}
+
+.loadingText {
+  color: #6c757d;
+  display: block;
+  font-style: italic;
+}
+
+/* Asegurar que los textos pequeños tengan buen contraste */
+.desperdicioInfo small {
+  font-size: 0.8rem;
+  line-height: 1.3;
+}
