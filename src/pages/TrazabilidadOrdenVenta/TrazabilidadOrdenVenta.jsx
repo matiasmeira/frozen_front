@@ -1,7 +1,7 @@
-// TrazabilidadOrdenVenta.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import styles from './TrazabilidadOrdenVenta.module.css';
+import { useSearchParams } from 'react-router-dom'; // <--- CAMBIO 1: Importar hook
 
 // Configuración de Axios con la variable de entorno
 const baseURL = import.meta.env.VITE_API_BASE_URL;
@@ -10,6 +10,7 @@ const api = axios.create({
 });
 
 const TrazabilidadOrdenVenta = () => {
+  const [searchParams] = useSearchParams(); // <--- CAMBIO 2: Inicializar hook
   const [idOrdenVenta, setIdOrdenVenta] = useState('');
   const [idInput, setIdInput] = useState('');
   const [datos, setDatos] = useState(null);
@@ -23,6 +24,16 @@ const TrazabilidadOrdenVenta = () => {
     }
   };
 
+  // <--- CAMBIO 3: useEffect para leer la URL al cargar ---
+  useEffect(() => {
+    const idFromUrl = searchParams.get('id_ov'); // Busca ?id_ov=...
+    if (idFromUrl) {
+      setIdInput(idFromUrl);       // Rellena el campo de búsqueda
+      setIdOrdenVenta(idFromUrl); // Dispara la búsqueda automáticamente
+    }
+  }, [searchParams]); // Se ejecuta cuando los parámetros de la URL cambian
+
+  // Este useEffect existente reacciona al cambio de idOrdenVenta
   useEffect(() => {
     if (idOrdenVenta) {
       cargarTrazabilidad(idOrdenVenta);
@@ -46,13 +57,14 @@ const TrazabilidadOrdenVenta = () => {
       console.error('❌ Error cargando trazabilidad:', err);
       
       if (err.response) {
-        // El servidor respondió con un código de error
-        setError(`Error ${err.response.status}: ${err.response.statusText}`);
+        if (err.response.status === 404) {
+          setError(`No se encontró ninguna orden de venta con el ID ${id}.`);
+        } else {
+          setError(`Error ${err.response.status}: ${err.response.statusText}. Intente de nuevo.`);
+        }
       } else if (err.request) {
-        // La petición fue hecha pero no se recibió respuesta
         setError('No se pudo conectar con el servidor. Verifica tu conexión.');
       } else {
-        // Algo pasó en la configuración de la petición
         setError(`Error: ${err.message}`);
       }
     } finally {
@@ -65,11 +77,12 @@ const TrazabilidadOrdenVenta = () => {
     setIdOrdenVenta('');
     setDatos(null);
     setError(null);
+    // Opcional: navegar a la misma ruta sin query params
+    // navigate('/trazabilidadordenventa'); 
   };
 
   return (
     <div className={styles.contenedor}>
-      {/* Formulario de búsqueda */}
       <div className={styles.buscador}>
         <h1 className={styles.tituloPrincipal}>Trazabilidad de Órdenes de Venta</h1>
         
@@ -109,7 +122,6 @@ const TrazabilidadOrdenVenta = () => {
         </form>
       </div>
 
-      {/* Estados de carga y error */}
       {cargando && (
         <div className={styles.estado}>
           <div className={styles.cargando}>
@@ -119,27 +131,20 @@ const TrazabilidadOrdenVenta = () => {
         </div>
       )}
 
-      {error && (
+{error && (
         <div className={styles.estado}>
           <div className={styles.error}>
             <div className={styles.iconoError}>⚠️</div>
             <div>
               <strong>Error:</strong> {error}
             </div>
-            <button 
-              onClick={() => cargarTrazabilidad(idOrdenVenta)}
-              className={styles.botonReintentar}
-            >
-              Reintentar
-            </button>
+            {/* Botón Reintentar eliminado */}
           </div>
         </div>
       )}
 
-      {/* Resultados */}
       {datos && !cargando && (
         <div className={styles.resultados}>
-          {/* Header con información general */}
           <div className={styles.header}>
             <h2 className={styles.titulo}>
               {datos.consulta.tipo}
@@ -158,7 +163,6 @@ const TrazabilidadOrdenVenta = () => {
             </div>
           </div>
 
-          {/* Lista de productos trazados */}
           <div className={styles.productos}>
             {datos.productos_trazados.map((producto, index) => (
               <ProductoTrazado 
@@ -170,7 +174,6 @@ const TrazabilidadOrdenVenta = () => {
         </div>
       )}
 
-      {/* Estado inicial */}
       {!datos && !cargando && !error && (
         <div className={styles.estado}>
           <div className={styles.sinDatos}>
@@ -186,7 +189,7 @@ const TrazabilidadOrdenVenta = () => {
   );
 };
 
-// Subcomponentes (se mantienen igual)
+// Subcomponentes
 const ProductoTrazado = ({ producto }) => {
   const [expandido, setExpandido] = useState(false);
 
@@ -251,7 +254,6 @@ const LoteEntregado = ({ lote }) => {
 
       {expandido && (
         <div className={styles.loteDetallesCompletos}>
-          {/* Información de orden de producción */}
           <div className={styles.seccion}>
             <h5 className={styles.seccionTitulo}>Orden de Producción</h5>
             {lote.orden_produccion.error ? (
@@ -261,36 +263,17 @@ const LoteEntregado = ({ lote }) => {
             ) : (
               <div className={styles.ordenProduccion}>
                 <div className={styles.gridInfo}>
-                  <div className={styles.gridItem}>
-                    <span className={styles.gridLabel}>ID:</span>
-                    <span>{lote.orden_produccion.id_orden_produccion}</span>
-                  </div>
-                  <div className={styles.gridItem}>
-                    <span className={styles.gridLabel}>Inicio:</span>
-                    <span>{new Date(lote.orden_produccion.fecha_inicio).toLocaleDateString()}</span>
-                  </div>
-                  <div className={styles.gridItem}>
-                    <span className={styles.gridLabel}>Planificado:</span>
-                    <span>{lote.orden_produccion.cantidad_planificada} unidades</span>
-                  </div>
-                  <div className={styles.gridItem}>
-                    <span className={styles.gridLabel}>Supervisor:</span>
-                    <span>{lote.orden_produccion.supervisor}</span>
-                  </div>
-                  <div className={styles.gridItem}>
-                    <span className={styles.gridLabel}>Operario:</span>
-                    <span>{lote.orden_produccion.operario}</span>
-                  </div>
-                  <div className={styles.gridItem}>
-                    <span className={styles.gridLabel}>Línea:</span>
-                    <span>{lote.orden_produccion.linea}</span>
-                  </div>
+                  <div className={styles.gridItem}><span className={styles.gridLabel}>ID:</span><span>{lote.orden_produccion.id_orden_produccion}</span></div>
+                  <div className={styles.gridItem}><span className={styles.gridLabel}>Inicio:</span><span>{new Date(lote.orden_produccion.fecha_inicio).toLocaleDateString()}</span></div>
+                  <div className={styles.gridItem}><span className={styles.gridLabel}>Planificado:</span><span>{lote.orden_produccion.cantidad_planificada} unidades</span></div>
+                  <div className={styles.gridItem}><span className={styles.gridLabel}>Supervisor:</span><span>{lote.orden_produccion.supervisor}</span></div>
+                  <div className={styles.gridItem}><span className={styles.gridLabel}>Operario:</span><span>{lote.orden_produccion.operario}</span></div>
+                  <div className={styles.gridItem}><span className={styles.gridLabel}>Línea:</span><span>{lote.orden_produccion.linea}</span></div>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Materias primas usadas */}
           {lote.materias_primas_usadas && lote.materias_primas_usadas.length > 0 && (
             <div className={styles.seccion}>
               <h5 className={styles.seccionTitulo}>Materias Primas Usadas</h5>
@@ -298,26 +281,11 @@ const LoteEntregado = ({ lote }) => {
                 {lote.materias_primas_usadas.map((mp, index) => (
                   <div key={index} className={styles.materiaPrima}>
                     <div className={styles.gridInfo}>
-                      <div className={styles.gridItem}>
-                        <span className={styles.gridLabel}>Material:</span>
-                        <span>{mp.nombre_materia_prima}</span>
-                      </div>
-                      <div className={styles.gridItem}>
-                        <span className={styles.gridLabel}>Lote MP:</span>
-                        <span>#{mp.id_lote_materia_prima}</span>
-                      </div>
-                      <div className={styles.gridItem}>
-                        <span className={styles.gridLabel}>Cantidad:</span>
-                        <span>{mp.cantidad_usada}</span>
-                      </div>
-                      <div className={styles.gridItem}>
-                        <span className={styles.gridLabel}>Vencimiento:</span>
-                        <span>{mp.fecha_vencimiento_mp}</span>
-                      </div>
-                      <div className={styles.gridItem}>
-                        <span className={styles.gridLabel}>Proveedor:</span>
-                        <span>{mp.proveedor.nombre} (ID: {mp.proveedor.id_proveedor})</span>
-                      </div>
+                      <div className={styles.gridItem}><span className={styles.gridLabel}>Material:</span><span>{mp.nombre_materia_prima}</span></div>
+                      <div className={styles.gridItem}><span className={styles.gridLabel}>Lote MP:</span><span>#{mp.id_lote_materia_prima}</span></div>
+                      <div className={styles.gridItem}><span className={styles.gridLabel}>Cantidad:</span><span>{mp.cantidad_usada}</span></div>
+                      <div className={styles.gridItem}><span className={styles.gridLabel}>Vencimiento:</span><span>{mp.fecha_vencimiento_mp}</span></div>
+                      <div className={styles.gridItem}><span className={styles.gridLabel}>Proveedor:</span><span>{mp.proveedor.nombre} (ID: {mp.proveedor.id_proveedor})</span></div>
                     </div>
                   </div>
                 ))}

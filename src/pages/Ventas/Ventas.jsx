@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import styles from './Ventas.module.css';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -46,6 +48,8 @@ const Ventas = () => {
     searchParams.get('prioridad') || 'todos'
   );
 
+  const [filtroId, setFiltroId] = useState(() => searchParams.get('id_ov') || '');
+
   // Función para verificar si una orden puede ser editada - MODIFICADA
   const puedeEditarOrden = (orden) => {
     const idEstadoVenta = orden.estado_venta?.id_estado_venta || orden.id_estado_venta;
@@ -69,15 +73,22 @@ const Ventas = () => {
       // Construir parámetros de filtro
       const params = new URLSearchParams();
       params.append('page', pagina.toString());
-      
-      if (filtroEstado !== 'todos' && filtroEstado !== '') {
-        params.append('estado', filtroEstado);
-      }
-      if (filtroCliente !== 'todos' && filtroCliente !== '') {
-        params.append('cliente', filtroCliente);
-      }
-      if (filtroPrioridad !== 'todos' && filtroPrioridad !== '') {
-        params.append('prioridad', filtroPrioridad);
+
+      if (filtroId.trim() !== '') {
+        // Si hay un ID, buscar solo por ese ID
+        // Ajusta 'id_orden_venta' si tu API espera otro nombre de parámetro
+        params.append('id_orden_venta', filtroId.trim());
+      } else {
+        // Si no hay ID, usar los otros filtros
+        if (filtroEstado !== 'todos' && filtroEstado !== '') {
+          params.append('estado', filtroEstado);
+        }
+        if (filtroCliente !== 'todos' && filtroCliente !== '') {
+          params.append('cliente', filtroCliente);
+        }
+        if (filtroPrioridad !== 'todos' && filtroPrioridad !== '') {
+          params.append('prioridad', filtroPrioridad);
+        }
       }
 
       console.log('Fetching órdenes con parámetros:', params.toString());
@@ -91,8 +102,16 @@ const Ventas = () => {
       setPaginaActual(pagina);
       
     } catch (err) {
-      setError('Error al cargar las órdenes');
-      console.error('Error fetching orders:', err);
+// Manejar error 404 si se busca un ID y no se encuentra
+      if (err.response && err.response.status === 404 && filtroId.trim() !== '') {
+          setError(`No se encontró ninguna orden con el ID ${filtroId}.`);
+          setOrdenes([]);
+          setTotalOrdenes(0);
+          setTotalPaginas(1);
+      } else {
+          setError('Error al cargar las órdenes');
+          console.error('Error fetching orders:', err);
+      }
     } finally {
       setLoading(false);
     }
@@ -238,6 +257,7 @@ const Ventas = () => {
     setFiltroEstado('todos');
     setFiltroCliente('todos');
     setFiltroPrioridad('todos');
+    setFiltroId('');
     setPaginaActual(1);
   };
 
@@ -607,6 +627,7 @@ const Ventas = () => {
 
   return (
     <div className={styles.container}>
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover theme="colored" />
       <div className={styles.headerContainer}>
         <h1 className={styles.title}>Órdenes de Venta</h1>
         <button 
@@ -618,6 +639,8 @@ const Ventas = () => {
       </div>
 
       {/* Controles de Filtrado */}
+
+      
       <div className={styles.controles}>
         <div className={styles.filtroGrupo}>
           <label htmlFor="filtroEstado" className={styles.label}>
@@ -637,6 +660,8 @@ const Ventas = () => {
             ))}
           </select>
         </div>
+
+
 
         <div className={styles.filtroGrupo}>
           <label htmlFor="filtroCliente" className={styles.label}>
@@ -718,13 +743,22 @@ const Ventas = () => {
                 </div>
               </div>
               
-              <div className={styles.headerBottom}>
-                <div className={styles.clienteInfo}>
-                  <span className={styles.clienteLabel}>Cliente:</span>
-                  <span className={styles.clienteNombre}> {getNombreCliente(orden.cliente)}</span>
-                </div>
-                <div className={styles.fechaInfo}>Creada: {formatFecha(orden.fecha)}</div>
-              </div>
+<div className={styles.headerBottom}>
+                    <div className={styles.clienteInfo}>
+                      <span className={styles.clienteLabel}>Cliente:</span>
+                      <span className={styles.clienteNombre}> {getNombreCliente(orden.cliente)}</span>
+                    </div>
+                    
+                    <div className={styles.metaInfoContainer}>
+                      <div className={styles.fechaInfo}>Creada: {formatFecha(orden.fecha)}</div>
+                      {/* Asegurate que tu API envíe 'orden.empleado.nombre' */}
+                      {orden.empleado && orden.empleado.nombre && (
+                        <div className={styles.creadorInfo}>
+                          Por: {orden.empleado.nombre}
+                        </div>
+                      )}
+                    </div>
+                  </div>
               
               <div className={styles.fechaEntregaInfo}>
                 <span className={styles.fechaEntregaLabel}>Entrega estimada:</span>
@@ -772,7 +806,18 @@ const Ventas = () => {
                     {cancelandoOrden === orden.id_orden_venta ? 'Cancelando...' : 'Cancelar Orden'}
                   </button>
                 )}
+              <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/trazabilidadordenventa?id_ov=${orden.id_orden_venta}`);
+                      }}
+                      className={styles.botonTrazabilidad}
+                    >
+                      Ver Trazabilidad
+              </button>
               </div>
+
+
             </div>
 
             <div className={styles.ordenBody}>

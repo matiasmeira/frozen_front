@@ -1,9 +1,8 @@
-
 /* ===== ESTILOS BASE ===== */
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: var(--spacing-md);
+  padding: 20px; /* Asumiendo var(--spacing-md) es 20px */
 }
 
 /* ===== HEADER Y TÍTULOS ===== */
@@ -11,84 +10,88 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--spacing-xl);
+  margin-bottom: 2rem; /* Asumiendo var(--spacing-xl) es 2rem */
   flex-wrap: wrap;
-  gap: var(--spacing-md);
+  gap: 20px;
 }
 
 .title {
   font-size: 2rem;
   font-weight: bold;
-  color: var(--text-primary);
+  color: #374151; /* Asumiendo var(--text-primary) */
   margin: 0;
 }
 
 .botonCrearOrden {
-  background-color: var(--primary-color);
-  color: var(--bg-white);
+  background-color: #007bff; /* Asumiendo var(--primary-color) */
+  color: #ffffff; /* Asumiendo var(--bg-white) */
   border: none;
   padding: 0.75rem 1.5rem;
-  border-radius: var(--radius-sm);
+  border-radius: 0.25rem; /* Asumiendo var(--radius-sm) */
   cursor: pointer;
   font-size: 1rem;
   font-weight: 500;
-  transition: background-color var(--transition-normal);
+  transition: background-color 0.2s ease;
   text-decoration: none;
   display: inline-block;
 }
 
 .botonCrearOrden:hover {
-  background-color: var(--primary-hover);
+  background-color: #0056b3; /* Asumiendo var(--primary-hover) */
 }
 
 .botonCrearOrden:active {
-  background-color: var(--primary-active);
+  background-color: #004085; /* Asumiendo var(--primary-active) */
 }
 
 /* ===== PAGINACIÓN ===== */
 .paginacionInfo {
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: 1.5rem; /* Asumiendo var(--spacing-lg) */
   text-align: center;
-  color: var(--text-muted);
+  color: #6b7280; /* Asumiendo var(--text-muted) */
   font-size: 0.9rem;
-  padding: var(--spacing-sm) var(--spacing-md);
-  background-color: var(--bg-lighter);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-light);
+  padding: 0.5rem 1rem; /* Asumiendo var(--spacing-sm) y md */
+  background-color: #f8f9fa; /* Asumiendo var(--bg-lighter) */
+  border-radius: 0.5rem; /* Asumiendo var(--radius-md) */
+  border: 1px solid #f1f5f9; /* Asumiendo var(--border-light) */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .paginacionContainer {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: var(--spacing-xl);
-  gap: var(--spacing-sm);
+  margin-top: 2rem;
+  gap: 0.5rem;
   flex-wrap: wrap;
 }
 
 .botonPaginacion {
   padding: 0.625rem 1rem;
-  border: 1px solid var(--border-color);
-  background-color: var(--bg-white);
-  color: var(--text-primary);
+  border: 1px solid #d1d5db; /* Asumiendo var(--border-color) */
+  background-color: #ffffff;
+  color: #374151;
   cursor: pointer;
-  border-radius: var(--radius-md);
+  border-radius: 0.5rem;
   font-size: 0.9rem;
   font-weight: 500;
-  transition: all var(--transition-normal);
+  transition: all 0.2s ease;
   min-width: 100px;
 }
 
 .botonPaginacion:hover:not(:disabled) {
-  background-color: var(--bg-light);
-  border-color: var(--border-dark);
+  background-color: #f9fafb; /* Asumiendo var(--bg-light) */
+  border-color: #9ca3af; /* Asumiendo var(--border-dark) */
   transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* Asumiendo var(--shadow-sm) */
 }
 
 .botonPaginacion:disabled {
-  background-color: var(--bg-gray);
-  color: var(--text-light);
+  background-color: #e5e7eb; /* Asumiendo var(--bg-gray) */
+  color: #9ca3af; /* Asumiendo var(--text-light) */
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
@@ -96,107 +99,64 @@
 
 .numerosPagina {
   display: flex;
-  gap: var(--spacing-xs);
-  margin: 0 var(--spacing-sm);
+  gap: 0.25rem; /* Asumiendo var(--spacing-xs) */
+  margin: 0 0.5rem;
 }
 
 .numeroPagina {
   padding: 0.625rem 0.875rem;
-  border: 1px solid var(--border-color);
-  background-color: var(--bg-white);
-  color: var(--text-primary);
+  border: 1px solid #d1d5db;
+  background-color: #ffffff;
+  color: #374151;
   cursor: pointer;
-  border-radius: var(--radius-md);
+  border-radius: 0.5rem;
   font-size: 0.9rem;
   font-weight: 500;
   min-width: 44px;
-  transition: all var(--transition-normal);
+  transition: all 0.2s ease;
 }
 
 .numeroPagina:hover {
-  background-color: var(--bg-light);
-  border-color: var(--border-dark);
+  background-color: #f9fafb;
+  border-color: #9ca3af;
   transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
 .paginaActiva {
-  background-color: var(--primary-color);
-  color: var(--bg-white);
-  border-color: var(--primary-color);
+  background-color: #007bff;
+  color: #ffffff;
+  border-color: #007bff;
   transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
 .paginaActiva:hover {
-  background-color: var(--primary-hover);
-  border-color: var(--primary-hover);
-  color: var(--bg-white);
+  background-color: #0056b3;
+  border-color: #0056b3;
+  color: #ffffff;
 }
 
 /* ===== LISTA DE ÓRDENES ===== */
 .ordenesList {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 20px;
 }
 
 .ordenItem {
-  background: var(--bg-white);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  transition: box-shadow var(--transition-normal);
-}
-
-.ordenItem:hover {
-  box-shadow: var(--shadow-md);
-}
-
-/* ===== HEADER DE ORDEN ===== */
-.ordenHeader {
-  padding: var(--spacing-md);
-  border-bottom: 1px solid var(--bg-gray);
-}
-
-.headerTop {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-sm);
-}
-
-.headerBottom {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-md);
-}
-
-.ordenId {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-/* ===== BADGES ===== */
-.badgesContainer {
-  display: flex;
-  gap: var(--spacing-sm);
-  flex-wrap: wrap;
-}
-
-.ordenItem {
-  cursor: pointer;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 0.75rem; /* Asumiendo var(--radius-lg) */
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   transition: all 0.2s ease;
+  /* El cursor se maneja en el JSX ahora */
 }
 
 .ordenItem:hover {
-  background-color: #f8f9fa;
+  /* background-color: #f8f9fa; */ /* Quitado para no interferir con click */
   border-color: #007bff;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Asumiendo var(--shadow-md) */
 }
 
 .ordenEditando {
@@ -207,847 +167,263 @@
 
 .ordenEditando:hover {
   background-color: white;
+  border-color: #007bff; /* Mantener borde azul */
+}
+
+.ordenNoEditable {
+  cursor: default;
+}
+.ordenNoEditable:hover {
+  border-color: #d1d5db; /* Evitar borde azul en no editables */
+}
+
+
+/* ===== HEADER DE ORDEN ===== */
+.ordenHeader {
+  padding: 20px;
+  border-bottom: 1px solid #e5e7eb; /* Asumiendo var(--bg-gray) */
+}
+
+.headerTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.headerBottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start; /* Ajustado para metaInfoContainer */
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.ordenId {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #4b5563; /* Asumiendo var(--text-secondary) */
+}
+
+/* ===== BADGES ===== */
+.badgesContainer {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .badge {
-  padding: var(--spacing-xs) var(--spacing-md);
-  border-radius: var(--radius-xl);
+  padding: 0.25rem 0.75rem; /* Asumiendo var(--spacing-xs) y md */
+  border-radius: 9999px; /* Asumiendo var(--radius-xl) */
   font-size: 0.75rem;
   font-weight: 500;
   border: 1px solid;
 }
 
+.badgeNoEditable {
+  background-color: #f3f4f6;
+  color: #6b7280;
+  border-color: #e5e7eb;
+}
+
 /* Estados */
-.badgeEstadoPendiente {
-  background-color: var(--estado-pendiente);
-  color: var(--estado-pendiente-text);
-  border-color: #93c5fd;
-}
-
-.badgeEstadoPendientePago {
-  background-color: var(--estado-pendiente-pago);
-  color: var(--estado-pendiente-pago-text);
-  border-color: #fdba74;
-}
-
-.badgeEstadoCompletada {
-  background-color: var(--estado-completada);
-  color: var(--estado-completada-text);
-  border-color: #86efac;
-}
-
-.badgeEstadoDefault {
-  background-color: var(--bg-gray);
-  color: var(--text-muted);
-  border-color: var(--border-dark);
-}
+.badgeEstadoPendiente { background-color: #e0f2fe; color: #0c4a6e; border-color: #93c5fd; }
+.badgeEstadoPendientePago { background-color: #fffbeb; color: #b45309; border-color: #fdba74; }
+.badgeEstadoPreparacion { background-color: #dbeafe; color: #1e40af; border-color: #bfdbfe; }
+.badgeEstadoPagada { background-color: #dcfce7; color: #15803d; border-color: #86efac; }
+.badgeEstadoCompletada { background-color: #dcfce7; color: #15803d; border-color: #86efac; }
+.badgeEstadoCancelada { background-color: #e5e7eb; color: #4b5563; border-color: #9ca3af; }
+.badgeEstadoDefault { background-color: #e5e7eb; color: #4b5563; border-color: #9ca3af; }
 
 /* Prioridades */
-.badgePrioridadUrgente {
-  background-color: var(--prioridad-urgente);
-  color: var(--bg-white);
-}
-
-.badgePrioridadAlta {
-  background-color: var(--prioridad-alta);
-  color: var(--bg-white);
-}
-
-.badgePrioridadMedia {
-  background-color: var(--prioridad-media);
-  color: var(--text-primary);
-}
-
-.badgePrioridadBaja {
-  background-color: var(--prioridad-baja);
-  color: var(--bg-white);
-}
-
-.badgePrioridadDefault {
-  background-color: var(--secondary-color);
-  color: var(--bg-white);
-}
+.badgePrioridadUrgente { background-color: #ef4444; color: #ffffff; }
+.badgePrioridadAlta { background-color: #f97316; color: #ffffff; }
+.badgePrioridadMedia { background-color: #eab308; color: #ffffff; }
+.badgePrioridadBaja { background-color: #22c55e; color: #ffffff; }
+.badgePrioridadDefault { background-color: #6b7280; color: #ffffff; }
 
 /* ===== INFORMACIÓN DE ORDEN ===== */
-.fechaInfo {
-  font-size: 0.875rem;
-  color: var(--text-muted);
-}
-
-.clienteInfo {
-  font-size: 0.875rem;
-}
-
-.clienteLabel {
-  font-weight: 500;
-  color: var(--text-secondary);
-}
-
-.clienteNombre {
-  color: var(--text-muted);
-}
+.clienteInfo { font-size: 0.875rem; }
+.clienteLabel { font-weight: 500; color: #4b5563; }
+.clienteNombre { color: #6b7280; }
 
 .fechaEntregaInfo {
-  margin-top: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-md);
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
   background-color: #e7f3ff;
-  border-radius: var(--radius-md);
-  border-left: 4px solid var(--primary-color);
+  border-radius: 0.5rem;
+  border-left: 4px solid #007bff;
 }
+.fechaEntregaLabel { font-weight: 600; color: #0056b3; margin-right: 0.5rem; }
+.fechaEntregaValor { color: #495057; font-weight: 500; }
 
-.fechaEntregaLabel {
-  font-weight: 600;
-  color: #0056b3;
-  margin-right: var(--spacing-sm);
+/* Contenedor para Fecha y Creador */
+.metaInfoContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  gap: 2px;
 }
+.fechaInfo { font-size: 0.8em; color: #6c757d; }
+.creadorInfo { font-size: 0.8em; color: #888; font-style: italic; }
 
-.fechaEntregaValor {
-  color: #495057;
-  font-weight: 500;
-}
 
 /* ===== CUERPO DE ORDEN ===== */
-.ordenBody {
-  padding: var(--spacing-md);
-}
-
-/* ===== PRODUCTOS ===== */
-.productosHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--spacing-md);
-}
-
-.productosList {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-}
-
-.productoItem {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--spacing-sm) var(--spacing-md);
-  background-color: var(--bg-light);
-  border-radius: var(--radius-md);
-}
-
-.productoInfo {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-}
-
-.productoNombre {
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.productoTipo {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-.productoCantidad {
-  font-size: 0.875rem;
-  color: var(--text-muted);
-}
+.ordenBody { padding: 20px; }
+.productosHeader { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.productosHeader h3 { margin: 0; font-size: 1rem; font-weight: 600; }
+.productosList { display: flex; flex-direction: column; gap: 0.5rem; }
+.productoItem { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; background-color: #f9fafb; border-radius: 0.5rem; }
+.productoInfo { display: flex; align-items: center; gap: 0.5rem; }
+.productoNombre { font-weight: 500; color: #374151; }
+.productoTipo { font-size: 0.75rem; color: #6b7280; }
+.productoCantidad { font-size: 0.875rem; color: #6b7280; }
+.sinProductos { text-align: center; padding: 2rem; color: #6b7280; }
+.sinOrdenes { text-align: center; padding: 2rem; color: #6b7280; }
 
 /* ===== EDICIÓN ===== */
-.edicionContainer {
-  border: 1px solid #e0e0e0;
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-lg);
-  background-color: var(--bg-lighter);
-}
+.edicionContainer { border: 1px solid #e0e0e0; border-radius: 0.75rem; padding: 1.5rem; background-color: #fdfdfd; }
+.campoEdicion { margin-bottom: 1rem; }
+.labelEdicion { font-weight: 600; margin-bottom: 0.5rem; display: block; }
+.selectEdicion, .inputEdicion { width: 100%; padding: 0.5rem; border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box; }
+.subtituloEdicion { font-size: 1.1rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 1rem; border-top: 1px solid #eee; padding-top: 1rem; }
+.productoEdicionItem { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; border-bottom: 1px solid #eee; }
+.productoNombreEdit { font-weight: 500; }
+.controlesEdicion { display: flex; align-items: center; gap: 0.5rem; }
+.labelCantidadEdit { font-size: 0.9rem; }
+.inputCantidadEdit { width: 60px; padding: 0.25rem; border: 1px solid #ccc; border-radius: 4px; }
+.botonEliminarProdEdit { background: #e74c3c; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-weight: bold; }
+.agregarProductoContainer { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px dashed #ccc; }
+.subSubtituloEdicion { font-weight: 600; margin-bottom: 0.5rem; }
+.formAgregarProducto { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+.selectProductoAdd { flex: 1; min-width: 200px; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
+.labelCantidadAdd { font-size: 0.9rem; }
+.inputCantidadAdd { width: 60px; padding: 0.25rem; border: 1px solid #ccc; border-radius: 4px; }
+.botonAgregarProdEdit { background: #27ae60; color: white; border: none; border-radius: 4px; padding: 0.5rem; cursor: pointer; }
+.botonesEdicion { display: flex; gap: 0.5rem; margin-top: 1.5rem; justify-content: flex-end; }
+.productosContainerView { margin-top: 1rem; }
+.productosHeaderView { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; }
+.productosListView { display: flex; flex-direction: column; gap: 0.25rem; }
+.productoItemView { display: flex; justify-content: space-between; padding: 0.25rem 0.5rem; background-color: #f8f9fa; border-radius: 4px; }
+.productoNombreView { font-weight: 500; }
+.productoCantidadView { color: #555; }
+.sinProductosView { padding: 0.5rem; color: #777; }
+.fechaInfoContainer { margin-top: 0.25rem; }
+.fechaOriginalInfo { font-size: 0.8rem; color: #555; }
+.fechaError { font-size: 0.8rem; color: #dc3545; font-weight: 500; }
+.selectPrioridad { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
+.inputFecha { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
+.inputCantidad { width: 70px; }
+.botonEliminar { background: #dc3545; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; }
+.botonAgregar { background: #28a745; color: white; border: none; padding: 0.5rem; border-radius: 4px; cursor: pointer; }
+.botonGuardar { background: #28a745; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; }
+.botonCancelar { background: #6c757d; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; }
 
-.prioridadEdicion,
-.fechaEntregaEdicion {
-  margin-bottom: var(--spacing-lg);
-  padding: var(--spacing-md);
-  background-color: var(--bg-lighter);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-light);
-}
+/* ===== BOTONES DE ACCIÓN ===== */
+.botonesAccion { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+.botonFacturar { background-color: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px; transition: background-color 0.3s; }
+.botonFacturar:hover { background-color: #218838; }
+.botonFacturar:disabled { background-color: #6c757d; cursor: not-allowed; }
+.botonCancelarOrden { background-color: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px; transition: background-color 0.2s; }
+.botonCancelarOrden:hover:not(:disabled) { background-color: #c82333; }
+.botonCancelarOrden:disabled { background-color: #6c757d; cursor: not-allowed; }
+.botonEntrega { background-color: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px; margin-left: 8px; transition: background-color 0.2s; }
+.botonEntrega:hover { background-color: #218838; }
+.botonEntrega:disabled { background-color: #6c757d; cursor: not-allowed; }
 
-.prioridadEdicion h4,
-.fechaEntregaEdicion h4 {
-  margin: 0 0 var(--spacing-md) 0;
-  color: #495057;
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-.inputGrupo {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-sm);
-}
-
-.inputGrupo label {
-  font-weight: 500;
-  color: #495057;
-  min-width: 150px;
-}
-
-.selectPrioridad,
-.inputFecha,
-.selectProducto,
-.inputCantidad,
-.inputCantidadNuevo {
-  padding: 0.625rem 0.75rem;
-  border: 2px solid var(--border-light);
-  border-radius: var(--radius-md);
-  font-size: 0.9rem;
-  background-color: var(--bg-white);
-  transition: all var(--transition-normal);
-}
-
-.selectPrioridad:focus,
-.inputFecha:focus,
-.selectProducto:focus,
-.inputCantidad:focus,
-.inputCantidadNuevo:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-}
-
-.inputCantidad,
-.inputCantidadNuevo {
-  width: 80px;
-  text-align: center;
-}
-
-.inputFecha {
-  flex: 1;
-  max-width: 250px;
-}
-
-/* ===== PRODUCTOS EN EDICIÓN ===== */
-.productoEdicionItem {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--spacing-md);
-  margin-bottom: var(--spacing-sm);
-  background-color: var(--bg-white);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-dark);
-}
-
-.productoInfoEdit {
-  flex: 1;
-}
-
-.productoUnidad {
-  color: var(--text-muted);
-  font-size: 0.9em;
-  margin-left: var(--spacing-sm);
-}
-
-.controlesEdicion {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-}
-
-/* ===== BOTONES ===== */
-.botonEliminar {
-  background: var(--danger-color);
-  color: var(--bg-white);
-  border: none;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1rem;
-  transition: background-color var(--transition-normal);
-}
-
-.botonEliminar:hover {
-  background: var(--danger-hover);
-}
-
-.botonEditar {
-  background: var(--primary-color);
-  color: var(--bg-white);
-  border: none;
-  padding: 0.375rem 0.75rem;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  font-size: 0.9em;
-  transition: background-color var(--transition-normal);
-}
-
-.botonEditar:hover {
-  background: var(--primary-hover);
-}
-
-.botonAgregar {
-  background: var(--success-color);
-  color: var(--bg-white);
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: background-color var(--transition-normal);
-}
-
-.botonAgregar:hover:not(:disabled) {
-  background: var(--success-hover);
-}
-
-.botonAgregar:disabled {
-  background: var(--secondary-color);
-  cursor: not-allowed;
-}
-
-.botonLimpiarFecha {
-  padding: 0.5rem 0.75rem;
-  background-color: var(--secondary-color);
-  color: var(--bg-white);
-  border: none;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: bold;
-  transition: all var(--transition-normal);
-}
-
-.botonLimpiarFecha:hover {
-  background-color: var(--secondary-hover);
-  transform: scale(1.05);
-}
-
-/* ===== GRUPOS DE BOTONES ===== */
-.botonesEdicion {
-  display: flex;
-  gap: var(--spacing-md);
-  margin-top: var(--spacing-lg);
-  justify-content: flex-end;
-}
-
-.botonGuardar {
-  background: var(--success-color);
-  color: var(--bg-white);
-  border: none;
-  padding: 0.625rem 1.25rem;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  font-weight: 500;
-  transition: background-color var(--transition-normal);
-}
-
-.botonGuardar:hover:not(:disabled) {
-  background: var(--success-hover);
-}
-
-.botonGuardar:disabled {
-  background: var(--secondary-color);
-  cursor: not-allowed;
-}
-
-.botonCancelar {
-  background: var(--secondary-color);
-  color: var(--bg-white);
-  border: none;
-  padding: 0.625rem 1.25rem;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: background-color var(--transition-normal);
-}
-
-.botonCancelar:hover:not(:disabled) {
-  background: var(--secondary-hover);
-}
-
-/* ===== AGREGAR PRODUCTOS ===== */
-.agregarProductoContainer {
-  border: 1px solid var(--border-dark);
-  padding: var(--spacing-md);
-  border-radius: var(--radius-sm);
-  margin: var(--spacing-md) 0;
-  background-color: var(--bg-lighter);
-}
-
-.formAgregarProducto {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-}
-
-.labelCantidad {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-  font-weight: 500;
-  color: var(--text-secondary);
-}
-
-/* ===== ESTADOS ESPECIALES ===== */
-.sinProductos,
-.sinOrdenes {
-  text-align: center;
-  padding: var(--spacing-xl);
-  color: var(--text-muted);
-}
-
-.sinProductosMsg {
-  color: var(--text-muted);
-  font-style: italic;
-  text-align: center;
-  padding: var(--spacing-md);
-}
-
-.loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: var(--spacing-xxl);
-  flex-direction: column;
-  gap: var(--spacing-md);
-}
-
-.loading p {
-  font-size: 1rem;
-  color: var(--text-muted);
-  font-weight: 500;
-  margin: 0;
-  align-self: center; /* Centrar el texto horizontalmente */
-  text-align: center;
-}
-
-.spinner {
-  width: 3rem;
-  height: 3rem;
-  border: 4px solid var(--border-color);
-  border-top: 4px solid var(--primary-color);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.error {
-  background-color: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-md);
-  color: #dc2626;
-  text-align: center;
-}
-
-.botonReintentar {
-  background: var(--primary-color);
-  color: var(--bg-white);
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  margin-top: var(--spacing-sm);
-  transition: background-color var(--transition-normal);
-}
-
-.botonReintentar:hover {
-  background: var(--primary-hover);
-}
-
-.fechaHelp {
-  color: var(--text-muted);
-  font-size: 0.875rem;
-}
-
-/* ===== MEJORAS PARA LA EXPERIENCIA DE PAGINACIÓN ===== */
-.paginacionInfo p {
-  margin: 0;
-  font-weight: 500;
-}
-
-/* Efectos de hover mejorados */
-.botonPaginacion:active:not(:disabled),
-.numeroPagina:active {
-  transform: translateY(0);
-  transition: transform 0.1s ease;
-}
-
-/* Estados de carga durante la paginación */
-.paginacionContainer.cargando {
-  opacity: 0.7;
-  pointer-events: none;
-}
-
-/* Estilos para los controles de filtrado */
-.controles {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  padding: 1rem;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  flex-wrap: wrap;
-  align-items: end;
-}
-
-.filtroGrupo {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  min-width: 200px;
-}
-
-.label {
-  font-weight: 600;
-  font-size: 0.9rem;
-  color: #333;
-}
-
-.select {
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  background-color: white;
-}
-
-.btnLimpiar {
-  padding: 0.5rem 1rem;
-  background-color: #6c757d;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  height: fit-content;
-}
-
-.btnLimpiar:hover {
-  background-color: #5a6268;
-}
-
-.botonEntrega {
-  background-color: #28a745;
+/* Botón Trazabilidad */
+.botonTrazabilidad {
+  background-color: #007bff;
   color: white;
   border: none;
   padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+  
+}
+.botonTrazabilidad:hover { background-color: #0056b3; }
+.botonTrazabilidad:disabled { background-color: #6c757d; cursor: not-allowed; }
+
+/* Botón Editar */
+.botonEditarSimple {
+  background-color: #ffc107;
+  color: #212529;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s;
   margin-left: 8px;
-  transition: background-color 0.2s;
 }
+.botonEditarSimple:hover { background-color: #e0a800; }
 
-.botonEntrega:hover {
-  background-color: #218838;
-}
+/* ===== FILTROS ===== */
+.controles { display: flex; gap: 1rem; margin-bottom: 1.5rem; padding: 1rem; background-color: #f8f9fa; border-radius: 8px; flex-wrap: wrap; align-items: end; }
+.filtroGrupo { display: flex; flex-direction: column; gap: 0.5rem; min-width: 200px; }
+.label { font-weight: 600; font-size: 0.9rem; color: #333; }
+.select { padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem; background-color: white; }
+.btnLimpiar { padding: 0.5rem 1rem; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; height: fit-content; }
+.btnLimpiar:hover { background-color: #5a6268; }
 
-.botonEntrega:disabled {
-  background-color: #6c757d;
-  cursor: not-allowed;
-}
-
-/* Ajustes responsivos */
-@media (max-width: 768px) {
-  .controles {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .filtroGrupo {
-    min-width: auto;
-  }
-  
-  .btnLimpiar {
-    align-self: flex-start;
-  }
-}
-
-/* Indicador de página actual en móvil */
-@media (max-width: 768px) {
-  .paginacionInfo {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: var(--spacing-sm);
-  }
-  
-  .paginacionInfo p {
-    flex: 1;
-    text-align: center;
-  }
-}
-
-/* Mejoras de accesibilidad */
-.botonPaginacion:focus,
-.numeroPagina:focus {
-  outline: 2px solid var(--primary-color);
-  outline-offset: 2px;
-}
-
-.paginaActiva:focus {
-  outline-color: var(--bg-white);
-}
-
-/* Animación suave para cambios de página */
-.ordenesList {
-  transition: opacity 0.3s ease;
-}
-
-.ordenesList.cambiandoPagina {
-  opacity: 0.7;
-}
-
-/* Transición suave al cambiar de página */
-.ordenesList {
-  position: relative;
-}
-
-.ordenesList::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.8);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-  z-index: 1;
-  border-radius: var(--radius-lg);
-}
-
-.ordenesList.cargando::before {
-  opacity: 1;
-}
-
-/* Spinner durante la carga de páginas */
-.ordenesList.cargando::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 2rem;
-  height: 2rem;
-  border: 3px solid var(--border-color);
-  border-top: 3px solid var(--primary-color);
+/* Spinner Inline */
+.spinnerInline {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid #dee2e6;
+  border-top: 2px solid #007bff;
   border-radius: 50%;
-  animation: spin 1s linear infinite;
-  z-index: 2;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+  margin-left: 0.5rem;
+  vertical-align: middle;
 }
 
-/* Estados deshabilitados mejorados */
-.botonPaginacion:disabled,
-.numeroPagina:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* Mejora visual para el contador de páginas */
-.paginacionInfo strong {
-  color: var(--text-primary);
-  font-weight: 600;
-}
-
-.botonesAccion {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
-  flex-wrap: wrap;
-}
-
-.botonFacturar {
-  background-color: #28a745;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s;
-}
-
-.botonFacturar:hover {
-  background-color: #218838;
-}
-
-.botonFacturar:disabled {
-  background-color: #6c757d;
-  cursor: not-allowed;
-}
-
-.botonCancelarOrden {
-  background-color: #dc3545;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.2s;
-}
-
-.botonCancelarOrden:hover:not(:disabled) {
-  background-color: #c82333;
-}
-
-.botonCancelarOrden:disabled {
-  background-color: #6c757d;
-  cursor: not-allowed;
-}
-
-.badgeEstadoCancelada {
-  background-color: #6c757d;
-  color: white;
-}
-
-/* Separador visual en móvil */
-@media (max-width: 768px) {
-  .paginacionContainer {
-    border-top: 1px solid var(--border-light);
-    padding-top: var(--spacing-lg);
-    margin-top: var(--spacing-lg);
-  }
-}
+/* ===== ESTADOS GLOBALES ===== */
+.loading { display: flex; justify-content: center; align-items: center; padding: 3rem; flex-direction: column; gap: 1rem; }
+.loading p { font-size: 1rem; color: #6b7280; font-weight: 500; margin: 0; }
+.spinner { width: 3rem; height: 3rem; border: 4px solid #d1d5db; border-top: 4px solid #007bff; border-radius: 50%; animation: spin 1s linear infinite; }
+.error { background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 0.75rem; padding: 1rem; color: #dc2626; text-align: center; }
+.botonReintentar { background: #007bff; color: #ffffff; border: none; padding: 0.5rem 1rem; border-radius: 0.25rem; cursor: pointer; margin-top: 0.5rem; transition: background-color 0.2s ease; }
+.botonReintentar:hover { background: #0056b3; }
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
-  .container {
-    padding: var(--spacing-md);
-  }
-  
-  .headerContainer {
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--spacing-md);
-  }
-  
-  .botonCrearOrden {
-    align-self: stretch;
-    text-align: center;
-  }
-  
-  .headerTop,
-  .headerBottom {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--spacing-sm);
-  }
-  
-  .badgesContainer {
-    width: 100%;
-  }
-  
-  .inputGrupo {
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--spacing-sm);
-  }
-  
-  .inputGrupo label {
-    min-width: auto;
-  }
-  
-  .inputFecha {
-    max-width: none;
-  }
-  
-  .botonLimpiarFecha {
-    align-self: flex-start;
-  }
-  
-  .prioridadEdicion .inputGrupo,
-  .fechaEntregaEdicion .inputGrupo {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .botonesEdicion {
-    flex-direction: column;
-  }
-  
-  .formAgregarProducto {
-    flex-direction: column;
-  }
-  
-  .productoEdicionItem {
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--spacing-sm);
-  }
-  
-  .controlesEdicion {
-    justify-content: space-between;
-  }
-  
-  /* Responsive para paginación */
-  .paginacionContainer {
-    flex-direction: column;
-    gap: var(--spacing-md);
-  }
-  
-  .numerosPagina {
-    order: -1;
-    margin: 0;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  
-  .botonPaginacion {
-    min-width: 120px;
-    width: 100%;
-    max-width: 200px;
-  }
-  
-  .numeroPagina {
-    min-width: 40px;
-    padding: 0.5rem 0.75rem;
-  }
+  .container { padding: 1rem; }
+  .headerContainer { flex-direction: column; align-items: stretch; gap: 1rem; }
+  .botonCrearOrden { align-self: stretch; text-align: center; }
+  .headerTop, .headerBottom { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+  .badgesContainer { width: 100%; }
+  .paginacionContainer { flex-direction: column; gap: 1rem; border-top: 1px solid #f1f5f9; padding-top: 1.5rem; margin-top: 1.5rem; }
+  .numerosPagina { order: -1; margin: 0; flex-wrap: wrap; justify-content: center; }
+  .botonPaginacion { min-width: 120px; width: 100%; max-width: 200px; }
+  .numeroPagina { min-width: 40px; padding: 0.5rem 0.75rem; }
+  .controles { flex-direction: column; align-items: stretch; }
+  .filtroGrupo { min-width: auto; }
+  .btnLimpiar { align-self: flex-start; }
+  .paginacionInfo { flex-direction: column; gap: 0.5rem; }
+  .paginacionInfo p { flex: 1; text-align: center; }
+  .botonesEdicion { flex-direction: column; }
+  .formAgregarProducto { flex-direction: column; }
+  .productoEdicionItem { flex-direction: column; align-items: stretch; gap: 0.5rem; }
+  .controlesEdicion { justify-content: space-between; }
 }
 
 @media (max-width: 480px) {
-  .title {
-    font-size: 1.5rem;
-  }
-  
-  .ordenHeader,
-  .ordenBody {
-    padding: var(--spacing-sm);
-  }
-  
-  .botonCrearOrden {
-    padding: 0.875rem var(--spacing-md);
-  }
-  
-  /* Responsive para paginación en móvil pequeño */
-  .paginacionInfo {
-    font-size: 0.8rem;
-    padding: var(--spacing-sm);
-  }
-  
-  .numerosPagina {
-    gap: 2px;
-  }
-  
-  .numeroPagina {
-    min-width: 36px;
-    padding: 0.5rem 0.625rem;
-    font-size: 0.8rem;
-  }
-  
-  .botonPaginacion {
-    font-size: 0.8rem;
-    padding: 0.5rem 0.75rem;
-  }
+  .title { font-size: 1.5rem; }
+  .ordenHeader, .ordenBody { padding: 0.75rem; }
+  .botonCrearOrden { padding: 0.875rem 1rem; }
+  .paginacionInfo { font-size: 0.8rem; padding: 0.5rem; }
+  .numerosPagina { gap: 2px; }
+  .numeroPagina { min-width: 36px; padding: 0.5rem 0.625rem; font-size: 0.8rem; }
+  .botonPaginacion { font-size: 0.8rem; padding: 0.5rem 0.75rem; }
+  .metaInfoContainer { align-items: flex-start; text-align: left; margin-top: 5px; width: 100%; }
 }
