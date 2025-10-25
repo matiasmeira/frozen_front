@@ -285,42 +285,298 @@
 .sinOrdenes { text-align: center; padding: 2rem; color: #6b7280; }
 
 /* ===== EDICIÓN ===== */
-.edicionContainer { border: 1px solid #e0e0e0; border-radius: 0.75rem; padding: 1.5rem; background-color: #fdfdfd; }
-.campoEdicion { margin-bottom: 1rem; }
-.labelEdicion { font-weight: 600; margin-bottom: 0.5rem; display: block; }
-.selectEdicion, .inputEdicion { width: 100%; padding: 0.5rem; border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box; }
-.subtituloEdicion { font-size: 1.1rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 1rem; border-top: 1px solid #eee; padding-top: 1rem; }
-.productoEdicionItem { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; border-bottom: 1px solid #eee; }
-.productoNombreEdit { font-weight: 500; }
-.controlesEdicion { display: flex; align-items: center; gap: 0.5rem; }
-.labelCantidadEdit { font-size: 0.9rem; }
-.inputCantidadEdit { width: 60px; padding: 0.25rem; border: 1px solid #ccc; border-radius: 4px; }
-.botonEliminarProdEdit { background: #e74c3c; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-weight: bold; }
-.agregarProductoContainer { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px dashed #ccc; }
-.subSubtituloEdicion { font-weight: 600; margin-bottom: 0.5rem; }
-.formAgregarProducto { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
-.selectProductoAdd { flex: 1; min-width: 200px; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
-.labelCantidadAdd { font-size: 0.9rem; }
-.inputCantidadAdd { width: 60px; padding: 0.25rem; border: 1px solid #ccc; border-radius: 4px; }
-.botonAgregarProdEdit { background: #27ae60; color: white; border: none; border-radius: 4px; padding: 0.5rem; cursor: pointer; }
-.botonesEdicion { display: flex; gap: 0.5rem; margin-top: 1.5rem; justify-content: flex-end; }
-.productosContainerView { margin-top: 1rem; }
-.productosHeaderView { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; }
-.productosListView { display: flex; flex-direction: column; gap: 0.25rem; }
-.productoItemView { display: flex; justify-content: space-between; padding: 0.25rem 0.5rem; background-color: #f8f9fa; border-radius: 4px; }
-.productoNombreView { font-weight: 500; }
-.productoCantidadView { color: #555; }
-.sinProductosView { padding: 0.5rem; color: #777; }
-.fechaInfoContainer { margin-top: 0.25rem; }
-.fechaOriginalInfo { font-size: 0.8rem; color: #555; }
-.fechaError { font-size: 0.8rem; color: #dc3545; font-weight: 500; }
-.selectPrioridad { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
-.inputFecha { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
-.inputCantidad { width: 70px; }
-.botonEliminar { background: #dc3545; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; }
-.botonAgregar { background: #28a745; color: white; border: none; padding: 0.5rem; border-radius: 4px; cursor: pointer; }
-.botonGuardar { background: #28a745; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; }
-.botonCancelar { background: #6c757d; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; }
+.edicionContainer {
+  border: 1px solid #e0e0e0;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  background-color: #f8f9fa; /* Lighter background like the "before" */
+}
+
+/* --- Títulos dentro de Edición --- */
+.edicionContainer h4,
+.edicionContainer h3 {
+margin-top: 1.5rem; /* <-- AGREGADO: Espacio *arriba* del título */
+  margin-bottom: 0.75rem; /* Espacio debajo del título (ajustado) */
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #dee2e6;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #343a40;
+}
+
+/* --- Grupo Label + Control (Prioridad, Fecha) --- */
+.inputGrupo {
+  display: flex;
+  align-items: baseline; /* Center align vertically */
+  gap: 0.75rem;
+  margin-bottom: 0.25rem; /* More space between rows */
+}
+
+.inputGrupo label {
+  margin-bottom: 0;
+  /* flex-basis: 180px; <-- Ajustado */
+  flex-basis: 200px; /* Damos más espacio por si acaso */
+  flex-shrink: 0;
+  text-align: right;
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.9rem;
+   /* Añadimos line-height para controlar mejor la altura */
+  line-height: 1.4;
+}
+
+/* Specific controls within inputGrupo */
+.inputGrupo .selectPrioridad,
+.inputGrupo .inputFecha {
+  flex-grow: 1; /* Allow shrinking but prioritize max-width */
+  /* max-width: 380px; <-- Changed */
+  max-width: 200px; /* <-- Reduced width */
+  height: 42px;
+  padding: 8px 12px;
+  box-sizing: border-box;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  background-color: #fff;
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+}
+ /* Ajuste específico para el input de fecha si es necesario */
+.inputGrupo .inputFecha {
+   padding: 8px 10px;
+   /* We can even set a specific width if max-width isn't enough */
+   /* width: 220px; */ /* Uncomment and adjust if needed */
+}
+
+/* Info de fecha original/error debajo del input de fecha */
+.fechaInfoContainer {
+  /* Indent it to align with the input */
+padding-left: calc(205px + 0.50rem); /* Mantenemos la indentación */
+  /* margin-top: 0.25rem; <-- Cambiado */
+  margin-top: 0;        /* <-- Quitamos margen superior */
+  margin-bottom: 0.75rem; /* Mantenemos margen inferior */
+}
+.fechaOriginalInfo { font-size: 0.75rem; color: #6c757d; }
+.fechaError { font-size: 0.75rem; color: #dc3545; font-weight: 500; }
+
+
+/* --- Lista de Productos Editables --- */
+/* --- Lista de Productos Editables (Refined Alignment) --- */
+.productoEdicionItem {
+  display: flex;
+  /* align-items: baseline; <-- Cambiado */
+  align-items: center; /* <-- Volvemos a centrar verticalmente */
+  justify-content: space-between; /* Re-agregamos para separar bloques */
+  padding: 0.3rem 0;
+  border-bottom: 1px solid #eee;
+  gap: 1rem; /* Mantenemos un gap por si acaso */
+}
+
+.productoInfoEdit {
+  /* flex-grow: 1; <-- Mantenemos quitado */
+  display: flex;
+  /* align-items: baseline; <-- QUITADO */
+  align-items: center; /* Centramos nombre y unidad */
+  gap: 0.3rem;
+  flex-shrink: 0;
+}
+
+.productoNombre {
+  font-weight: 500;
+  font-size: 0.95rem;
+  white-space: nowrap; /* Prevent name wrapping if possible */
+}
+
+.productoUnidad {
+  font-size: 0.8rem;
+  color: #6c757d;
+  white-space: nowrap;
+}
+
+.controlesEdicion {
+  display: flex;
+  align-items: center; /* Aseguramos centrado vertical aquí también */
+  gap: 0.75rem;
+  flex-shrink: 0;
+  /* margin-left: auto; <-- QUITADO (ya no es necesario con space-between) */
+}
+
+.controlesEdicion label {
+   font-size: 0.9rem;
+   color: #495057;
+   margin-bottom: 0;
+   white-space: nowrap;
+}
+
+.inputCantidad {
+  width: 60px; /* <-- Reduced width slightly */
+  /* height: 38px; <-- Changed */
+  height: 34px; /* <-- Reduced height */
+  /* padding: 8px 10px; <-- Changed */
+  padding: 4px 8px; /* <-- Reduced padding */
+  box-sizing: border-box;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  text-align: right;
+  /* Add font-size if needed */
+  font-size: 0.9rem;
+}
+
+.botonEliminar {
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 28px;
+  font-weight: bold;
+  padding: 0;
+  flex-shrink: 0;
+  width: 26px; /* Slightly smaller to match input height better */
+  height: 26px;
+  line-height: 26px; /* Center X */
+}
+.botonEliminar:hover { background-color: #c82333; }
+/* --- Fin Refined Product Item --- */
+
+
+/* --- Sección Agregar Producto --- */
+.agregarProductoContainer {
+
+  padding-top: 0,5rem;
+  /* Removed border-top, handled by h4 style now */
+}
+
+.formAgregarProducto {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-end; /* Align items to the bottom */
+  flex-wrap: wrap; /* Allow wrapping on small screens */
+  margin-top: 0.5rem;
+}
+
+.selectProducto { /* Changed from selectProductoAdd */
+  flex: 1; /* Takes up available space */
+  min-width: 250px; /* Minimum width before wrapping */
+  height: 42px; /* Consistent height */
+  padding: 8px 12px;
+  box-sizing: border-box;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  background-color: #fff;
+}
+
+.cantidadAgregarGrupo {
+   display: flex;
+   align-items: center;
+   gap: 0.5rem;
+   margin-bottom: 0; /* Align with bottom of button */
+}
+
+.labelCantidad {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #495057;
+  margin-bottom: 0;
+  white-space: nowrap;
+}
+
+.inputCantidadNuevo {
+  width: 80px;
+  height: 42px; /* Consistent height */
+  padding: 8px 10px;
+  box-sizing: border-box;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  text-align: right;
+}
+
+.botonAgregar {
+  background: #28a745; /* Verde */
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  font-size: 14px;
+  height: 42px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+  white-space: nowrap;
+  line-height: calc(42px - 20px);
+}
+.botonAgregar:hover {
+    background-color: #218838; /* Verde oscuro */
+}
+.botonAgregar:disabled {
+    background-color: #6c757d; /* Gris oscuro si está deshabilitado */
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* --- Botones Guardar/Cancelar (Finales) --- */
+.botonesEdicion {
+  display: flex;
+  gap: 0.75rem; /* Slightly more space */
+  margin-top: 2rem; /* More space above buttons */
+  justify-content: flex-end; /* Align to the right */
+}
+
+.botonGuardar {
+  background: #28a745; /* Verde */
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  font-size: 14px;
+  height: 42px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+  line-height: calc(42px - 20px);
+}
+.botonGuardar:hover {
+    background-color: #218838; /* Verde oscuro */
+}
+.botonGuardar:disabled {
+    background-color: #adb5bd; /* Gris claro si está deshabilitado */
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.botonCancelar {
+  background: #6c757d; /* Gris oscuro */
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  font-size: 14px;
+  height: 42px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+  line-height: calc(42px - 20px);
+}
+.botonCancelar:hover {
+    background-color: #5a6268; /* Gris más oscuro */
+}
+.botonCancelar:disabled {
+    background-color: #adb5bd; /* Gris claro si está deshabilitado */
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Mensaje si no hay productos */
+.sinProductosMsg {
+    text-align: center;
+    color: #6c757d;
+    padding: 1rem 0;
+    font-style: italic;
+}
+
 
 /* ===== BOTONES DE ACCIÓN ===== */
 .botonesAccion { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
@@ -460,3 +716,86 @@
     width: 100%;
   }
 }
+
+.modalOverlay {
+  position: fixed; /* Se queda fijo en la pantalla */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6); /* Fondo semi-transparente */
+  display: flex; /* Centra el contenido */
+  align-items: center;
+  justify-content: center;
+  z-index: 1000; /* Asegura que esté por encima de todo */
+}
+
+.modalContenido {
+  background-color: #fff; /* Fondo blanco */
+  padding: 24px;
+  border-radius: 8px; /* Bordes redondeados */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* Sombra suave */
+  width: 90%; /* Ancho en pantallas chicas */
+  max-width: 450px; /* Ancho máximo */
+  text-align: center; /* Centra el texto */
+}
+
+.modalContenido h4 {
+  margin-top: 0;
+  font-size: 1.25rem;
+  color: #333; /* Color oscuro para el título */
+}
+
+.modalContenido p {
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #555; /* Color gris para el texto */
+  margin-bottom: 24px; /* Espacio antes de los botones */
+}
+
+.modalBotones {
+  display: flex;
+  justify-content: center; /* Centra los botones */
+  gap: 12px; /* Espacio entre botones */
+  margin-top: 24px;
+}
+
+/* Botón de "Volver" o "Cancelar" */
+.botonCancelarModal {
+  padding: 10px 20px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  color: #333;
+  border-radius: 5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.botonCancelarModal:hover {
+  background-color: #f4f4f4; /* Gris claro al pasar el mouse */
+}
+
+/* Botón de "Confirmar" (peligroso) */
+.botonConfirmarModal {
+  padding: 10px 20px;
+  border: none;
+  background-color: #d9534f; /* Rojo */
+  color: white;
+  border-radius: 5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.botonConfirmarModal:hover {
+  background-color: #c9302c; /* Rojo más oscuro al pasar el mouse */
+}
+
+/* Estilos para botones deshabilitados (mientras cancela) */
+.botonConfirmarModal:disabled,
+.botonCancelarModal:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+

@@ -13,6 +13,7 @@ const api = axios.create({
 });
 
 const Ventas = () => {
+  const [modalCancelar, setModalCancelar] = useState({ visible: false, id: null });
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   
@@ -263,44 +264,44 @@ const Ventas = () => {
   };
 
   // FUNCIÓN PARA CANCELAR ORDEN - MODIFICADA: Solo permite cancelar órdenes con id_estado_venta = 9
-  const cancelarOrden = async (idOrdenVenta) => {
-    if (!window.confirm('¿Estás seguro de que deseas cancelar esta orden? Esta acción no se puede deshacer.')) {
-      return;
-    }
+const cancelarOrden = async (idOrdenVenta) => {
+        // El modal ya hizo la confirmación.
+        try {
+          setCancelandoOrden(idOrdenVenta); // Pone el spinner en el modal
+          
+          const datosCancelacion = {
+            id_orden_venta: idOrdenVenta,
+            id_estado_venta: 6 // ID para estado "Cancelada"
+          };
 
-    try {
-      setCancelandoOrden(idOrdenVenta);
-      
-      const datosCancelacion = {
-        id_orden_venta: idOrdenVenta,
-        id_estado_venta: 6 // ID para estado "Cancelada"
-      };
+          const response = await api.put(
+            '/ventas/ordenes_venta/cambiar_estado/',
+            datosCancelacion,
+            { 
+              headers: { 
+                'Content-Type': 'application/json' 
+              } 
+            }
+          );
 
-      const response = await api.put(
-        '/ventas/ordenes_venta/cambiar_estado/',
-        datosCancelacion,
-        { 
-          headers: { 
-            'Content-Type': 'application/json' 
-          } 
-        }
-      );
-
-      // Recargar la página actual para reflejar el cambio
-      await fetchOrdenes(paginaActual);
-      
-      alert('Orden cancelada correctamente');
-      
-    } catch (err) {
-      const mensaje = err.response?.data 
-        ? `Error ${err.response.status}: ${JSON.stringify(err.response.data)}` 
-        : 'Error de conexión';
-      alert(mensaje);
-      console.error('Error cancelando orden:', err);
-    } finally {
-      setCancelandoOrden(null);
-    }
-  };
+          // Recargar la página actual para reflejar el cambio
+          await fetchOrdenes(paginaActual);
+          
+          toast.success('Orden cancelada correctamente'); // <-- ¡AQUÍ ESTÁ TOASTIFY!
+          
+        } catch (err) {
+          const mensaje = err.response?.data 
+            ? `Error ${err.response.status}: ${JSON.stringify(err.response.data)}` 
+            : 'Error de conexión';
+            
+            toast.error(mensaje); // <-- ¡AQUÍ ESTÁ TOASTIFY!
+            
+          console.error('Error cancelando orden:', err);
+        } finally {
+          setCancelandoOrden(null);
+          setModalCancelar({ visible: false, id: null }); // <-- Cierra el modal
+        }
+  };
 
   // Función para navegar a generar factura
   const handleGenerarFactura = (idOrdenVenta) => {
@@ -864,10 +865,10 @@ const Ventas = () => {
                 {/* Botón para cancelar orden - SOLO SE MUESTRA SI id_estado_venta = 9 (En Preparación) */}
                 {puedeCancelarOrden(orden) && (
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      cancelarOrden(orden.id_orden_venta);
-                    }}
+onClick={(e) => {
+  e.stopPropagation();
+  setModalCancelar({ visible: true, id: orden.id_orden_venta });
+}}
                     disabled={cancelandoOrden === orden.id_orden_venta}
                     className={styles.botonCancelarOrden}
                   >
@@ -1009,19 +1010,7 @@ const Ventas = () => {
                         ))}
                       </select>
                       
-                      <label className={styles.labelCantidad}>
-                        Cantidad:
-                        <input
-                          type="number"
-                          min="1"
-                          value={nuevoProducto.cantidad}
-                          onChange={(e) => setNuevoProducto({
-                            ...nuevoProducto,
-                            cantidad: e.target.value
-                          })}
-                          className={styles.inputCantidadNuevo}
-                        />
-                      </label>
+
                       
                       <button
                         onClick={agregarProducto}
@@ -1126,6 +1115,35 @@ const Ventas = () => {
       {ordenes.length === 0 && !loading && (
         <div className={styles.sinOrdenes}>No hay órdenes disponibles</div>
       )}
+
+      {/* ----- INICIO MODAL DE CANCELACIÓN (PEGAR AQUÍ) ----- */}
+      {modalCancelar.visible && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContenido}>
+            <h4>Confirmar Cancelación</h4>
+            <p>¿Estás seguro de que deseas cancelar la orden #{modalCancelar.id}? Esta acción no se puede deshacer.</p>
+            <div className={styles.modalBotones}>
+              <button 
+                onClick={() => setModalCancelar({ visible: false, id: null })} 
+                className={styles.botonCancelarModal}
+                disabled={cancelandoOrden === modalCancelar.id}
+              >
+                Volver
+              </button>
+              <button 
+                onClick={() => cancelarOrden(modalCancelar.id)} 
+                className={styles.botonConfirmarModal}
+                disabled={cancelandoOrden === modalCancelar.id}
+              >
+                {cancelandoOrden === modalCancelar.id ? 'Cancelando...' : 'Sí, cancelar orden'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* ----- FIN MODAL DE CANCELACIÓN ----- */}
+
+
     </div>
   );
 };
