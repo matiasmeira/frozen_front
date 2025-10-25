@@ -164,14 +164,14 @@ const OrdenesDespacho = () => {
 
               <div className={styles.ordenInfo}>
                 <div className={styles.infoRow}>
-                  <span className={styles.infoLabel}>Fecha Despacho:</span>
+                  <span className={styles.infoLabel}>Fecha Despacho: </span>
                   <span className={styles.infoValue}>
                     {formatFecha(orden.fecha_despacho)}
                   </span>
                 </div>
                 
                 <div className={styles.infoRow}>
-                  <span className={styles.infoLabel}>Repartidor:</span>
+                  <span className={styles.infoLabel}>Repartidor: </span>
                   <span className={styles.infoValue}>
                     {orden.id_repartidor.nombre}
                   </span>
@@ -179,7 +179,7 @@ const OrdenesDespacho = () => {
                 
                 {orden.id_repartidor.patente && (
                   <div className={styles.infoRow}>
-                    <span className={styles.infoLabel}>Patente:</span>
+                    <span className={styles.infoLabel}>Patente: </span>
                     <span className={styles.infoValue}>
                       {orden.id_repartidor.patente}
                     </span>
@@ -187,7 +187,7 @@ const OrdenesDespacho = () => {
                 )}
                 
                 <div className={styles.infoRow}>
-                  <span className={styles.infoLabel}>Teléfono:</span>
+                  <span className={styles.infoLabel}>Teléfono: </span>
                   <span className={styles.infoValue}>
                     {orden.id_repartidor.telefono}
                   </span>
