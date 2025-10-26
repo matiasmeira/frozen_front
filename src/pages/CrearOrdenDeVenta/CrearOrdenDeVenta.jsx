@@ -57,17 +57,12 @@ function CrearOrdenDeVenta() {
   ]);
 
   const [orden, setOrden] = useState({
-    id_cliente: "", id_prioridad: "", fecha_entrega: "", calle: "", altura: "", localidad: "", zona: "", productos: [], tipo_venta: "EMP"
+    id_cliente: "", id_prioridad: "", fecha_entrega: "", calle: "", altura: "", localidad: "", productos: [], tipo_venta: "EMP"
   });
 
   const [errors, setErrors] = useState({
-    cliente: "", prioridad: "", fecha_entrega: "", calle: "", altura: "", localidad: "", zona: "", productos: "",
+    cliente: "", prioridad: "", fecha_entrega: "", calle: "", altura: "", localidad: "", productos: "",
   });
-
-  // Opciones para el dropdown de zona
-  const opcionesZona = [
-    { value: "N", label: "Norte (N)" }, { value: "S", label: "Sur (S)" }, { value: "E", label: "Este (E)" }, { value: "O", label: "Oeste (O)" }
-  ];
 
   // Calcular el total cada vez que cambien los fields
   useEffect(() => {
@@ -234,12 +229,6 @@ function CrearOrdenDeVenta() {
   };
   // --- FIN LÓGICA PRIORIDAD ---
 
-  const handleZonaChange = (selectedOption) => {
-    const value = selectedOption?.value || "";
-    setOrden(prev => ({ ...prev, zona: value, }));
-    if (errors.zona) { setErrors(prev => ({ ...prev, zona: "", })); }
-  };
-
   const obtenerClientesNombres = useCallback(() => {
     return clientes.sort((a,b) => (a.nombre || '').localeCompare(b.nombre || ''))
                    .map(cliente => ({ value: cliente.id_cliente, label: cliente.nombre }));
@@ -308,7 +297,7 @@ function CrearOrdenDeVenta() {
   };
 
   const validarFormulario = () => {
-    const nuevosErrores = { cliente: "", prioridad: "", fecha_entrega: "", calle: "", altura: "", localidad: "", zona: "", productos: "" };
+    const nuevosErrores = { cliente: "", prioridad: "", fecha_entrega: "", calle: "", altura: "", localidad: "", productos: "" };
     let esValido = true;
 
     if (!orden.id_cliente) { nuevosErrores.cliente = "Debes seleccionar un cliente"; esValido = false; }
@@ -330,7 +319,6 @@ function CrearOrdenDeVenta() {
     if (!orden.calle?.trim()) { nuevosErrores.calle = "Debes ingresar la calle"; esValido = false; }
     if (!orden.altura?.trim()) { nuevosErrores.altura = "Debes ingresar la altura"; esValido = false; }
     if (!orden.localidad?.trim()) { nuevosErrores.localidad = "Debes ingresar la localidad"; esValido = false; }
-    if (!orden.zona?.trim()) { nuevosErrores.zona = "Debes seleccionar una zona"; esValido = false; }
 
     const productosSeleccionados = fields.filter((field) => field.id_producto !== "");
     if (productosSeleccionados.length === 0) { nuevosErrores.productos = "Debes seleccionar al menos un producto"; esValido = false; }
@@ -401,9 +389,9 @@ function CrearOrdenDeVenta() {
       const response = await api.post("/ventas/ordenes-venta/crear/", nuevaOrden);
       if (response.status === 200 || response.status === 201) {
         toast.update(toastId, { render: `¡Orden #${response.data?.id_orden_venta || ''} creada!`, type: "success", isLoading: false, autoClose: 4000 });
-        setOrden({ id_cliente: "", id_prioridad: "", fecha_entrega: "", calle: "", altura: "", localidad: "", zona: "", productos: [], tipo_venta: "EMP" });
+        setOrden({ id_cliente: "", id_prioridad: "", fecha_entrega: "", calle: "", altura: "", localidad: "", productos: [], tipo_venta: "EMP" });
         setFields([{ id: "1", id_producto: "", cantidad: 1, unidad_medida: "", cantidad_disponible: 0, precio_unitario: 0, subtotal: 0, }]); setTotalVenta(0);
-        setErrors({ cliente: "", prioridad: "", fecha_entrega: "", calle: "", altura: "", localidad: "", zona: "", productos: "" });
+        setErrors({ cliente: "", prioridad: "", fecha_entrega: "", calle: "", altura: "", localidad: "", productos: "" });
         setDireccionNormalizada("");
         setMostrarMapa(false);
         setCoordenadas(null);
@@ -427,7 +415,6 @@ function CrearOrdenDeVenta() {
   const obtenerFechaMinima = () => { const f = new Date(); f.setDate(f.getDate() + 3); return f.toISOString().split("T")[0]; };
   const obtenerFechaMaxima = () => { const f = new Date(); f.setDate(f.getDate() + 30); return f.toISOString().split("T")[0]; };
   const getSelectedProductValue = (fieldId) => { const f = fields.find(fi => fi.id === fieldId); if (!f || !f.id_producto) return null; const p = products.find(pr => pr.id_producto.toString() === f.id_producto); return p ? { value: p.id_producto, label: `${p.nombre}` } : null; };
-  const getSelectedZonaValue = () => { if (!orden.zona) return null; return opcionesZona.find(opcion => opcion.value === orden.zona); };
 
   // Función para obtener la clase CSS de prioridad
   const getPrioridadClassName = (idPrioridad) => {
@@ -517,20 +504,6 @@ function CrearOrdenDeVenta() {
               <label htmlFor="Localidad" className={styles.fieldLabel}>Localidad</label>
               <input type="text" id="Localidad" name="localidad" value={orden.localidad} onChange={handleChange} disabled={creatingOrder} placeholder="Ingrese la localidad" className={`${styles.formInput} ${errors.localidad ? styles.inputError : ""} ${creatingOrder ? styles.disabledInput : ""}`} />
               {errors.localidad && (<span className={styles.errorText}>{errors.localidad}</span>)}
-            </div>
-            <div className={styles.formGroup}>
-              <label htmlFor="Zona" className={styles.fieldLabel}>Zona</label>
-              <Select
-                id="Zona" name="zona"
-                value={getSelectedZonaValue()}
-                onChange={handleZonaChange}
-                disabled={creatingOrder}
-                options={opcionesZona}
-                isClearable isSearchable
-                className={`${errors.zona ? styles.inputError : ""} ${creatingOrder ? styles.disabledInput : ""}`}
-                placeholder="Seleccione una zona"
-              />
-              {errors.zona && (<span className={styles.errorText}>{errors.zona}</span>)}
             </div>
 
             {/* Sección de Dirección Normalizada y Mapa */}
