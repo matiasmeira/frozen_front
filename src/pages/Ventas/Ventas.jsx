@@ -821,9 +821,9 @@ const cancelarOrden = async (idOrdenVenta) => {
                     <div className={styles.metaInfoContainer}>
                       <div className={styles.fechaInfo}>Creada: {formatFecha(orden.fecha)}</div>
                       
-{orden.id_empleado && (
+{orden.empleado_usuario && (
                     <div className={styles.creadorInfo}>
-                      Por (ID): {orden.id_empleado}
+                      Empleado: {orden.empleado_usuario}
                     </div>
                   )}
                     </div>
