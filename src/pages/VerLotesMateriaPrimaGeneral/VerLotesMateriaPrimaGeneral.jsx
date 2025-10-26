@@ -257,16 +257,6 @@ const ListaLotesMateriaPrima = () => {
 					<span className={styles.estadisticaNumero}>{totalLotes}</span>
 					<span className={styles.estadisticaLabel}>Total Lotes</span>
 				</div>
-				<div className={styles.estadisticaItem}>
-					<span className={styles.estadisticaNumero}>{totalStock}</span>
-					<span className={styles.estadisticaLabel}>Stock Total</span>
-				</div>
-				<div className={styles.estadisticaItem}>
-					<span className={styles.estadisticaNumero}>
-						{totalLotesDisponibles}
-					</span>
-					<span className={styles.estadisticaLabel}>Lotes Disponibles</span>
-				</div>
 			</div>
 
 			{/* Controles de Filtrado */}
