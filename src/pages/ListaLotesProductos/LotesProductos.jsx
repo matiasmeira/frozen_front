@@ -133,7 +133,7 @@ const LotesProductos = ({ products }) => {
 		try {
 			setGenerandoQR(lote.id_lote_produccion);
 
-			const urlTrazabilidad = `https://frozen-front-phi.vercel.app/trazabilidadLote/${lote.id_lote_produccion}`;
+			const urlTrazabilidad = `https://frozenback-test.up.railway.app/api/trazabilidadLote/${lote.id_lote_produccion}`;
 
 			const qrContainer = document.createElement("div");
 			qrContainer.style.cssText = `
@@ -242,7 +242,7 @@ const LotesProductos = ({ products }) => {
 	// Método alternativo usando qrcode library directamente
 	const generarQRPDFAlternativo = async (lote) => {
 		const QRCodeGenerator = await import("qrcode");
-		const urlTrazabilidad = `https://frozen-front-phi.vercel.app/trazabilidadLote/${lote.id_lote_produccion}`;
+		const urlTrazabilidad = `https://frozenback-test.up.railway.app/api/trazabilidadLote/${lote.id_lote_produccion}`;
 
 		const qrDataURL = await QRCodeGenerator.toDataURL(urlTrazabilidad, {
 			width: 200,
