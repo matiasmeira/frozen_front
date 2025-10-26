@@ -27,15 +27,28 @@ class LotesMateriaPrimaService {
 		}
 	}
 
-	static async obtenerLotesMateriaPrima(pagina = 1) {
-		try {
-			const response = await api.get(`/stock/lotes-materias/?page=${pagina}`);
-			return response.data;
-		} catch (error) {
-			console.error("Error obteniendo lotes de materia prima:", error);
-			throw error;
-		}
-	}
+static async obtenerLotesMateriaPrima(pagina = 1, queryParams = {}) {
+    try {
+        // Crear URLSearchParams para construir los query parameters
+        const params = new URLSearchParams();
+        
+        // Agregar paginación
+        params.append('page', pagina.toString());
+        
+        // Agregar query parameters dinámicos
+        Object.keys(queryParams).forEach(key => {
+            if (queryParams[key] !== null && queryParams[key] !== undefined && queryParams[key] !== '') {
+                params.append(key, queryParams[key].toString());
+            }
+        });
+        
+        const response = await api.get(`/stock/lotes-materias/?${params.toString()}`);
+        return response.data;
+    } catch (error) {
+        console.error("Error obteniendo lotes de materia prima:", error);
+        throw error;
+    }
+}
 
 	static async obtenerEstadosLotes() {
 		try {

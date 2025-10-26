@@ -12,7 +12,6 @@ Modal.setAppElement("#root");
 const ListaLotesMateriaPrima = () => {
 	const navigate = useNavigate();
 	const [lotes, setLotes] = useState([]);
-	const [lotesFiltrados, setLotesFiltrados] = useState([]);
 	const [cargando, setCargando] = useState(true);
 	const [error, setError] = useState(null);
 
@@ -35,35 +34,65 @@ const ListaLotesMateriaPrima = () => {
 	const [loteSeleccionado, setLoteSeleccionado] = useState(null);
 	const [generandoQR, setGenerandoQR] = useState(false);
 
-	// Cargar datos iniciales
-	useEffect(() => {
-		const cargarDatos = async () => {
-			try {
-				setCargando(true);
-				setError(null);
+	// Construir query parameters para la API
+	const construirQueryParams = () => {
+		const queryParams = {};
 
-				const [lotesData, estadosData, materiasData] = await Promise.all([
-					LotesMateriaPrimaService.obtenerLotesMateriaPrima(paginaActual),
-					LotesMateriaPrimaService.obtenerEstadosLotes(),
-					LotesMateriaPrimaService.obtenerMateriasPrimas(),
-				]);
-
-				setLotes(lotesData.results);
-				setLotesFiltrados(lotesData.results);
-				setTotalLotes(lotesData.count);
-				setTotalPaginas(Math.ceil(lotesData.count / lotesData.results.length));
-				setEstadosLotes(estadosData.results || estadosData);
-				setMateriasPrimas(materiasData.results || materiasData);
-			} catch (err) {
-				setError("Error al cargar los lotes de materia prima");
-				console.error("Error:", err);
-			} finally {
-				setCargando(false);
+		// Filtro por estado
+		if (filtroEstado !== "todos") {
+			const estadoSeleccionado = estadosLotes.find(
+				(estado) => estado.descripcion === filtroEstado
+			);
+			if (estadoSeleccionado) {
+				queryParams.id_estado_lote_materia_prima =
+					estadoSeleccionado.id_estado_lote_materia_prima;
 			}
-		};
+		}
 
-		cargarDatos();
-	}, [paginaActual]);
+		// Filtro por materia prima
+		if (filtroMateriaPrima) {
+			queryParams.id_materia_prima = filtroMateriaPrima.value;
+		}
+
+		return queryParams;
+	};
+
+	// Cargar datos con filtros aplicados
+	const cargarDatosConFiltros = async (pagina = 1) => {
+		try {
+			setCargando(true);
+			setError(null);
+
+			const queryParams = construirQueryParams();
+
+			const [lotesData, estadosData, materiasData] = await Promise.all([
+				LotesMateriaPrimaService.obtenerLotesMateriaPrima(pagina, queryParams),
+				LotesMateriaPrimaService.obtenerEstadosLotes(),
+				LotesMateriaPrimaService.obtenerMateriasPrimas(),
+			]);
+
+			setLotes(lotesData.results || []);
+			setTotalLotes(lotesData.count || 0);
+
+			// Calcular total de páginas basado en la respuesta del servidor
+			const pageSize = lotesData.results?.length || 10;
+			const totalPages = Math.ceil((lotesData.count || 0) / pageSize);
+			setTotalPaginas(totalPages);
+
+			setEstadosLotes(estadosData.results || estadosData);
+			setMateriasPrimas(materiasData.results || materiasData);
+		} catch (err) {
+			setError("Error al cargar los lotes de materia prima");
+			console.error("Error:", err);
+		} finally {
+			setCargando(false);
+		}
+	};
+
+	// Cargar datos iniciales y cuando cambien los filtros o página
+	useEffect(() => {
+		cargarDatosConFiltros(paginaActual);
+	}, [paginaActual, filtroEstado, filtroMateriaPrima]);
 
 	// Función para cambiar de página
 	const cambiarPagina = (nuevaPagina) => {
@@ -71,6 +100,23 @@ const ListaLotesMateriaPrima = () => {
 			setPaginaActual(nuevaPagina);
 			window.scrollTo(0, 0);
 		}
+	};
+
+	// Función para manejar cambio de filtros (resetear a página 1)
+	const manejarCambioFiltro = () => {
+		setPaginaActual(1);
+	};
+
+	// Función para manejar cambio de estado
+	const handleEstadoChange = (e) => {
+		setFiltroEstado(e.target.value);
+		manejarCambioFiltro();
+	};
+
+	// Función para manejar cambio de materia prima
+	const handleMateriaPrimaChange = (selectedOption) => {
+		setFiltroMateriaPrima(selectedOption);
+		manejarCambioFiltro();
 	};
 
 	// Función para generar y mostrar QR
@@ -121,37 +167,6 @@ const ListaLotesMateriaPrima = () => {
 		document.body.removeChild(link);
 	};
 
-	// Aplicar filtros cuando cambien los valores
-	useEffect(() => {
-		let resultado = [...lotes];
-
-		// Filtro por estado
-		if (filtroEstado !== "todos") {
-			resultado = resultado.filter((lote) => {
-				const estadoLote = estadosLotes.find(
-					(estado) =>
-						estado.id_estado_lote_materia_prima ===
-						lote.id_estado_lote_materia_prima
-				);
-				return estadoLote?.descripcion === filtroEstado;
-			});
-		}
-
-		// Filtro por materia prima
-		if (filtroMateriaPrima) {
-			resultado = resultado.filter(
-				(lote) => lote.id_materia_prima === parseInt(filtroMateriaPrima.value)
-			);
-		}
-
-		setLotesFiltrados(resultado);
-	}, [lotes, filtroEstado, filtroMateriaPrima, estadosLotes]);
-
-	// Función para manejar cambio de materia prima
-	const handleMateriaPrimaChange = (selectedOption) => {
-		setFiltroMateriaPrima(selectedOption);
-	};
-
 	// Función para obtener el nombre del estado
 	const obtenerNombreEstado = (idEstado) => {
 		const estado = estadosLotes.find(
@@ -197,6 +212,7 @@ const ListaLotesMateriaPrima = () => {
 	const limpiarFiltros = () => {
 		setFiltroEstado("todos");
 		setFiltroMateriaPrima(null);
+		setPaginaActual(1);
 	};
 
 	// Preparar opciones para react-select
@@ -205,7 +221,7 @@ const ListaLotesMateriaPrima = () => {
 		label: materia.nombre,
 	}));
 
-	// Calcular estadísticas
+	// Calcular estadísticas dinámicas basadas en los lotes actuales
 	const totalLotesDisponibles = lotes.filter(
 		(lote) => lote.cantidad > 0
 	).length;
@@ -229,8 +245,6 @@ const ListaLotesMateriaPrima = () => {
 	}
 
 	return (
-
-        
 		<div className={styles.lotesMateriaPrima}>
 			{/* Header */}
 			<div className={styles.header}>
@@ -264,7 +278,7 @@ const ListaLotesMateriaPrima = () => {
 					<select
 						id="filtroEstado"
 						value={filtroEstado}
-						onChange={(e) => setFiltroEstado(e.target.value)}
+						onChange={handleEstadoChange}
 						className={styles.select}
 					>
 						<option value="todos">Todos los estados</option>
@@ -300,14 +314,14 @@ const ListaLotesMateriaPrima = () => {
 
 			{/* Contador de resultados */}
 			<div className={styles.contador}>
-				Mostrando {lotesFiltrados.length} de {lotes.length} lotes (Página{" "}
-				{paginaActual} de {totalPaginas})
+				Mostrando {lotes.length} de {totalLotes} lotes (Página {paginaActual} de{" "}
+				{totalPaginas})
 			</div>
 
 			{/* Lista de lotes */}
 			<div className={styles.listaLotes}>
-				{lotesFiltrados.length > 0 ? (
-					lotesFiltrados.map((lote) => (
+				{lotes.length > 0 ? (
+					lotes.map((lote) => (
 						<div key={lote.id_lote_materia_prima} className={styles.cardLote}>
 							<div className={styles.cardHeader}>
 								<h3>Lote #{lote.id_lote_materia_prima}</h3>
