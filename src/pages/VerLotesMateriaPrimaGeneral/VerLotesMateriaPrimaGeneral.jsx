@@ -222,10 +222,6 @@ const ListaLotesMateriaPrima = () => {
 	}));
 
 	// Calcular estadísticas dinámicas basadas en los lotes actuales
-	const totalLotesDisponibles = lotes.filter(
-		(lote) => lote.cantidad > 0
-	).length;
-	const totalStock = lotes.reduce((sum, lote) => sum + lote.cantidad, 0);
 
 	if (cargando) {
 		return (

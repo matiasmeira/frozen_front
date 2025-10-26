@@ -172,8 +172,6 @@ const VerLotesMateriaPrima = () => {
 
 	// Calcular estadísticas
 	const totalLotes = lotes.length;
-	const totalStock = lotes.reduce((sum, lote) => sum + lote.cantidad, 0);
-	const lotesDisponibles = lotes.filter((lote) => lote.cantidad > 0).length;
 
 	if (cargando) {
 		return (
