@@ -875,15 +875,17 @@ onClick={(e) => {
                     {cancelandoOrden === orden.id_orden_venta ? 'Cancelando...' : 'Cancelar Orden'}
                   </button>
                 )}
-              <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/trazabilidadordenventa?id_ov=${orden.id_orden_venta}`);
-                      }}
-                      className={styles.botonTrazabilidad}
-                    >
-                      Ver Trazabilidad
-              </button>
+{(orden.estado_venta?.id_estado_venta !== 6 && orden.id_estado_venta !== 6) && (
+   <button
+     onClick={(e) => {
+       e.stopPropagation();
+       navigate(`/trazabilidadordenventa?id_ov=${orden.id_orden_venta}`);
+     }}
+     className={styles.botonTrazabilidad}
+   >
+     Ver Trazabilidad
+   </button>
+ )}
               </div>
 
 
