@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import styles from './Ventas.module.css';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import Select from 'react-select';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -10,6 +13,7 @@ const api = axios.create({
 });
 
 const Ventas = () => {
+  const [modalCancelar, setModalCancelar] = useState({ visible: false, id: null });
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   
@@ -46,6 +50,8 @@ const Ventas = () => {
     searchParams.get('prioridad') || 'todos'
   );
 
+  const [filtroId, setFiltroId] = useState(() => searchParams.get('id_ov') || '');
+
   // Función para verificar si una orden puede ser editada - MODIFICADA
   const puedeEditarOrden = (orden) => {
     const idEstadoVenta = orden.estado_venta?.id_estado_venta || orden.id_estado_venta;
@@ -69,18 +75,25 @@ const Ventas = () => {
       // Construir parámetros de filtro
       const params = new URLSearchParams();
       params.append('page', pagina.toString());
-      
-      if (filtroEstado !== 'todos' && filtroEstado !== '') {
-        params.append('estado', filtroEstado);
-      }
-      if (filtroCliente !== 'todos' && filtroCliente !== '') {
-        params.append('cliente', filtroCliente);
-      }
-      if (filtroPrioridad !== 'todos' && filtroPrioridad !== '') {
-        params.append('prioridad', filtroPrioridad);
+
+      if (filtroId.trim() !== '') {
+        // Si hay un ID, buscar solo por ese ID
+        // Ajusta 'id_orden_venta' si tu API espera otro nombre de parámetro
+        params.append('id_orden_venta', filtroId.trim());
+      } else {
+        // Si no hay ID, usar los otros filtros
+        if (filtroEstado !== 'todos' && filtroEstado !== '') {
+          params.append('estado', filtroEstado);
+        }
+        if (filtroCliente !== 'todos' && filtroCliente !== '') {
+          params.append('cliente', filtroCliente);
+        }
+        if (filtroPrioridad !== 'todos' && filtroPrioridad !== '') {
+          params.append('prioridad', filtroPrioridad);
+        }
       }
 
-      console.log('Fetching órdenes con parámetros:', params.toString());
+      
 
       const response = await api.get(`/ventas/ordenes-venta/?${params.toString()}`);
       
@@ -89,10 +102,18 @@ const Ventas = () => {
       setTotalOrdenes(data.count || 0);
       setTotalPaginas(Math.ceil((data.count || 1) / (data.results?.length || 1)));
       setPaginaActual(pagina);
-      
+     
     } catch (err) {
-      setError('Error al cargar las órdenes');
-      console.error('Error fetching orders:', err);
+// Manejar error 404 si se busca un ID y no se encuentra
+      if (err.response && err.response.status === 404 && filtroId.trim() !== '') {
+          setError(`No se encontró ninguna orden con el ID ${filtroId}.`);
+          setOrdenes([]);
+          setTotalOrdenes(0);
+          setTotalPaginas(1);
+      } else {
+          setError('Error al cargar las órdenes');
+          console.error('Error fetching orders:', err);
+      }
     } finally {
       setLoading(false);
     }
@@ -238,48 +259,49 @@ const Ventas = () => {
     setFiltroEstado('todos');
     setFiltroCliente('todos');
     setFiltroPrioridad('todos');
+    setFiltroId('');
     setPaginaActual(1);
   };
 
   // FUNCIÓN PARA CANCELAR ORDEN - MODIFICADA: Solo permite cancelar órdenes con id_estado_venta = 9
-  const cancelarOrden = async (idOrdenVenta) => {
-    if (!window.confirm('¿Estás seguro de que deseas cancelar esta orden? Esta acción no se puede deshacer.')) {
-      return;
-    }
+const cancelarOrden = async (idOrdenVenta) => {
+        // El modal ya hizo la confirmación.
+        try {
+          setCancelandoOrden(idOrdenVenta); // Pone el spinner en el modal
+          
+          const datosCancelacion = {
+            id_orden_venta: idOrdenVenta,
+            id_estado_venta: 6 // ID para estado "Cancelada"
+          };
 
-    try {
-      setCancelandoOrden(idOrdenVenta);
-      
-      const datosCancelacion = {
-        id_orden_venta: idOrdenVenta,
-        id_estado_venta: 6 // ID para estado "Cancelada"
-      };
+          const response = await api.put(
+            '/ventas/ordenes_venta/cambiar_estado/',
+            datosCancelacion,
+            { 
+              headers: { 
+                'Content-Type': 'application/json' 
+              } 
+            }
+          );
 
-      const response = await api.put(
-        '/ventas/ordenes_venta/cambiar_estado/',
-        datosCancelacion,
-        { 
-          headers: { 
-            'Content-Type': 'application/json' 
-          } 
-        }
-      );
-
-      // Recargar la página actual para reflejar el cambio
-      await fetchOrdenes(paginaActual);
-      
-      alert('Orden cancelada correctamente');
-      
-    } catch (err) {
-      const mensaje = err.response?.data 
-        ? `Error ${err.response.status}: ${JSON.stringify(err.response.data)}` 
-        : 'Error de conexión';
-      alert(mensaje);
-      console.error('Error cancelando orden:', err);
-    } finally {
-      setCancelandoOrden(null);
-    }
-  };
+          // Recargar la página actual para reflejar el cambio
+          await fetchOrdenes(paginaActual);
+          
+          toast.success('Orden cancelada correctamente'); // <-- ¡AQUÍ ESTÁ TOASTIFY!
+          
+        } catch (err) {
+          const mensaje = err.response?.data 
+            ? `Error ${err.response.status}: ${JSON.stringify(err.response.data)}` 
+            : 'Error de conexión';
+            
+            toast.error(mensaje); // <-- ¡AQUÍ ESTÁ TOASTIFY!
+            
+          console.error('Error cancelando orden:', err);
+        } finally {
+          setCancelandoOrden(null);
+          setModalCancelar({ visible: false, id: null }); // <-- Cierra el modal
+        }
+  };
 
   // Función para navegar a generar factura
   const handleGenerarFactura = (idOrdenVenta) => {
@@ -589,6 +611,86 @@ const Ventas = () => {
     iniciarEdicion(orden);
   };
 
+// 1. Mapea tus clientes al formato que espera react-select
+  const opcionesClienteParaSelect = clientesDisponibles.map((cliente) => {
+    const nombre = cliente.nombre || cliente.nombre_cliente || `Cliente ${cliente.id_cliente}`;
+    
+    // ----- LÍNEA NUEVA -----
+    // Asumimos que la propiedad se llama 'apellido'. Si no, ajustalo.
+    const apellido = cliente.apellido || ''; 
+    
+    const cuit = cliente.cuit || cliente.cuil || '';
+    const nombreCompleto = `${nombre} ${apellido}`.trim();
+
+    return {
+      value: nombre,       // Mantenemos el 'value' original para tu filtro
+      label: nombreCompleto, // <-- MODIFICADO: Ahora el 'label' es el nombre completo
+      cuit: cuit
+    };
+  });
+
+  // 2. Agregamos la opción "Todos los clientes" al INICIO del array
+  opcionesClienteParaSelect.unshift({
+    value: 'todos',
+    label: 'Todos los clientes',
+    cuit: ''
+  });
+
+  // 3. Función para formatear cómo se ve CADA opción en el desplegable
+  const formatOptionLabel = ({ label, cuit }) => (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      {/* El nombre del cliente */}
+      <span style={{ fontWeight: 500 }}>{label}</span>
+      
+      {/* El CUIT, solo si existe, en color gris */}
+      {cuit && (
+        <span style={{ color: '#666', marginLeft: '10px', fontSize: '0.9em' }}>
+          {cuit}
+        </span>
+      )}
+    </div>
+  );
+
+  // 4. Mapea tus ESTADOS al formato de react-select
+  const opcionesEstadoParaSelect = estadosDisponibles.map((estado) => ({
+    value: estado.id_estado_venta,
+    label: estado.descripcion
+  }));
+  // 5. Agregamos "Todos los estados" al inicio
+  opcionesEstadoParaSelect.unshift({
+    value: 'todos',
+    label: 'Todos los estados'
+  });
+
+  // 6. Mapea tus PRIORIDADES al formato de react-select
+  const opcionesPrioridadParaSelect = prioridades.map((prioridad) => ({
+    value: prioridad.id_prioridad,
+    label: prioridad.descripcion
+  }));
+  // 7. Agregamos "Todas las prioridades" al inicio
+  opcionesPrioridadParaSelect.unshift({
+    value: 'todos',
+    label: 'Todas las prioridades'
+  });
+
+  // 8. Estilos comunes para TODOS los Select, para que sean idénticos
+  const customSelectStyles = {
+    control: (baseStyles) => {
+      const newStyles = Object.assign({}, baseStyles, {
+        minWidth: '315px', // Puedes ajustar este ancho
+        minHeight: '40px', // Ajusta esta altura
+        height: '40px'     // Ajusta esta altura
+      });
+      return newStyles;
+    },
+    indicatorsContainer: (baseStyles) => {
+      const newStyles = Object.assign({}, baseStyles, {
+        height: '34px' // Debe coincidir con la altura del control
+      });
+      return newStyles;
+    }
+  };
+  
   if (loading) return (
     <div className={styles.loading}>
       <div className={styles.spinner}></div>
@@ -607,6 +709,7 @@ const Ventas = () => {
 
   return (
     <div className={styles.container}>
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover theme="colored" />
       <div className={styles.headerContainer}>
         <h1 className={styles.title}>Órdenes de Venta</h1>
         <button 
@@ -618,62 +721,52 @@ const Ventas = () => {
       </div>
 
       {/* Controles de Filtrado */}
+
+      
       <div className={styles.controles}>
         <div className={styles.filtroGrupo}>
           <label htmlFor="filtroEstado" className={styles.label}>
-            Filtrar por Estado:
-          </label>
-          <select
-            id="filtroEstado"
-            value={filtroEstado}
-            onChange={(e) => manejarCambioEstado(e.target.value)}
-            className={styles.select}
-          >
-            <option value="todos">Todos los estados</option>
-            {estadosDisponibles.map((estado) => (
-              <option key={estado.id_estado_venta} value={estado.id_estado_venta}>
-                {estado.descripcion}
-              </option>
-            ))}
-          </select>
+            Filtrar por Estado:
+          </label>
+          <Select
+            id="filtroEstado"
+            options={opcionesEstadoParaSelect}
+            styles={customSelectStyles}
+            value={opcionesEstadoParaSelect.find(op => op.value === filtroEstado)}
+            onChange={(opcion) => manejarCambioEstado(opcion.value)}
+          />
         </div>
 
-        <div className={styles.filtroGrupo}>
-          <label htmlFor="filtroCliente" className={styles.label}>
-            Filtrar por Cliente:
-          </label>
-          <select
-            id="filtroCliente"
-            value={filtroCliente}
-            onChange={(e) => manejarCambioCliente(e.target.value)}
-            className={styles.select}
-          >
-            <option value="todos">Todos los clientes</option>
-            {clientesDisponibles.map((cliente) => (
-              <option key={cliente.id_cliente} value={cliente.nombre || cliente.nombre_cliente}>
-                {cliente.nombre || cliente.nombre_cliente || `Cliente ${cliente.id_cliente}`}
-              </option>
-            ))}
-          </select>
-        </div>
+
+            
 
         <div className={styles.filtroGrupo}>
-          <label htmlFor="filtroPrioridad" className={styles.label}>
-            Filtrar por Prioridad:
-          </label>
-          <select
-            id="filtroPrioridad"
-            value={filtroPrioridad}
-            onChange={(e) => manejarCambioPrioridad(e.target.value)}
-            className={styles.select}
-          >
-            <option value="todos">Todas las prioridades</option>
-            {prioridades.map((prioridad) => (
-              <option key={prioridad.id_prioridad} value={prioridad.id_prioridad}>
-                {prioridad.descripcion}
-              </option>
-            ))}
-          </select>
+        <label htmlFor="filtroCliente" className={styles.label}>
+                    Filtrar por Cliente:
+                  </label>
+                  <Select
+                    id="filtroCliente"
+                    options={opcionesClienteParaSelect}
+                    formatOptionLabel={formatOptionLabel}
+                    styles={customSelectStyles} 
+                    value={opcionesClienteParaSelect.find(op => op.value === filtroCliente)}
+                    onChange={(opcion) => manejarCambioCliente(opcion.value)}
+                  />
+                </div>
+
+
+
+        <div className={styles.filtroGrupo}>
+         <label htmlFor="filtroPrioridad" className={styles.label}>
+            Filtrar por Prioridad:
+          </label>
+          <Select
+            id="filtroPrioridad"
+            options={opcionesPrioridadParaSelect}
+            styles={customSelectStyles}
+            value={opcionesPrioridadParaSelect.find(op => op.value === filtroPrioridad)}
+            onChange={(opcion) => manejarCambioPrioridad(opcion.value)}
+          />
         </div>
 
         <button onClick={limpiarFiltros} className={styles.btnLimpiar}>
@@ -718,13 +811,23 @@ const Ventas = () => {
                 </div>
               </div>
               
-              <div className={styles.headerBottom}>
-                <div className={styles.clienteInfo}>
-                  <span className={styles.clienteLabel}>Cliente:</span>
-                  <span className={styles.clienteNombre}> {getNombreCliente(orden.cliente)}</span>
-                </div>
-                <div className={styles.fechaInfo}>Creada: {formatFecha(orden.fecha)}</div>
-              </div>
+<div className={styles.headerBottom}>
+                    <div className={styles.clienteInfo}>
+                      <span className={styles.clienteLabel}>Cliente:</span>
+                      <span className={styles.clienteNombre}> {getNombreCliente(orden.cliente)}</span>
+                    </div>
+                    
+                    {/* Contenedor para agrupar fecha y creador */}
+                    <div className={styles.metaInfoContainer}>
+                      <div className={styles.fechaInfo}>Creada: {formatFecha(orden.fecha)}</div>
+                      
+{orden.id_empleado && (
+                    <div className={styles.creadorInfo}>
+                      Por (ID): {orden.id_empleado}
+                    </div>
+                  )}
+                    </div>
+                  </div>
               
               <div className={styles.fechaEntregaInfo}>
                 <span className={styles.fechaEntregaLabel}>Entrega estimada:</span>
@@ -762,17 +865,28 @@ const Ventas = () => {
                 {/* Botón para cancelar orden - SOLO SE MUESTRA SI id_estado_venta = 9 (En Preparación) */}
                 {puedeCancelarOrden(orden) && (
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      cancelarOrden(orden.id_orden_venta);
-                    }}
+onClick={(e) => {
+  e.stopPropagation();
+  setModalCancelar({ visible: true, id: orden.id_orden_venta });
+}}
                     disabled={cancelandoOrden === orden.id_orden_venta}
                     className={styles.botonCancelarOrden}
                   >
                     {cancelandoOrden === orden.id_orden_venta ? 'Cancelando...' : 'Cancelar Orden'}
                   </button>
                 )}
+              <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/trazabilidadordenventa?id_ov=${orden.id_orden_venta}`);
+                      }}
+                      className={styles.botonTrazabilidad}
+                    >
+                      Ver Trazabilidad
+              </button>
               </div>
+
+
             </div>
 
             <div className={styles.ordenBody}>
@@ -896,19 +1010,7 @@ const Ventas = () => {
                         ))}
                       </select>
                       
-                      <label className={styles.labelCantidad}>
-                        Cantidad:
-                        <input
-                          type="number"
-                          min="1"
-                          value={nuevoProducto.cantidad}
-                          onChange={(e) => setNuevoProducto({
-                            ...nuevoProducto,
-                            cantidad: e.target.value
-                          })}
-                          className={styles.inputCantidadNuevo}
-                        />
-                      </label>
+
                       
                       <button
                         onClick={agregarProducto}
@@ -1013,6 +1115,35 @@ const Ventas = () => {
       {ordenes.length === 0 && !loading && (
         <div className={styles.sinOrdenes}>No hay órdenes disponibles</div>
       )}
+
+      {/* ----- INICIO MODAL DE CANCELACIÓN (PEGAR AQUÍ) ----- */}
+      {modalCancelar.visible && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContenido}>
+            <h4>Confirmar Cancelación</h4>
+            <p>¿Estás seguro de que deseas cancelar la orden #{modalCancelar.id}? Esta acción no se puede deshacer.</p>
+            <div className={styles.modalBotones}>
+              <button 
+                onClick={() => setModalCancelar({ visible: false, id: null })} 
+                className={styles.botonCancelarModal}
+                disabled={cancelandoOrden === modalCancelar.id}
+              >
+                Volver
+              </button>
+              <button 
+                onClick={() => cancelarOrden(modalCancelar.id)} 
+                className={styles.botonConfirmarModal}
+                disabled={cancelandoOrden === modalCancelar.id}
+              >
+                {cancelandoOrden === modalCancelar.id ? 'Cancelando...' : 'Sí, cancelar orden'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* ----- FIN MODAL DE CANCELACIÓN ----- */}
+
+
     </div>
   );
 };

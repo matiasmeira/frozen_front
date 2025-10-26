@@ -54,8 +54,6 @@
   }
 }
 
-
-
 .controles {
 	display: flex;
 	gap: 20px;
@@ -208,26 +206,48 @@
 	font-size: 0.95em;
 }
 
+/* MEJORAS EN CARD FOOTER - BOTONES MEJOR ACOMODADOS */
 .cardFooter {
 	display: flex;
-	justify-content: space-between;
-	align-items: center;
+	flex-wrap: wrap;
+	gap: 8px;
 	padding-top: 20px;
 	border-top: 1px solid #f0f0f0;
-	gap: 10px;
 }
 
+/* Botones principales - ocupan todo el ancho individualmente */
+.btnIniciar,
+.btnFinalizar,
+.btnNoConformidad {
+	flex: 1 1 100%;
+	min-height: 42px;
+	font-size: 0.9em;
+	font-weight: 600;
+	border: none;
+	border-radius: 6px;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+/* Botones secundarios - se acomodan en fila cuando hay múltiples */
+.cardFooter:has(.btnFinalizar) + .btnCancelar,
+.cardFooter:has(.btnIniciar) {
+	flex-direction: row;
+}
+
+.cardFooter:has(.btnFinalizar) .btnFinalizar,
+.cardFooter:has(.btnCancelar) .btnCancelar {
+	flex: 1;
+	min-width: 120px;
+}
+
+/* Estados específicos para botones individuales */
 .btnIniciar {
 	background-color: rgb(40, 167, 69);
 	color: white;
-	border: none;
-	padding: 10px 20px;
-	border-radius: 6px;
-	cursor: pointer;
-	font-size: 0.9em;
-	font-weight: 600;
-	transition: all 0.3s ease;
-	flex: 1;
 }
 
 .btnIniciar:hover {
@@ -238,14 +258,6 @@
 .btnFinalizar {
 	background-color: #e74c3c;
 	color: white;
-	border: none;
-	padding: 8px 16px;
-	border-radius: 6px;
-	cursor: pointer;
-	font-size: 0.85em;
-	font-weight: 600;
-	transition: all 0.3s ease;
-	flex: 1;
 }
 
 .btnFinalizar:hover {
@@ -253,9 +265,8 @@
 	transform: translateY(-1px);
 }
 
-/* Nuevo botón para No Conformidad */
-.btnNoConformidad {
-	background-color: #d35400; /* Naranja oscuro */
+.btnCancelar {
+	background-color: #95a5a6;
 	color: white;
 	border: none;
 	padding: 10px 16px;
@@ -265,45 +276,38 @@
 	font-weight: 600;
 	transition: all 0.3s ease;
 	flex: 1;
-	text-align: center;
+	min-height: 42px;
+}
+
+.btnCancelar:hover {
+	background-color: #7f8c8d;
+	transform: translateY(-1px);
+}
+
+/* Botón No Conformidad */
+.btnNoConformidad {
+	background-color: #d35400;
+	color: white;
 }
 
 .btnNoConformidad:hover {
-	background-color: #e67e22; /* Naranja más claro */
+	background-color: #e67e22;
 	transform: translateY(-2px);
 	box-shadow: 0 4px 8px rgba(211, 84, 0, 0.3);
 }
 
 .btnNoConformidad:active {
-	background-color: #a04000; /* Naranja más oscuro */
+	background-color: #a04000;
 	transform: translateY(0);
 }
 
-.btnNoConformidad:disabled {
-	background-color: #f39c12; /* Naranja claro deshabilitado */
-	color: #bdc3c7;
-	cursor: not-allowed;
-	transform: none;
-	box-shadow: none;
+/* Estados hover generales para todos los botones */
+.cardFooter button:hover {
+	transform: translateY(-1px);
 }
 
-.btnControlCalidad {
-	background-color: #2196f3; /* Azul profesional */
-	color: white;
-	border: none;
-	padding: 10px 20px;
-	border-radius: 6px;
-	cursor: pointer;
-	font-size: 0.9em;
-	font-weight: 600;
-	transition: all 0.3s ease;
-	flex: 1;
-}
-
-.btnControlCalidad:hover {
-	background-color: #1976d2; /* Azul más oscuro */
-	transform: translateY(-2px);
-	box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+.cardFooter button:active {
+	transform: translateY(0);
 }
 
 .cargando,
@@ -393,25 +397,6 @@
 .btnPaginaAnterior,
 .btnPaginaSiguiente {
 	min-width: 80px;
-}
-
-/* Estilos para el botón Cancelar */
-.btnCancelar {
-	background-color: #e74c3c;
-	color: white;
-	border: none;
-	padding: 8px 16px;
-	border-radius: 6px;
-	cursor: pointer;
-	font-size: 0.85em;
-	font-weight: 600;
-	transition: all 0.3s ease;
-	flex: 1;
-}
-
-.btnCancelar:hover {
-	background-color: #c0392b;
-	transform: translateY(-1px);
 }
 
 /* Estilos para el modal */
@@ -772,13 +757,15 @@
 		margin-top: 10px;
 	}
 
+	/* MEJORAS RESPONSIVE PARA BOTONES */
 	.cardFooter {
 		flex-direction: column;
+		gap: 10px;
 	}
 
-	.btnEditar,
-	.btnEliminar {
+	.cardFooter button {
 		width: 100%;
+		min-height: 44px;
 	}
 
 	.cardHeader {
@@ -799,5 +786,18 @@
 
 	.infoGrupo span {
 		text-align: left;
+	}
+}
+
+/* Estilos para cuando hay múltiples botones en una fila */
+@media (min-width: 769px) {
+	.cardFooter:has(.btnFinalizar):has(.btnCancelar) {
+		flex-direction: row;
+	}
+	
+	.cardFooter:has(.btnFinalizar):has(.btnCancelar) .btnFinalizar,
+	.cardFooter:has(.btnFinalizar):has(.btnCancelar) .btnCancelar {
+		flex: 1;
+		min-width: 0;
 	}
 }
