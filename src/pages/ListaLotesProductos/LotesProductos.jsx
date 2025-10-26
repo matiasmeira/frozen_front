@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import QRCode from "react-qr-code";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import Select from "react-select";
 import styles from "./LotesProductos.module.css";
+import { Navigate } from "react-router-dom";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -13,6 +15,7 @@ const api = axios.create({
 });
 
 const LotesProductos = ({ products }) => {
+	const navigate = useNavigate()
 	const [lotes, setLotes] = useState([]);
 	const [lotesFiltrados, setLotesFiltrados] = useState([]);
 	const [lotesPaginados, setLotesPaginados] = useState([]);
@@ -21,7 +24,7 @@ const LotesProductos = ({ products }) => {
 
 	// Estados para paginación CLIENTE-SIDE
 	const [paginaActual, setPaginaActual] = useState(1);
-	const [itemsPorPagina] = useState(10); // Puedes ajustar este número
+	const [itemsPorPagina] = useState(10);
 	const [totalPaginas, setTotalPaginas] = useState(1);
 	const [totalLotesFiltrados, setTotalLotesFiltrados] = useState(0);
 
@@ -35,37 +38,28 @@ const LotesProductos = ({ products }) => {
 			setLotesLoading(true);
 
 			const params = new URLSearchParams();
-			params.append("id_estado_lote_produccion", "8"); // Solo lotes disponibles
+			params.append("id_estado_lote_produccion", "8");
 
-			// Hacer una sola petición para obtener todos los lotes
 			let todosLosLotes = [];
 			let siguientePagina = `/stock/lotes-produccion/?${params.toString()}`;
 			let pagina = 1;
 
-			// Recorrer todas las páginas
 			while (siguientePagina) {
 				const response = await api.get(siguientePagina);
 				const data = response.data;
-				
-				console.log(`Página ${pagina} obtenida:`, data.results?.length || 0, 'lotes');
-				
+
 				if (data.results && data.results.length > 0) {
 					todosLosLotes = [...todosLosLotes, ...data.results];
 				}
-				
+
 				siguientePagina = data.next;
 				pagina++;
-				
-				// Pequeña pausa para no sobrecargar el servidor
-				await new Promise(resolve => setTimeout(resolve, 100));
+				await new Promise((resolve) => setTimeout(resolve, 100));
 			}
 
-			console.log("Total de lotes disponibles obtenidos:", todosLosLotes.length);
-			
 			setLotes(todosLosLotes);
-			setLotesFiltrados(todosLosLotes); // Inicialmente mostrar todos
+			setLotesFiltrados(todosLosLotes);
 			setTotalLotesFiltrados(todosLosLotes.length);
-
 		} catch (error) {
 			console.error("Error fetching lotes de producción disponibles:", error);
 		} finally {
@@ -77,7 +71,6 @@ const LotesProductos = ({ products }) => {
 	useEffect(() => {
 		let resultado = [...lotes];
 
-		// Filtro por producto
 		if (filtroProducto) {
 			resultado = resultado.filter((lote) =>
 				lote.producto_nombre
@@ -86,10 +79,8 @@ const LotesProductos = ({ products }) => {
 			);
 		}
 
-		// Filtro por vencimiento - SOLO ORDENAMIENTO
 		if (filtroVencimiento !== "todos") {
 			if (filtroVencimiento === "mas_cercano") {
-				// Ordenar por vencimiento más cercano primero (incluye vencidos)
 				resultado.sort((a, b) => {
 					const fechaA = a.fecha_vencimiento
 						? new Date(a.fecha_vencimiento)
@@ -97,10 +88,9 @@ const LotesProductos = ({ products }) => {
 					const fechaB = b.fecha_vencimiento
 						? new Date(b.fecha_vencimiento)
 						: new Date("9999-12-31");
-					return fechaA - fechaB; // Orden ascendente (más cercano primero)
+					return fechaA - fechaB;
 				});
 			} else if (filtroVencimiento === "mas_lejano") {
-				// Ordenar por vencimiento más lejano primero
 				resultado.sort((a, b) => {
 					const fechaA = a.fecha_vencimiento
 						? new Date(a.fecha_vencimiento)
@@ -108,14 +98,14 @@ const LotesProductos = ({ products }) => {
 					const fechaB = b.fecha_vencimiento
 						? new Date(b.fecha_vencimiento)
 						: new Date("9999-12-31");
-					return fechaB - fechaA; // Orden descendente (más lejano primero)
+					return fechaB - fechaA;
 				});
 			}
 		}
 
 		setLotesFiltrados(resultado);
 		setTotalLotesFiltrados(resultado.length);
-		setPaginaActual(1); // Resetear a primera página cuando cambian los filtros
+		setPaginaActual(1);
 	}, [lotes, filtroProducto, filtroVencimiento]);
 
 	// Aplicar paginación a los lotes filtrados
@@ -123,7 +113,6 @@ const LotesProductos = ({ products }) => {
 		const totalPages = Math.ceil(totalLotesFiltrados / itemsPorPagina);
 		setTotalPaginas(totalPages);
 
-		// Calcular índices para la paginación
 		const inicio = (paginaActual - 1) * itemsPorPagina;
 		const fin = inicio + itemsPorPagina;
 		const lotesPaginados = lotesFiltrados.slice(inicio, fin);
@@ -144,10 +133,8 @@ const LotesProductos = ({ products }) => {
 		try {
 			setGenerandoQR(lote.id_lote_produccion);
 
-			// Crear URL para el QR
 			const urlTrazabilidad = `https://frozen-front-phi.vercel.app/trazabilidadLote/${lote.id_lote_produccion}`;
 
-			// Crear elemento temporal para el QR
 			const qrContainer = document.createElement("div");
 			qrContainer.style.cssText = `
         position: fixed;
@@ -165,7 +152,6 @@ const LotesProductos = ({ products }) => {
         box-sizing: border-box;
       `;
 
-			// Contenido del QR usando divs en lugar de SVG string
 			const contenido = `
         <div style="text-align: center; margin-bottom: 20px;">
           <h2 style="margin: 0 0 10px 0; color: #2c3e50; font-size: 18px; font-weight: bold;">Lote de Producción</h2>
@@ -174,7 +160,6 @@ const LotesProductos = ({ products }) => {
 					}</h3>
         </div>
         <div id="qr-code-container" style="margin-bottom: 20px; display: flex; justify-content: center; align-items: center; width: 200px; height: 200px; background: white; border: 1px solid #ddd; padding: 10px;">
-          <!-- QR se insertará aquí -->
         </div>
         <div style="text-align: center; font-size: 12px; color: #666; line-height: 1.4;">
           <p style="margin: 5px 0;"><strong>Lote #${
@@ -193,15 +178,13 @@ const LotesProductos = ({ products }) => {
 			qrContainer.innerHTML = contenido;
 			document.body.appendChild(qrContainer);
 
-			// Crear y agregar el QR code real
 			const qrCodeContainer = qrContainer.querySelector("#qr-code-container");
 			const qrCodeElement = document.createElement("div");
 			qrCodeElement.style.width = "180px";
 			qrCodeElement.style.height = "180px";
 
-			// Usar React.createElement para renderizar el QRCode
 			const { createElement } = require("react");
-			const { render } = require("react-dom");
+			const { createRoot } = require("react-dom/client");
 			const QRCodeComponent = createElement(QRCode, {
 				value: urlTrazabilidad,
 				size: 180,
@@ -210,15 +193,11 @@ const LotesProductos = ({ products }) => {
 				fgColor: "#000000",
 			});
 
-			// Renderizar el QR code
-			const { createRoot } = require("react-dom/client");
 			const root = createRoot(qrCodeContainer);
 			root.render(QRCodeComponent);
 
-			// Esperar un momento para que se renderice el QR
 			await new Promise((resolve) => setTimeout(resolve, 500));
 
-			// Convertir a canvas y luego a PDF
 			const canvas = await html2canvas(qrContainer, {
 				scale: 2,
 				useCORS: true,
@@ -227,7 +206,6 @@ const LotesProductos = ({ products }) => {
 				logging: false,
 			});
 
-			// Limpiar
 			root.unmount();
 			document.body.removeChild(qrContainer);
 
@@ -236,7 +214,6 @@ const LotesProductos = ({ products }) => {
 			const pdfWidth = pdf.internal.pageSize.getWidth();
 			const pdfHeight = pdf.internal.pageSize.getHeight();
 
-			// Calcular dimensiones para centrar el contenido
 			const imgWidth = 150;
 			const imgHeight = 200;
 			const x = (pdfWidth - imgWidth) / 2;
@@ -251,8 +228,6 @@ const LotesProductos = ({ products }) => {
 			);
 		} catch (error) {
 			console.error("Error generando QR PDF:", error);
-
-			// Método alternativo usando una librería más simple
 			try {
 				await generarQRPDFAlternativo(lote);
 			} catch (altError) {
@@ -269,7 +244,6 @@ const LotesProductos = ({ products }) => {
 		const QRCodeGenerator = await import("qrcode");
 		const urlTrazabilidad = `https://frozen-front-phi.vercel.app/trazabilidadLote/${lote.id_lote_produccion}`;
 
-		// Generar QR como Data URL
 		const qrDataURL = await QRCodeGenerator.toDataURL(urlTrazabilidad, {
 			width: 200,
 			height: 200,
@@ -280,24 +254,19 @@ const LotesProductos = ({ products }) => {
 			},
 		});
 
-		// Crear PDF
 		const pdf = new jsPDF("p", "mm", "a4");
 		const pdfWidth = pdf.internal.pageSize.getWidth();
 
-		// Título
 		pdf.setFontSize(18);
 		pdf.setFont("helvetica", "bold");
 		pdf.text("Lote de Producción", pdfWidth / 2, 30, { align: "center" });
 
-		// Producto
 		pdf.setFontSize(16);
 		pdf.setFont("helvetica", "normal");
 		pdf.text(lote.producto_nombre, pdfWidth / 2, 45, { align: "center" });
 
-		// QR Code
 		pdf.addImage(qrDataURL, "PNG", (pdfWidth - 80) / 2, 60, 80, 80);
 
-		// Información del lote
 		pdf.setFontSize(12);
 		pdf.text(`Lote #${lote.id_lote_produccion}`, pdfWidth / 2, 155, {
 			align: "center",
@@ -400,24 +369,46 @@ const LotesProductos = ({ products }) => {
 
 	// Obtener color para días de vencimiento
 	const getColorVencimiento = (dias) => {
-		if (dias === null) return "#6b7280"; // Gris para sin fecha
-		if (dias < 0) return "#ef4444"; // Rojo para vencido
-		if (dias <= 3) return "#f59e0b"; // Naranja para pronto a vencer
-		if (dias <= 7) return "#eab308"; // Amarillo para próximo a vencer
-		return "#22c55e"; // Verde para buen tiempo
+		if (dias === null) return "#95a5a6";
+		if (dias < 0) return "#e74c3c";
+		if (dias <= 3) return "#f39c12";
+		if (dias <= 7) return "#f1c40f";
+		return "#27ae60";
 	};
 
+	// Función para obtener el color de la cantidad disponible
+	const getColorCantidad = (cantidad) => {
+		if (cantidad === 0) return "#e74c3c";
+		if (cantidad < 10) return "#f39c12";
+		return "#27ae60";
+	};
+
+	if (lotesLoading) {
+		return (
+			<div className={styles.cargando}>
+				<div className={styles.spinner}></div>
+				<p>Cargando lotes de producción...</p>
+			</div>
+		);
+	}
+
 	return (
-		<section className={styles.lotesSection}>
-			<header className={styles.lotesHeader}>
-				<h2 className={styles.lotesTitle}>Lotes de Producción Disponibles</h2>
-				<div className={styles.lotesHeaderInfo}>
-					<span className={styles.lotesCount}>
-						Mostrando {lotesPaginados.length} de {totalLotesFiltrados} lotes filtrados
-						Pagina {paginaActual} de {totalPaginas}
+		<div className={styles.lotesProduccion}>
+			{/* Header */}
+			<div className={styles.header}>
+				<h2 className={styles.titulo}>Lotes de Producción Disponibles</h2>
+			</div>
+
+			{/* Estadísticas */}
+			<div className={styles.estadisticas}>
+				<div className={styles.estadisticaItem}>
+					<span className={styles.estadisticaNumero}>
+						{totalLotesFiltrados}
 					</span>
+					<span className={styles.estadisticaLabel}>Total Lotes</span>
 				</div>
-			</header>
+
+			</div>
 
 			{/* Controles de Filtrado */}
 			<div className={styles.controles}>
@@ -456,163 +447,160 @@ const LotesProductos = ({ products }) => {
 				</button>
 			</div>
 
-			{lotesLoading ? (
-				<div className={styles.lotesLoadingContainer}>
-					<div className={styles.lotesLoadingSpinner}></div>
-					<p>Cargando lotes de producción disponibles...</p>
-				</div>
-			) : (
-				<>
-					<div className={styles.lotesGrid}>
-						{lotesPaginados.map((lote) => {
-							const diasVencimiento = calcularDiasVencimiento(
-								lote.fecha_vencimiento
-							);
+			{/* Contador de resultados */}
+			<div className={styles.contador}>
+				Mostrando {lotesPaginados.length} de {totalLotesFiltrados} lotes (Página{" "}
+				{paginaActual} de {totalPaginas})
+			</div>
 
-							return (
-								<div key={lote.id_lote_produccion} className={styles.loteCard}>
-									<div className={styles.loteHeader}>
-										<h3 className={styles.loteId}>
-											Lote #{lote.id_lote_produccion}
-										</h3>
-										<span className={styles.loteProduct}>
-											{lote.producto_nombre}
+			{/* Lista de lotes */}
+			<div className={styles.listaLotes}>
+				{lotesPaginados.length > 0 ? (
+					lotesPaginados.map((lote) => {
+						const diasVencimiento = calcularDiasVencimiento(
+							lote.fecha_vencimiento
+						);
+
+						return (
+							<div key={lote.id_lote_produccion} className={styles.cardLote}>
+								<div className={styles.cardHeader}>
+									<h3>Lote #{lote.id_lote_produccion}</h3>
+									<span
+										className={styles.estado}
+										style={{
+											backgroundColor: getColorVencimiento(diasVencimiento),
+										}}
+									>
+										{diasVencimiento === null
+											? "SIN FECHA"
+											: diasVencimiento < 0
+											? "VENCIDO"
+											: diasVencimiento <= 7
+											? "PRÓXIMO"
+											: "DISPONIBLE"}
+									</span>
+								</div>
+
+								<div className={styles.cardBody}>
+									<div className={styles.infoGrupo}>
+										<strong>Producto:</strong>
+										<span>{lote.producto_nombre}</span>
+									</div>
+
+									<div className={styles.infoGrupo}>
+										<strong>Cantidad Total:</strong>
+										<span>
+											{lote.cantidad} {lote.unidad_medida}
 										</span>
 									</div>
 
-									<div className={styles.loteDetails}>
-										{/* ... (el resto del contenido de la card permanece igual) */}
-										<div className={styles.loteDetail}>
-											<span className={styles.detailLabel}>Producto:</span>
-											<span className={styles.detailValue}>
-												{lote.producto_nombre}
-											</span>
-										</div>
-
-										<div className={styles.loteDetail}>
-											<span className={styles.detailLabel}>
-												Cantidad Total:
-											</span>
-											<span className={styles.detailValue}>
-												{lote.cantidad} {lote.unidad_medida}
-											</span>
-										</div>
-
-										<div className={styles.loteDetail}>
-											<span className={styles.detailLabel}>Disponible:</span>
-											<span className={styles.cantidadDisponible}>
-												{lote.cantidad_disponible} {lote.unidad_medida}
-											</span>
-										</div>
-
-										<div className={styles.loteDetail}>
-											<span className={styles.detailLabel}>Reservado:</span>
-											<span className={styles.detailValue}>
-												{lote.cantidad_reservada} {lote.unidad_medida}
-											</span>
-										</div>
-
-										<div className={styles.loteDetail}>
-											<span className={styles.detailLabel}>Producción:</span>
-											<span className={styles.detailValue}>
-												{formatDate(lote.fecha_produccion)}
-											</span>
-										</div>
-
-										<div className={styles.loteDetail}>
-											<span className={styles.detailLabel}>Vencimiento:</span>
-											<div className={styles.vencimientoInfo}>
-												<span className={styles.detailValue}>
-													{formatDate(lote.fecha_vencimiento)}
-												</span>
-												{diasVencimiento !== null && (
-													<span
-														className={styles.diasVencimiento}
-														style={{
-															color: getColorVencimiento(diasVencimiento),
-														}}
-													>
-														{diasVencimiento < 0
-															? `Vencido hace ${Math.abs(diasVencimiento)} días`
-															: `${diasVencimiento} días`}
-													</span>
-												)}
-											</div>
-										</div>
+									<div className={styles.infoGrupo}>
+										<strong>Disponible:</strong>
+										<span
+											className={styles.cantidad}
+											style={{
+												color: getColorCantidad(lote.cantidad_disponible),
+											}}
+										>
+											{lote.cantidad_disponible} {lote.unidad_medida}
+										</span>
 									</div>
 
-									<div className={styles.loteActions}>
-										<div className={styles.loteStatus}>
-											<span className={styles.statusBadge}>{lote.estado}</span>
-										</div>
+									<div className={styles.infoGrupo}>
+										<strong>Reservado:</strong>
+										<span>
+											{lote.cantidad_reservada} {lote.unidad_medida}
+										</span>
+									</div>
 
-										<button
-											onClick={() => generarQRPDF(lote)}
-											disabled={generandoQR === lote.id_lote_produccion}
-											className={styles.botonQR}
-										>
-											{generandoQR === lote.id_lote_produccion ? (
-												<>
-													<div className={styles.qrLoadingSpinner}></div>
-													Generando...
-												</>
-											) : (
-												"📄 Generar QR"
+									<div className={styles.infoGrupo}>
+										<strong>Producción:</strong>
+										<span>{formatDate(lote.fecha_produccion)}</span>
+									</div>
+
+									<div className={styles.infoGrupo}>
+										<strong>Vencimiento:</strong>
+										<span className={styles.diasInfo}>
+											{formatDate(lote.fecha_vencimiento)}
+											{diasVencimiento !== null && (
+												<span
+													className={styles.diasInfo}
+													style={{
+														color: getColorVencimiento(diasVencimiento),
+													}}
+												>
+													<br />
+													{diasVencimiento < 0
+														? ` (Vencido hace ${Math.abs(
+																diasVencimiento
+														  )} días)`
+														: ` (${diasVencimiento} días)`}
+												</span>
 											)}
-										</button>
+										</span>
 									</div>
 								</div>
-							);
-						})}
+
+								<div className={styles.cardFooter}>
+									<button
+										className={styles.btnDetalles}
+										onClick={() => navigate(
+											`/trazabilidadLote/${lote.id_lote_produccion}`
+										)}
+									>
+										Trazar Lote
+									</button>
+									<button className={styles.btnAjustar}>Ajustar Stock</button>
+									<button
+										className={styles.btnQR}
+										onClick={() => generarQRPDF(lote)}
+										disabled={generandoQR === lote.id_lote_produccion}
+									>
+										{generandoQR === lote.id_lote_produccion ? (
+											<>
+												<div className={styles.spinnerSmall}></div>
+												Generando...
+											</>
+										) : (
+											"Generar QR"
+										)}
+									</button>
+								</div>
+							</div>
+						);
+					})
+				) : (
+					<div className={styles.sinResultados}>
+						No se encontraron lotes con los filtros aplicados
+					</div>
+				)}
+			</div>
+
+			{/* Paginación */}
+			{totalPaginas > 1 && (
+				<div className={styles.paginacion}>
+					<button
+						className={styles.btnPaginacion}
+						onClick={irAPaginaAnterior}
+						disabled={paginaActual === 1}
+					>
+						Anterior
+					</button>
+
+					<div className={styles.infoPaginacion}>
+						Página {paginaActual} de {totalPaginas}
 					</div>
 
-					{/* Paginación CLIENTE-SIDE */}
-					{totalPaginas > 1 && (
-						<div className={styles.lotesPaginacionContainer}>
-							<button
-								onClick={irAPaginaAnterior}
-								disabled={paginaActual === 1}
-								className={styles.lotesBotonPaginacion}
-							>
-								Anterior
-							</button>
-
-							<div className={styles.lotesNumerosPagina}>
-								{obtenerNumerosPagina().map((numero) => (
-									<button
-										key={numero}
-										onClick={() => irAPagina(numero)}
-										className={`${styles.lotesNumeroPagina} ${
-											paginaActual === numero
-												? styles.lotesPaginaActiva
-												: ""
-										}`}
-									>
-										{numero}
-									</button>
-								))}
-							</div>
-
-							<button
-								onClick={irAPaginaSiguiente}
-								disabled={paginaActual === totalPaginas}
-								className={styles.lotesBotonPaginacion}
-							>
-								Siguiente
-							</button>
-						</div>
-					)}
-				</>
-			)}
-
-			{!lotesLoading && lotesPaginados.length === 0 && (
-				<div className={styles.emptyState}>
-					<p>
-						No hay lotes de producción disponibles con los filtros aplicados
-					</p>
+					<button
+						className={styles.btnPaginacion}
+						onClick={irAPaginaSiguiente}
+						disabled={paginaActual === totalPaginas}
+					>
+						Siguiente
+					</button>
 				</div>
 			)}
-		</section>
+		</div>
 	);
 };
 

@@ -1,471 +1,527 @@
-/* Estilos para la sección de lotes */
-.lotesSection {
-  margin-top: 3rem;
-  padding: 2rem;
-  background-color: #f8f9fa;
-  border-radius: 12px;
-  border: 1px solid #e9ecef;
+.lotesMateriaPrima {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 2rem;
+	background-color: #f8fdff;
 }
 
-.lotesHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 2px solid #dee2e6;
-  flex-wrap: wrap;
-  gap: 1rem;
+.cargando {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	min-height: 400px;
+	text-align: center;
 }
 
-/* Agregar estos estilos al archivo LotesProductos.module.css existente */
-
-.controles {
-  display: grid;
-  grid-template-columns: 1fr 1fr auto;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  background: white;
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  border: 1px solid #e1f5fe;
-  box-shadow: 0 2px 4px rgba(33, 150, 243, 0.1);
-  align-items: end;
+.errorContainer {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	min-height: 400px;
+	text-align: center;
 }
 
-.filtroGrupo {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+.error {
+	background: #fee2e2;
+	border: 1px solid #fecaca;
+	color: #dc2626;
+	padding: 1rem 1.5rem;
+	border-radius: 0.5rem;
+	margin-bottom: 1rem;
+	font-weight: 500;
 }
 
-.label {
-  font-weight: 600;
-  color: #374151;
-  font-size: 0.875rem;
+.spinner {
+	border: 4px solid #f3f3f3;
+	border-top: 4px solid #3498db;
+	border-radius: 50%;
+	width: 40px;
+	height: 40px;
+	animation: spin 1s linear infinite;
+	margin-bottom: 1rem;
 }
 
-.select {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.375rem;
-  background-color: white;
-  font-size: 0.875rem;
-  transition: all 0.2s;
-}
-
-.select:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.reactSelect {
-  width: 100%;
-}
-
-.reactSelect :global(.react-select__control) {
-  min-height: 42px;
-  border: 1px solid #d1d5db;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  transition: all 0.2s;
-}
-
-.reactSelect :global(.react-select__control--is-focused) {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.reactSelect :global(.react-select__value-container) {
-  padding: 0 12px;
-}
-
-.reactSelect :global(.react-select__placeholder) {
-  color: #6b7280;
-}
-
-.reactSelect :global(.react-select__menu) {
-  z-index: 10;
-}
-
-.btnLimpiar {
-  background: #6b7280;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  align-self: end;
-  height: fit-content;
-}
-
-.btnLimpiar:hover {
-  background: #4b5563;
-}
-
-.vencimientoInfo {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.diasVencimiento {
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-/* Responsive para controles */
-@media (max-width: 768px) {
-  .controles {
-    grid-template-columns: 1fr;
-  }
-}
-
-.lotesTitle {
-  color: #2c3e50;
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin: 0;
-}
-
-.lotesHeaderInfo {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.5rem;
-}
-
-.lotesCount {
-  background-color: #28a745;
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.lotesGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.loteCard {
-  background: white;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
-  padding: 1.25rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  position: relative;
-  border-left: 4px solid #28a745;
-}
-
-.loteCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-}
-
-.loteHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1rem;
-}
-
-.loteId {
-  color: #2c3e50;
-  font-size: 1.125rem;
-  font-weight: 600;
-  margin: 0;
-}
-
-.loteProduct {
-  background-color: #e3f2fd;
-  color: #1976d2;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-.loteDetails {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.loteDetail {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.25rem 0;
-}
-
-.detailLabel {
-  color: #6c757d;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.detailValue {
-  text-align: right;
-  color: #2c3e50;
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-.cantidadDisponible {
-  color: #28a745;
-  font-weight: 700;
-  font-size: 0.875rem;
-}
-
-.loteActions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #e9ecef;
-}
-
-.loteStatus {
-  display: flex;
-}
-
-.statusBadge {
-  background-color: #d4edda;
-  color: #155724;
-  padding: 0.375rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.botonQR {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.botonQR:hover:not(:disabled) {
-  background-color: #0056b3;
-  transform: translateY(-1px);
-}
-
-.botonQR:disabled {
-  background-color: #6c757d;
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-.qrLoadingSpinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid transparent;
-  border-top: 2px solid white;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-.emptyState {
-  text-align: center;
-  padding: 2rem;
-  color: #6c757d;
-}
-
-.emptyState p {
-  margin: 0;
-  font-size: 1rem;
-}
-
-/* Loading Styles para lotes */
-.lotesLoadingContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
-}
-
-.lotesLoadingSpinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #3498db;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 15px;
-}
-
-.lotesLoadingContainer p {
-  font-size: 0.9rem;
-  color: #6c757d;
-  font-weight: 500;
-  margin: 0;
-}
-
-/* Paginación específica para lotes */
-.lotesPaginacionContainer {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 2rem 0 1rem 0;
-  padding: 1rem;
-}
-
-.lotesBotonPaginacion {
-  padding: 0.5rem 1rem;
-  border: 1px solid #dee2e6;
-  background-color: white;
-  color: #007bff;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-  font-size: 0.9rem;
-}
-
-.lotesBotonPaginacion:hover:not(:disabled) {
-  background-color: #e9ecef;
-  border-color: #adb5bd;
-}
-
-.lotesBotonPaginacion:disabled {
-  color: #6c757d;
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-.lotesNumerosPagina {
-  display: flex;
-  gap: 0.25rem;
-}
-
-.lotesNumeroPagina {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #dee2e6;
-  background-color: white;
-  color: #007bff;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-  min-width: 2.5rem;
-  font-size: 0.9rem;
-}
-
-.lotesNumeroPagina:hover {
-  background-color: #e9ecef;
-  border-color: #adb5bd;
-}
-
-.lotesPaginaActiva {
-  background-color: #007bff;
-  color: white;
-  border-color: #007bff;
-}
-
-.lotesPaginaActiva:hover {
-  background-color: #0056b3;
-  border-color: #0056b3;
-}
-
-/* Responsive para lotes */
-@media (max-width: 768px) {
-  .lotesSection {
-    padding: 1rem;
-    margin-top: 2rem;
-  }
-
-  .lotesHeader {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: flex-start;
-  }
-
-  .lotesHeaderInfo {
-    align-items: flex-start;
-  }
-
-  .lotesGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .loteHeader {
-    flex-direction: column;
-    gap: 0.5rem;
-    align-items: flex-start;
-  }
-
-  .loteActions {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
-  }
-
-  .botonQR {
-    justify-content: center;
-  }
-
-  .lotesPaginacionContainer {
-    flex-wrap: wrap;
-    gap: 0.25rem;
-  }
-
-  .lotesNumerosPagina {
-    order: 1;
-    width: 100%;
-    justify-content: center;
-    margin-top: 0.5rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .lotesSection {
-    padding: 0.75rem;
-  }
-
-  .loteCard {
-    padding: 1rem;
-  }
-
-  .lotesTitle {
-    font-size: 1.25rem;
-  }
-
-  .lotesBotonPaginacion,
-  .lotesNumeroPagina {
-    padding: 0.4rem 0.8rem;
-    font-size: 0.8rem;
-  }
-
-  .loteDetails {
-    gap: 0.25rem;
-  }
-
-  .loteDetail {
-    padding: 0.125rem 0;
-  }
+.spinnerSmall {
+	border: 2px solid #f3f3f3;
+	border-top: 2px solid #3498db;
+	border-radius: 50%;
+	width: 16px;
+	height: 16px;
+	animation: spin 1s linear infinite;
+	display: inline-block;
+	margin-right: 0.5rem;
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+.header {
+	margin-bottom: 2rem;
+	text-align: center;
+}
+
+.titulo {
+	color: #1f2937;
+	font-size: 2rem;
+	font-weight: bold;
+	margin: 0;
+}
+
+.estadisticas {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 1rem;
+	margin-bottom: 2rem;
+}
+
+.estadisticaItem {
+	background: white;
+	padding: 1.5rem;
+	border-radius: 0.5rem;
+	border: 1px solid #e1f5fe;
+	box-shadow: 0 2px 4px rgba(33, 150, 243, 0.1);
+	text-align: center;
+}
+
+.estadisticaNumero {
+	display: block;
+	font-size: 2rem;
+	font-weight: bold;
+	color: #3b82f6;
+	margin-bottom: 0.5rem;
+}
+
+.estadisticaLabel {
+	color: #6b7280;
+	font-size: 0.9rem;
+	font-weight: 500;
+}
+
+.controles {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+	gap: 1rem;
+	margin-bottom: 1.5rem;
+	background: white;
+	padding: 1.5rem;
+	border-radius: 0.5rem;
+	border: 1px solid #e1f5fe;
+	box-shadow: 0 2px 4px rgba(33, 150, 243, 0.1);
+}
+
+.filtroGrupo {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.label {
+	font-weight: 600;
+	color: #374151;
+	font-size: 0.875rem;
+}
+
+.select {
+	padding: 0.5rem 0.75rem;
+	border: 1px solid #d1d5db;
+	border-radius: 0.375rem;
+	background-color: white;
+	font-size: 0.875rem;
+	transition: all 0.2s;
+}
+
+.select:focus {
+	outline: none;
+	border-color: #3b82f6;
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.btnLimpiar {
+	background: #6b7280;
+	color: white;
+	border: none;
+	padding: 0.5rem 1rem;
+	border-radius: 0.375rem;
+	font-weight: 500;
+	cursor: pointer;
+	transition: background-color 0.2s;
+	align-self: end;
+}
+
+.btnLimpiar:hover {
+	background: #4b5563;
+}
+
+.contador {
+	text-align: center;
+	color: #6b7280;
+	margin-bottom: 1rem;
+	font-size: 0.9rem;
+}
+
+.lotesProduccion{
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    background-color: #f8fdff;
+}
+
+.listaLotes {
+
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+	gap: 1.5rem;
+	margin-bottom: 2rem;
+}
+
+.cardLote {
+	background: white;
+	border: 1px solid #e5e7eb;
+	border-radius: 0.75rem;
+	padding: 1.5rem;
+	transition: all 0.3s ease;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.cardLote:hover {
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+	border-color: #3b82f6;
+	transform: translateY(-2px);
+}
+
+.cardHeader {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 1rem;
+	padding-bottom: 0.75rem;
+	border-bottom: 2px solid #f3f4f6;
+}
+
+.cardHeader h3 {
+	margin: 0;
+	color: #1f2937;
+	font-size: 1.25rem;
+	font-weight: 600;
+}
+
+.estado {
+	color: white;
+	padding: 0.25rem 0.75rem;
+	border-radius: 1rem;
+	font-size: 0.75rem;
+	font-weight: 600;
+	text-transform: uppercase;
+}
+
+.cardBody {
+	margin-bottom: 1.5rem;
+}
+
+.infoGrupo {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 0.75rem;
+	padding: 0.5rem 0;
+}
+
+.infoGrupo strong {
+	color: #374151;
+	font-size: 0.875rem;
+}
+
+.infoGrupo span {
+	color: #6b7280;
+	font-size: 0.875rem;
+}
+
+.cantidad {
+	font-weight: 600;
+}
+
+.cardFooter {
+	display: flex;
+	gap: 0.5rem;
+	flex-wrap: wrap;
+}
+
+.btnDetalles,
+.btnAjustar,
+.btnQR {
+	flex: 1;
+	padding: 0.5rem 1rem;
+	border: none;
+	border-radius: 0.375rem;
+	font-size: 0.75rem;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all 0.2s;
+	min-width: 80px;
+	text-align: center;
+}
+
+.btnDetalles {
+	background: #3b82f6;
+	color: white;
+}
+
+.btnDetalles:hover {
+	background: #2563eb;
+}
+
+.btnAjustar {
+	background: #f59e0b;
+	color: white;
+}
+
+.btnAjustar:hover {
+	background: #d97706;
+}
+
+.btnQR {
+	background: #10b981;
+	color: white;
+}
+
+.btnQR:hover {
+	background: #059669;
+}
+
+.btnQR:disabled {
+	background: #9ca3af;
+	cursor: not-allowed;
+}
+
+.sinResultados {
+	grid-column: 1 / -1;
+	text-align: center;
+	padding: 3rem;
+	color: #6b7280;
+	background: white;
+	border-radius: 0.5rem;
+	border: 2px dashed #d1d5db;
+}
+
+/* Paginación */
+.paginacion {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 1.5rem;
+	background: white;
+	border-radius: 0.5rem;
+	border: 1px solid #e1f5fe;
+	box-shadow: 0 2px 4px rgba(33, 150, 243, 0.1);
+}
+
+.btnPaginacion {
+	background: #3b82f6;
+	color: white;
+	border: none;
+	padding: 0.75rem 1.5rem;
+	border-radius: 0.375rem;
+	font-weight: 500;
+	cursor: pointer;
+	transition: background-color 0.2s;
+}
+
+.btnPaginacion:hover:not(:disabled) {
+	background: #2563eb;
+}
+
+.btnPaginacion:disabled {
+	background: #9ca3af;
+	cursor: not-allowed;
+}
+
+.infoPaginacion {
+	color: #6b7280;
+	font-weight: 500;
+}
+
+/* Modal Styles */
+.overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: rgba(0, 0, 0, 0.6);
+	z-index: 1000;
+}
+
+.modal {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	background: white;
+	border-radius: 0.75rem;
+	box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+		0 10px 10px -5px rgba(0, 0, 0, 0.04);
+	width: 90%;
+	max-width: 500px;
+	max-height: 90vh;
+	overflow: auto;
+	outline: none;
+}
+
+.modalContent {
+	padding: 2rem;
+}
+
+.modalTitulo {
+	margin: 0 0 1.5rem 0;
+	color: #1f2937;
+	font-size: 1.5rem;
+	font-weight: 600;
+	text-align: center;
+}
+
+.modalInfo {
+	background: #f8fafc;
+	padding: 1rem;
+	border-radius: 0.5rem;
+	margin-bottom: 1.5rem;
+	border-left: 4px solid #3b82f6;
+}
+
+.modalInfo p {
+	margin: 0.5rem 0;
+	color: #4b5563;
+}
+
+.qrContainer {
+	text-align: center;
+	margin-bottom: 1.5rem;
+}
+
+.qrImage {
+	justify-self: center;
+	max-width: 100%;
+	height: auto;
+	border: 1px solid #e5e7eb;
+	border-radius: 0.5rem;
+	padding: 1rem;
+	background: white;
+}
+
+.qrUrl {
+	margin-top: 1rem;
+	font-size: 0.75rem;
+	color: #6b7280;
+	word-break: break-all;
+	background: #f3f4f6;
+	padding: 0.5rem;
+	border-radius: 0.25rem;
+}
+
+.qrCargando {
+	padding: 2rem;
+	text-align: center;
+	color: #6b7280;
+}
+
+.modalActions {
+	display: flex;
+	gap: 1rem;
+	justify-content: space-between;
+}
+
+.btnModalCancelar {
+	background: #6b7280;
+	color: white;
+	border: none;
+	padding: 0.75rem 1.5rem;
+	border-radius: 0.375rem;
+	font-weight: 500;
+	cursor: pointer;
+	transition: background-color 0.2s;
+}
+
+.btnModalCancelar:hover {
+	background: #4b5563;
+}
+
+.btnModalDescargar {
+	background: #10b981;
+	color: white;
+	border: none;
+	padding: 0.75rem 1.5rem;
+	border-radius: 0.375rem;
+	font-weight: 500;
+	cursor: pointer;
+	transition: background-color 0.2s;
+}
+
+.btnModalDescargar:hover:not(:disabled) {
+	background: #059669;
+}
+
+.btnModalDescargar:disabled {
+	background: #9ca3af;
+	cursor: not-allowed;
+}
+
+.diasInfo{
+  text-align: end;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+	.lotesMateriaPrima {
+		padding: 1rem;
+	}
+
+	.controles {
+		grid-template-columns: 1fr;
+	}
+
+	.listaLotes {
+		grid-template-columns: 1fr;
+	}
+
+	.cardFooter {
+		flex-direction: column;
+	}
+
+	.paginacion {
+		flex-direction: column;
+		gap: 1rem;
+		text-align: center;
+	}
+
+	.modal {
+		width: 95%;
+		margin: 1rem;
+	}
+
+	.modalContent {
+		padding: 1.5rem;
+	}
+}
+
+@media (max-width: 480px) {
+	.estadisticas {
+		grid-template-columns: 1fr;
+	}
+
+	.infoGrupo {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.25rem;
+	}
+
+	.modalActions {
+		flex-direction: column;
+	}
 }

@@ -398,6 +398,7 @@
 }
 
 .qrImage {
+	justify-self: center;
 	max-width: 100%;
 	height: auto;
 	border: 1px solid #e5e7eb;
@@ -425,7 +426,7 @@
 .modalActions {
 	display: flex;
 	gap: 1rem;
-	justify-content: flex-end;
+	justify-content: space-between;
 }
 
 .btnModalCancelar {
