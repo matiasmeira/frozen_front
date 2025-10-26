@@ -20,6 +20,26 @@ const formatearPrecio = (precio) => {
   }).format(precio);
 };
 
+// Función para normalizar dirección
+const normalizarDireccion = (calle, altura, localidad) => {
+  if (!calle || !altura || !localidad) return null;
+  
+  // Normalizar: quitar espacios extras, capitalizar, etc.
+  const calleNormalizada = calle
+    .trim()
+    .toLowerCase()
+    .replace(/\b\w/g, l => l.toUpperCase())
+    .replace(/\s+/g, ' ');
+  
+  const localidadNormalizada = localidad
+    .trim()
+    .toLowerCase()
+    .replace(/\b\w/g, l => l.toUpperCase())
+    .replace(/\s+/g, ' ');
+  
+  return `${calleNormalizada} ${altura}, ${localidadNormalizada}, Argentina`;
+};
+
 function CrearOrdenDeVenta() {
   const [cantidadElementos, setCantidadElementos] = useState(1);
   const [clientes, setClientes] = useState([]);
@@ -28,6 +48,9 @@ function CrearOrdenDeVenta() {
   const [loading, setLoading] = useState(true);
   const [creatingOrder, setCreatingOrder] = useState(false);
   const [totalVenta, setTotalVenta] = useState(0);
+  const [direccionNormalizada, setDireccionNormalizada] = useState("");
+  const [mostrarMapa, setMostrarMapa] = useState(false);
+  const [coordenadas, setCoordenadas] = useState(null);
 
   const [fields, setFields] = useState([
     { id: "1", id_producto: "", cantidad: 1, unidad_medida: "", cantidad_disponible: 0, precio_unitario: 0, subtotal: 0, },
@@ -50,6 +73,18 @@ function CrearOrdenDeVenta() {
   useEffect(() => {
     calcularTotalVenta();
   }, [fields]);
+
+  // Normalizar dirección cuando cambien los campos relevantes
+  useEffect(() => {
+    if (orden.calle && orden.altura && orden.localidad) {
+      const direccion = normalizarDireccion(orden.calle, orden.altura, orden.localidad);
+      setDireccionNormalizada(direccion);
+    } else {
+      setDireccionNormalizada("");
+      setMostrarMapa(false);
+      setCoordenadas(null);
+    }
+  }, [orden.calle, orden.altura, orden.localidad]);
 
   const calcularTotalVenta = useCallback(() => {
     const total = fields.reduce((sum, field) => sum + field.subtotal, 0);
@@ -125,6 +160,32 @@ function CrearOrdenDeVenta() {
     } catch (error) {
       console.error(`Error obteniendo stock para producto ${id_producto}:`, error);
       return 0;
+    }
+  };
+
+  // Función para geocodificar la dirección
+  const geocodificarDireccion = async (direccion) => {
+    try {
+      // Usando Nominatim (OpenStreetMap) - servicio gratuito
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(direccion)}&limit=1&countrycodes=ar`
+      );
+      
+      const data = await response.json();
+      
+      if (data && data.length > 0) {
+        const { lat, lon } = data[0];
+        setCoordenadas({ lat: parseFloat(lat), lng: parseFloat(lon) });
+        setMostrarMapa(true);
+        toast.success("Dirección encontrada en el mapa");
+      } else {
+        toast.warning("No se pudo encontrar la dirección en el mapa");
+        setCoordenadas(null);
+      }
+    } catch (error) {
+      console.error("Error en geocodificación:", error);
+      toast.error("Error al buscar la dirección en el mapa");
+      setCoordenadas(null);
     }
   };
 
@@ -277,9 +338,6 @@ function CrearOrdenDeVenta() {
       const idsProductos = productosSeleccionados.map((field) => field.id_producto);
       const productosUnicos = new Set(idsProductos);
       if (idsProductos.length !== productosUnicos.size) { nuevosErrores.productos = "No puedes seleccionar el mismo producto más de una vez"; esValido = false; }
-      // Validación de stock (eliminada según tu pedido)
-      // const sinStock = productosSeleccionados.find(f => f.cantidad > f.cantidad_disponible);
-      // if(sinStock) { nuevosErrores.productos=`Stock insuf. p/ ${products.find(p=>p.id_producto.toString() === sinStock.id_producto)?.nombre}`; esValido=false;}
     }
     setErrors(nuevosErrores);
     return esValido;
@@ -298,7 +356,6 @@ function CrearOrdenDeVenta() {
       const usuarioData = localStorage.getItem('usuario');
       if (usuarioData) {
         const parsedData = JSON.parse(usuarioData);
-        // Asegúrate que 'id_empleado' sea el nombre correcto
         if (parsedData && parsedData.id_empleado) {
           idEmpleadoLogueado = parseInt(parsedData.id_empleado);
         } else {
@@ -332,7 +389,8 @@ function CrearOrdenDeVenta() {
     const nuevaOrden = {
       ...orden,
       productos: prodsEnviar,
-      id_empleado: idEmpleadoLogueado // ID del empleado agregado
+      id_empleado: idEmpleadoLogueado,
+      direccion_normalizada: direccionNormalizada // Guardar la dirección normalizada
     };
 
     console.log("Enviando orden:", nuevaOrden);
@@ -346,6 +404,9 @@ function CrearOrdenDeVenta() {
         setOrden({ id_cliente: "", id_prioridad: "", fecha_entrega: "", calle: "", altura: "", localidad: "", zona: "", productos: [], tipo_venta: "EMP" });
         setFields([{ id: "1", id_producto: "", cantidad: 1, unidad_medida: "", cantidad_disponible: 0, precio_unitario: 0, subtotal: 0, }]); setTotalVenta(0);
         setErrors({ cliente: "", prioridad: "", fecha_entrega: "", calle: "", altura: "", localidad: "", zona: "", productos: "" });
+        setDireccionNormalizada("");
+        setMostrarMapa(false);
+        setCoordenadas(null);
       } else {
         throw new Error(response.data?.message || `Error ${response.status}`);
       }
@@ -377,6 +438,15 @@ function CrearOrdenDeVenta() {
       '4': styles.prioridadUrgente
     };
     return classMap[idPrioridad] || styles.prioridadDisplayDiv;
+  };
+
+  // Función para mostrar/ocultar el mapa
+  const toggleMapa = () => {
+    if (direccionNormalizada && !mostrarMapa) {
+      geocodificarDireccion(direccionNormalizada);
+    } else {
+      setMostrarMapa(false);
+    }
   };
 
   if (loading) {
@@ -462,6 +532,49 @@ function CrearOrdenDeVenta() {
               />
               {errors.zona && (<span className={styles.errorText}>{errors.zona}</span>)}
             </div>
+
+            {/* Sección de Dirección Normalizada y Mapa */}
+            {direccionNormalizada && (
+              <div className={styles.direccionSection}>
+                <div className={styles.direccionNormalizada}>
+                  <label className={styles.fieldLabel}>Dirección Normalizada:</label>
+                  <div className={styles.direccionText}>{direccionNormalizada}</div>
+                  <button 
+                    type="button" 
+                    onClick={toggleMapa} 
+                    disabled={creatingOrder}
+                    className={`${styles.mapaButton} ${creatingOrder ? styles.disabledButton : ""}`}
+                  >
+                    {mostrarMapa ? 'Ocultar Mapa' : 'Ver en Mapa'}
+                  </button>
+                </div>
+
+                {mostrarMapa && coordenadas && (
+                  <div className={styles.mapaContainer}>
+                    <iframe
+                      width="100%"
+                      height="300"
+                      frameBorder="0"
+                      scrolling="no"
+                      marginHeight="0"
+                      marginWidth="0"
+                      src={`https://www.openstreetmap.org/export/embed.html?bbox=${coordenadas.lng-0.01}%2C${coordenadas.lat-0.01}%2C${coordenadas.lng+0.01}%2C${coordenadas.lat+0.01}&layer=mapnik&marker=${coordenadas.lat}%2C${coordenadas.lng}`}
+                      title="Mapa de ubicación"
+                    />
+                    <br/>
+                    <small>
+                      <a 
+                        href={`https://www.openstreetmap.org/?mlat=${coordenadas.lat}&mlon=${coordenadas.lng}#map=16/${coordenadas.lat}/${coordenadas.lng}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                      >
+                        Ver mapa más grande
+                      </a>
+                    </small>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className={styles.productsSection}>
               <h2 className={styles.sectionTitle}>Productos</h2>

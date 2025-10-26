@@ -11,7 +11,7 @@ import CrearOrdenDeVenta from "./pages/CrearOrdenDeVenta/CrearOrdenDeVenta";
 import CrearOrdenProduccion from "./pages/CrearOrdenProduccion/CrearOrdenProduccion";
 import FormularioEmpleado from "./pages/FormularioEmpleado/FormularioEmpleado";
 import VerOrdenesProduccion from "./pages/VerOrdenesProduccion/VerOrdenesProduccion";
-import TablaStockProductos from "./pages/VerStockProductos/TablaStockProductos";
+import GestionProductosTerminados from "./pages/VerStockProductos/GestionProductosTerminados";
 import GeneradorFactura from "./pages/GeneradorFactura/GeneradorFactura";
 import VerOrdenesCompra from "./pages/VerOrdenesCompra/VerOrdenesCompra";
 import GestionarEntrega from './pages/GestionarEntrega/GestionarEntrega';
@@ -61,7 +61,7 @@ function App() {
 							<Route path="/crearOrdenProduccion" element={<CrearOrdenProduccion />}/>
 							<Route path="/crearOrdenCompra" element={<NuevaOrdenCompra />}/>
 							<Route path="/verOrdenesProduccion" element={<VerOrdenesProduccion />}/>
-							<Route path="/verStockProductos" element={<TablaStockProductos />}/>
+							<Route path="/verStockProductos" element={<GestionProductosTerminados />}/>
 							<Route path="/lotesProductos" element={<LotesProductos />}/>
 							<Route path="/GestionMateriasPrimas" element={<GestionMateriasPrimas/>}/>
 							<Route path="/VerOrdenesCompra" element={<VerOrdenesCompra/>}/>
