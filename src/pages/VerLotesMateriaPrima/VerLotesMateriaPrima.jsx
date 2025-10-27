@@ -52,6 +52,8 @@ const VerLotesMateriaPrima = () => {
 					LotesMateriaPrimaService.transformarLoteDTO(lote, estadosData)
 				);
 
+				console.log(estadosData)
+
 				setLotes(lotesTransformados);
 				setLotesFiltrados(lotesTransformados);
 				setEstadosLotes(estadosData);
@@ -227,9 +229,9 @@ const VerLotesMateriaPrima = () => {
 						className={styles.select}
 					>
 						<option value="todos">Todos los estados</option>
-						{estadosUnicos.map((estado) => (
-							<option key={estado} value={estado}>
-								{estado.charAt(0).toUpperCase() + estado.slice(1)}
+						{estadosLotes.map((estado) => (
+							<option key={estado.id_estado_lote_materia_prima} value={estado.descripcion}>
+								{estado.descripcion}
 							</option>
 						))}
 					</select>
