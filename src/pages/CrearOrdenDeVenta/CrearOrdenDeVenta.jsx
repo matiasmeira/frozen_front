@@ -591,7 +591,7 @@ function CrearOrdenDeVenta() {
                       <div className={styles.productField}>
                         <label className={styles.fieldLabel}>Stock Disponible</label>
                         <div className={`${styles.stockDisplay} ${styles.displayField} ${creatingOrder ? styles.disabledInput : ""}`}>
-                          {field.id_producto ? `${field.cantidad_disponible} ${field.unidad_medida}` : "-"}
+                          {field.id_producto ? `${field.cantidad_disponible} ` : "-"}
                         </div>
                       </div>
                       <div className={styles.productField}>
