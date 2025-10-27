@@ -308,18 +308,6 @@ const cancelarOrden = async (idOrdenVenta) => {
     navigate(`/generar-factura/${idOrdenVenta}`);
   };
 
-    // Función para navegar al formulario de entrega
-  const handleGestionarEntrega = (idOrdenVenta) => {
-    navigate(`/gestionar-entrega/${idOrdenVenta}`);
-  };
-
-  // Función para verificar si una orden puede gestionar entrega - NUEVA FUNCIÓN
-  const puedeGestionarEntrega = (orden) => {
-    const idEstadoVenta = orden.estado_venta?.id_estado_venta || orden.id_estado_venta;
-    // Solo permitir para órdenes con estado "Pagada" (id_estado_venta = 1)
-    return idEstadoVenta === 1;
-  };
-
   // Función para verificar si una orden puede ser facturada - MODIFICADA
   const puedeFacturarOrden = (orden) => {
     // Solo permitir facturar órdenes con id_estado_venta = 3 ("pendiente de pago")
@@ -836,18 +824,6 @@ const cancelarOrden = async (idOrdenVenta) => {
 
               {/* BOTONES DE ACCIÓN - INCLUYENDO FACTURAR Y GESTIONAR ENTREGA */}
               <div className={styles.botonesAccion}>
-                {/* Botón para gestionar entrega - SOLO SE MUESTRA SI id_estado_venta = 1 */}
-                {puedeGestionarEntrega(orden) && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleGestionarEntrega(orden.id_orden_venta);
-                    }}
-                    className={styles.botonEntrega}
-                  >
-                    Gestionar Entrega
-                  </button>
-                )}
                 
                 {/* Botón para facturar - SOLO SE MUESTRA SI id_estado_venta = 3 */}
                 {puedeFacturarOrden(orden) && (
