@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import QRCode from "react-qr-code";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
+import Modal from "react-modal";
+import QRCode from "qrcode";
 import Select from "react-select";
 import styles from "./LotesProductos.module.css";
 import { Navigate } from "react-router-dom";
+
+// Configurar el modal para accesibilidad
+Modal.setAppElement("#root");
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -19,7 +21,6 @@ const LotesProductos = ({ products }) => {
 	const [lotes, setLotes] = useState([]);
 	const [lotesFiltrados, setLotesFiltrados] = useState([]);
 	const [lotesLoading, setLotesLoading] = useState(true);
-	const [generandoQR, setGenerandoQR] = useState(null);
 
 	// Estados para paginación SERVER-SIDE
 	const [paginaActual, setPaginaActual] = useState(1);
@@ -33,6 +34,12 @@ const LotesProductos = ({ products }) => {
 
 	// Estados disponibles desde el endpoint
 	const [estadosLotes, setEstadosLotes] = useState([]);
+
+	// Estados para el modal de QR
+	const [modalQRAbierto, setModalQRAbierto] = useState(false);
+	const [qrImage, setQrImage] = useState("");
+	const [loteSeleccionado, setLoteSeleccionado] = useState(null);
+	const [generandoQR, setGenerandoQR] = useState(false);
 
 	// Fetch estados de lotes
 	const fetchEstadosLotes = async () => {
@@ -211,171 +218,52 @@ const LotesProductos = ({ products }) => {
 		return coloresEstados[idEstado] || "#95a5a6"; // Color por defecto gris
 	};
 
-	// Función para generar y descargar QR en PDF
-	const generarQRPDF = async (lote) => {
+	// Función para generar y mostrar QR
+	const generarYMostrarQR = async (lote) => {
+		setGenerandoQR(true);
+		setLoteSeleccionado(lote);
+
 		try {
-			setGenerandoQR(lote.id_lote_produccion);
+			// Construir la URL para el QR
+			const urlQR = `https://frozen-front-phi.vercel.app/trazabilidadLote/${lote.id_lote_produccion}`;
 
-			const urlTrazabilidad = `https://frozen-front-phi.vercel.app/trazabilidadLote/${lote.id_lote_produccion}`;
-
-			const qrContainer = document.createElement("div");
-			qrContainer.style.cssText = `
-        position: fixed;
-        top: -1000px;
-        left: -1000px;
-        width: 300px;
-        height: 400px;
-        background: white;
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        font-family: Arial, sans-serif;
-        box-sizing: border-box;
-      `;
-
-			const contenido = `
-        <div style="text-align: center; margin-bottom: 20px;">
-          <h2 style="margin: 0 0 10px 0; color: #2c3e50; font-size: 18px; font-weight: bold;">Lote de Producción</h2>
-          <h3 style="margin: 0 0 15px 0; color: #3498db; font-size: 16px; font-weight: 600;">${
-						lote.producto_nombre
-					}</h3>
-        </div>
-        <div id="qr-code-container" style="margin-bottom: 20px; display: flex; justify-content: center; align-items: center; width: 200px; height: 200px; background: white; border: 1px solid #ddd; padding: 10px;">
-        </div>
-        <div style="text-align: center; font-size: 12px; color: #666; line-height: 1.4;">
-          <p style="margin: 5px 0;"><strong>Lote #${
-						lote.id_lote_produccion
-					}</strong></p>
-          <p style="margin: 5px 0;">Producción: ${formatDate(
-						lote.fecha_produccion
-					)}</p>
-          <p style="margin: 5px 0;">Vencimiento: ${formatDate(
-						lote.fecha_vencimiento
-					)}</p>
-          <p style="margin: 5px 0;">Escanea para ver la trazabilidad</p>
-        </div>
-      `;
-
-			qrContainer.innerHTML = contenido;
-			document.body.appendChild(qrContainer);
-
-			const qrCodeContainer = qrContainer.querySelector("#qr-code-container");
-			const qrCodeElement = document.createElement("div");
-			qrCodeElement.style.width = "180px";
-			qrCodeElement.style.height = "180px";
-
-			const { createElement } = require("react");
-			const { createRoot } = require("react-dom/client");
-			const QRCodeComponent = createElement(QRCode, {
-				value: urlTrazabilidad,
-				size: 180,
-				level: "M",
-				bgColor: "#ffffff",
-				fgColor: "#000000",
+			// Generar el QR code
+			const qrDataURL = await QRCode.toDataURL(urlQR, {
+				width: 300,
+				margin: 2,
+				color: {
+					dark: "#2c3e50",
+					light: "#FFFFFF",
+				},
 			});
 
-			const root = createRoot(qrCodeContainer);
-			root.render(QRCodeComponent);
-
-			await new Promise((resolve) => setTimeout(resolve, 500));
-
-			const canvas = await html2canvas(qrContainer, {
-				scale: 2,
-				useCORS: true,
-				allowTaint: false,
-				backgroundColor: "#ffffff",
-				logging: false,
-			});
-
-			root.unmount();
-			document.body.removeChild(qrContainer);
-
-			const imgData = canvas.toDataURL("image/png");
-			const pdf = new jsPDF("p", "mm", "a4");
-			const pdfWidth = pdf.internal.pageSize.getWidth();
-			const pdfHeight = pdf.internal.pageSize.getHeight();
-
-			const imgWidth = 150;
-			const imgHeight = 200;
-			const x = (pdfWidth - imgWidth) / 2;
-			const y = (pdfHeight - imgHeight) / 2;
-
-			pdf.addImage(imgData, "PNG", x, y, imgWidth, imgHeight);
-			pdf.save(
-				`QR_Lote_${lote.id_lote_produccion}_${lote.producto_nombre.replace(
-					/\s+/g,
-					"_"
-				)}.pdf`
-			);
-		} catch (error) {
-			console.error("Error generando QR PDF:", error);
-			try {
-				await generarQRPDFAlternativo(lote);
-			} catch (altError) {
-				console.error("Error con método alternativo:", altError);
-				alert("Error al generar el código QR. Por favor, intenta nuevamente.");
-			}
+			setQrImage(qrDataURL);
+			setModalQRAbierto(true);
+		} catch (err) {
+			console.error("Error generando QR:", err);
+			alert("Error al generar el código QR");
 		} finally {
-			setGenerandoQR(null);
+			setGenerandoQR(false);
 		}
 	};
 
-	// Método alternativo usando qrcode library directamente
-	const generarQRPDFAlternativo = async (lote) => {
-		const QRCodeGenerator = await import("qrcode");
-		const urlTrazabilidad = `https://frozen-front-phi.vercel.app/trazabilidadLote/${lote.id_lote_produccion}`;
+	// Función para cerrar el modal de QR
+	const cerrarModalQR = () => {
+		setModalQRAbierto(false);
+		setQrImage("");
+		setLoteSeleccionado(null);
+	};
 
-		const qrDataURL = await QRCodeGenerator.toDataURL(urlTrazabilidad, {
-			width: 200,
-			height: 200,
-			margin: 1,
-			color: {
-				dark: "#000000",
-				light: "#FFFFFF",
-			},
-		});
+	// Función para descargar el QR
+	const descargarQR = () => {
+		if (!qrImage) return;
 
-		const pdf = new jsPDF("p", "mm", "a4");
-		const pdfWidth = pdf.internal.pageSize.getWidth();
-
-		pdf.setFontSize(18);
-		pdf.setFont("helvetica", "bold");
-		pdf.text("Lote de Producción", pdfWidth / 2, 30, { align: "center" });
-
-		pdf.setFontSize(16);
-		pdf.setFont("helvetica", "normal");
-		pdf.text(lote.producto_nombre, pdfWidth / 2, 45, { align: "center" });
-
-		pdf.addImage(qrDataURL, "PNG", (pdfWidth - 80) / 2, 60, 80, 80);
-
-		pdf.setFontSize(12);
-		pdf.text(`Lote #${lote.id_lote_produccion}`, pdfWidth / 2, 155, {
-			align: "center",
-		});
-		pdf.text(
-			`Producción: ${formatDate(lote.fecha_produccion)}`,
-			pdfWidth / 2,
-			165,
-			{ align: "center" }
-		);
-		pdf.text(
-			`Vencimiento: ${formatDate(lote.fecha_vencimiento)}`,
-			pdfWidth / 2,
-			175,
-			{ align: "center" }
-		);
-		pdf.text("Escanea para ver la trazabilidad", pdfWidth / 2, 185, {
-			align: "center",
-		});
-
-		pdf.save(
-			`QR_Lote_${lote.id_lote_produccion}_${lote.producto_nombre.replace(
-				/\s+/g,
-				"_"
-			)}.pdf`
-		);
+		const link = document.createElement("a");
+		link.href = qrImage;
+		link.download = `QR_Lote_${loteSeleccionado.id_lote_produccion}.png`;
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
 	};
 
 	// Función para limpiar todos los filtros
@@ -610,10 +498,12 @@ const LotesProductos = ({ products }) => {
 									<button className={styles.btnAjustar}>Ajustar Stock</button>
 									<button
 										className={styles.btnQR}
-										onClick={() => generarQRPDF(lote)}
-										disabled={generandoQR === lote.id_lote_produccion}
+										onClick={() => generarYMostrarQR(lote)}
+										disabled={generandoQR}
 									>
-										{generandoQR === lote.id_lote_produccion ? (
+										{generandoQR &&
+										loteSeleccionado?.id_lote_produccion ===
+											lote.id_lote_produccion ? (
 											<>
 												<div className={styles.spinnerSmall}></div>
 												Generando...
@@ -667,6 +557,82 @@ const LotesProductos = ({ products }) => {
 					</button>
 				</div>
 			)}
+
+			{/* Modal de QR */}
+			<Modal
+				isOpen={modalQRAbierto}
+				onRequestClose={cerrarModalQR}
+				className={styles.modal}
+				overlayClassName={styles.overlay}
+				contentLabel="Código QR del Lote"
+			>
+				<div className={styles.modalContent}>
+					<h2 className={styles.modalTitulo}>
+						QR para Lote #{loteSeleccionado?.id_lote_produccion}
+					</h2>
+
+					{loteSeleccionado && (
+						<div className={styles.modalInfo}>
+							<p>
+								<strong>Producto:</strong> {loteSeleccionado.producto_nombre}
+							</p>
+							<p>
+								<strong>Cantidad Disponible:</strong> {loteSeleccionado.cantidad_disponible} {loteSeleccionado.unidad_medida}
+							</p>
+							<p>
+								<strong>Estado:</strong>{" "}
+								{obtenerNombreEstado(
+									loteSeleccionado.id_estado_lote_produccion
+								)}
+							</p>
+							<p>
+								<strong>Producción:</strong>{" "}
+								{formatDate(loteSeleccionado.fecha_produccion)}
+							</p>
+							{loteSeleccionado.fecha_vencimiento && (
+								<p>
+									<strong>Vencimiento:</strong>{" "}
+									{formatDate(loteSeleccionado.fecha_vencimiento)}
+								</p>
+							)}
+						</div>
+					)}
+
+					<div className={styles.qrContainer}>
+						{qrImage ? (
+							<>
+								<img
+									src={qrImage}
+									alt={`Código QR para Lote ${loteSeleccionado?.id_lote_produccion}`}
+									className={styles.qrImage}
+								/>
+								<p className={styles.qrUrl}>
+									URL: https://frozen-front-phi.vercel.app/trazabilidadLote/
+									{loteSeleccionado?.id_lote_produccion}
+								</p>
+							</>
+						) : (
+							<div className={styles.qrCargando}>
+								<div className={styles.spinner}></div>
+								<p>Generando código QR...</p>
+							</div>
+						)}
+					</div>
+
+					<div className={styles.modalActions}>
+						<button onClick={cerrarModalQR} className={styles.btnModalCancelar}>
+							Cerrar
+						</button>
+						<button
+							onClick={descargarQR}
+							className={styles.btnModalDescargar}
+							disabled={!qrImage}
+						>
+							Descargar QR
+						</button>
+					</div>
+				</div>
+			</Modal>
 		</div>
 	);
 };
