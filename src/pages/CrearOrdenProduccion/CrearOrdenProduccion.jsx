@@ -42,9 +42,9 @@ const CrearOrdenProduccion = () => {
 	});
 
 	// Nuevos estados para el porcentaje de desperdicio
-	const [porcentajeDesperdicio, setPorcentajeDesperdicio] = useState(null);
-	const [cantidadRecomendada, setCantidadRecomendada] = useState(null);
-	const [loadingDesperdicio, setLoadingDesperdicio] = useState(false);
+const [porcentajeDesperdicio, setPorcentajeDesperdicio] = useState(null);
+const [cantidadNetaEstimada, setCantidadNetaEstimada] = useState(null); // <-- NUEVO ESTADO
+const [loadingDesperdicio, setLoadingDesperdicio] = useState(false);
 
 	// Estado para controlar si el formulario es válido
 	const [isFormValid, setIsFormValid] = useState(false);
@@ -176,7 +176,7 @@ const CrearOrdenProduccion = () => {
 	const fetchPorcentajeDesperdicio = async (idProducto) => {
 		if (!idProducto) {
 			setPorcentajeDesperdicio(null);
-			setCantidadRecomendada(null);
+			setCantidadNetaEstimada(null);
 			return;
 		}
 
@@ -190,7 +190,7 @@ const CrearOrdenProduccion = () => {
 		} catch (error) {
 			console.error("Error al cargar porcentaje de desperdicio:", error);
 			setPorcentajeDesperdicio(null);
-			setCantidadRecomendada(null);
+			setCantidadNetaEstimada(null);
 			// No mostramos alerta para no molestar al usuario, ya que es información adicional
 		} finally {
 			setLoadingDesperdicio(false);
@@ -198,16 +198,26 @@ const CrearOrdenProduccion = () => {
 	};
 
 	// Función para calcular la cantidad recomendada
-	const calcularCantidadRecomendada = (cantidadSolicitada, porcentaje) => {
-		if (!cantidadSolicitada || !porcentaje) return null;
-		
-		const cantidad = parseFloat(cantidadSolicitada);
-		const factorDesperdicio = 1 + (porcentaje / 100);
-		const cantidadCalculada = cantidad * factorDesperdicio;
-		
-		// Redondear a 2 decimales
-		return Math.round(cantidadCalculada * 100) / 100;
-	};
+const calcularCantidadNetaEstimada = (cantidadBruta, porcentaje) => {
+    if (!cantidadBruta || porcentaje === null || isNaN(cantidadBruta) || isNaN(porcentaje)) {
+        return null;
+    }
+    
+    const cantidadGross = parseFloat(cantidadBruta);
+    if (cantidadGross <= 0) {
+      return null;
+    }
+    
+    // --- NUEVO CÁLCULO ---
+    // Convertir 4.21% a 0.0421
+    const pjeDecimal = porcentaje / 100;
+
+    // 1. Calcular la cantidad neta (Gross * (1 - waste))
+    const cantidadNeta = cantidadGross * (1 - pjeDecimal);
+    
+    // 2. Redondear a 2 decimales para mostrar
+    return Math.floor(cantidadNeta);
+};
 
 	// Función para obtener líneas de producción compatibles con el producto
 	const fetchLineasPorProducto = async (idProducto) => {
@@ -407,7 +417,7 @@ const CrearOrdenProduccion = () => {
 			} else {
 				setFilteredLineOptions([]);
 				setPorcentajeDesperdicio(null);
-				setCantidadRecomendada(null);
+				setCantidadNetaEstimada(null);
 			}
 		} else {
 			setFormData((prev) => ({
@@ -416,10 +426,15 @@ const CrearOrdenProduccion = () => {
 			}));
 
 			// Recalcular cantidad recomendada cuando cambia la cantidad
-			if (name === "quantity" && value && porcentajeDesperdicio) {
-				const recomendada = calcularCantidadRecomendada(value, porcentajeDesperdicio);
-				setCantidadRecomendada(recomendada);
-			}
+if (name === "quantity" && porcentajeDesperdicio !== null) {
+    
+    const netaEstimada = calcularCantidadNetaEstimada(value, porcentajeDesperdicio);
+    setCantidadNetaEstimada(netaEstimada);
+
+} else if (name === "quantity" && porcentajeDesperdicio === null) {
+    // Limpiamos si borra la cantidad o no hay pje
+    setCantidadNetaEstimada(null);
+}
 		}
 
 		// Si el campo ya fue tocado, validar en tiempo real
@@ -545,7 +560,7 @@ const CrearOrdenProduccion = () => {
 		setIsFormValid(false);
 		setSubmitAttempted(false);
 		setPorcentajeDesperdicio(null);
-		setCantidadRecomendada(null);
+		setCantidadNetaEstimada(null);
 	};
 
 	// Función para verificar si un campo debe mostrar error
@@ -701,10 +716,10 @@ const CrearOrdenProduccion = () => {
 													<small className={styles.warningText}>
 														📊 Porcentaje de desperdicio histórico: <strong>{porcentajeDesperdicio}%</strong>
 													</small>
-													{cantidadRecomendada && (
-														<small className={styles.recommendationText}>
-															💡 Recomendación: Produzca <strong>{cantidadRecomendada} {selectedProductUnit}</strong> para obtener {formData.quantity} {selectedProductUnit} netos
-														</small>
+											{cantidadNetaEstimada !== null && cantidadNetaEstimada > 0 && (
+    <small className={styles.recommendationText}>
+💡 Información: Al producir <strong>{formData.quantity} {selectedProductUnit}</strong>, 
+        se estima obtener <strong>{cantidadNetaEstimada} {selectedProductUnit}</strong> netas.</small>
 													)}
 												</>
 											) : (
