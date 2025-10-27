@@ -177,7 +177,6 @@ const VerLotesProduccion = () => {
 	};
 
 	// Estados únicos para el filtro
-	const estadosUnicos = [...new Set(lotes.map((lote) => lote.estado))];
 
 	// Función para formatear fecha
 	const formatearFecha = (fechaISO) => {
@@ -293,9 +292,9 @@ const VerLotesProduccion = () => {
 						className={styles.select}
 					>
 						<option value="todos">Todos los estados</option>
-						{estadosUnicos.map((estado) => (
-							<option key={estado} value={estado}>
-								{estado}
+						{estadosLotes.map((estado) => (
+							<option key={estado.id_estado_lote_produccion} value={estado.id_estado_lote_produccion}>
+								{estado.descripcion}
 							</option>
 						))}
 					</select>
