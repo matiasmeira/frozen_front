@@ -11,10 +11,12 @@ import CrearOrdenDeVenta from "./pages/CrearOrdenDeVenta/CrearOrdenDeVenta";
 import CrearOrdenProduccion from "./pages/CrearOrdenProduccion/CrearOrdenProduccion";
 import FormularioEmpleado from "./pages/FormularioEmpleado/FormularioEmpleado";
 import VerOrdenesProduccion from "./pages/VerOrdenesProduccion/VerOrdenesProduccion";
-import TablaStockProductos from "./pages/VerStockProductos/TablaStockProductos";
+import GestionProductosTerminados from "./pages/VerStockProductos/GestionProductosTerminados";
 import GeneradorFactura from "./pages/GeneradorFactura/GeneradorFactura";
 import VerOrdenesCompra from "./pages/VerOrdenesCompra/VerOrdenesCompra";
 import GestionarEntrega from './pages/GestionarEntrega/GestionarEntrega';
+import VerLotesProduccion from "./pages/VerLotesProduccion/VerLotesProduccion"
+import TrazarLoteProduccion from "./pages/TrazarLoteProduccion/TrazarLoteProduccion"
 import NuevaOrdenCompra from './pages/CrearOrdenDeCompra/NuevaOrdenCompra';
 import LotesProductos from './pages/ListaLotesProductos/LotesProductos';
 import TrazarLoteMateriaPrima from "./pages/TrazarLoteMateriaPrima/TrazarLoteMateriaPrima";
@@ -61,15 +63,17 @@ function App() {
 							<Route path="/crearOrdenProduccion" element={<CrearOrdenProduccion />}/>
 							<Route path="/crearOrdenCompra" element={<NuevaOrdenCompra />}/>
 							<Route path="/verOrdenesProduccion" element={<VerOrdenesProduccion />}/>
-							<Route path="/verStockProductos" element={<TablaStockProductos />}/>
+							<Route path="/verStockProductos" element={<GestionProductosTerminados />}/>
 							<Route path="/lotesProductos" element={<LotesProductos />}/>
 							<Route path="/GestionMateriasPrimas" element={<GestionMateriasPrimas/>}/>
 							<Route path="/VerOrdenesCompra" element={<VerOrdenesCompra/>}/>
 							<Route path="/verOrdenesDespacho" element={<OrdenesDespacho/>}/>
+							<Route path="/VerLotesProduccion/:id_Producto" element={<VerLotesProduccion/>}/>
 							<Route path="/gestionar-entrega/:idOrdenVenta" element={<GestionarEntrega />} />
 							<Route path="/VerLotesMateriaPrima/:id_Materia_Prima" element={<VerLotesMateriaPrima/>}/>
 							<Route path="/trazar_lote_materia_prima/:id_Materia_Prima" element={<TrazarLoteMateriaPrima/>}/>
 							<Route path="/trazabilidadOrdenVenta" element={<TrazabilidadOrdenVenta />}/>
+							<Route path="/trazar_lote_produccion/:id_Lote_Produccion" element={<TrazarLoteProduccion />} />
 							<Route path="/trazabilidadLote/:id_lote" element={<TrazarLoteProducto/>}/>
 							<Route path="/lotesMateriasPrimas" element={<VerLotesMateriaPrimaGeneral/>}/>
 						{/*</Route>*/}

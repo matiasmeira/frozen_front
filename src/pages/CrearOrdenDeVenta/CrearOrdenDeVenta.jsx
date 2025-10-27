@@ -20,6 +20,26 @@ const formatearPrecio = (precio) => {
   }).format(precio);
 };
 
+// Función para normalizar dirección
+const normalizarDireccion = (calle, altura, localidad) => {
+  if (!calle || !altura || !localidad) return null;
+  
+  // Normalizar: quitar espacios extras, capitalizar, etc.
+  const calleNormalizada = calle
+    .trim()
+    .toLowerCase()
+    .replace(/\b\w/g, l => l.toUpperCase())
+    .replace(/\s+/g, ' ');
+  
+  const localidadNormalizada = localidad
+    .trim()
+    .toLowerCase()
+    .replace(/\b\w/g, l => l.toUpperCase())
+    .replace(/\s+/g, ' ');
+  
+  return `${calleNormalizada} ${altura}, ${localidadNormalizada}, Argentina`;
+};
+
 function CrearOrdenDeVenta() {
   const [cantidadElementos, setCantidadElementos] = useState(1);
   const [clientes, setClientes] = useState([]);
@@ -28,28 +48,38 @@ function CrearOrdenDeVenta() {
   const [loading, setLoading] = useState(true);
   const [creatingOrder, setCreatingOrder] = useState(false);
   const [totalVenta, setTotalVenta] = useState(0);
+  const [direccionNormalizada, setDireccionNormalizada] = useState("");
+  const [mostrarMapa, setMostrarMapa] = useState(false);
+  const [coordenadas, setCoordenadas] = useState(null);
 
   const [fields, setFields] = useState([
     { id: "1", id_producto: "", cantidad: 1, unidad_medida: "", cantidad_disponible: 0, precio_unitario: 0, subtotal: 0, },
   ]);
 
   const [orden, setOrden] = useState({
-    id_cliente: "", id_prioridad: "", fecha_entrega: "", calle: "", altura: "", localidad: "", zona: "", productos: [], tipo_venta: "EMP"
+    id_cliente: "", id_prioridad: "", fecha_entrega: "", calle: "", altura: "", localidad: "", productos: [], tipo_venta: "EMP"
   });
 
   const [errors, setErrors] = useState({
-    cliente: "", prioridad: "", fecha_entrega: "", calle: "", altura: "", localidad: "", zona: "", productos: "",
+    cliente: "", prioridad: "", fecha_entrega: "", calle: "", altura: "", localidad: "", productos: "",
   });
-
-  // Opciones para el dropdown de zona
-  const opcionesZona = [
-    { value: "N", label: "Norte (N)" }, { value: "S", label: "Sur (S)" }, { value: "E", label: "Este (E)" }, { value: "O", label: "Oeste (O)" }
-  ];
 
   // Calcular el total cada vez que cambien los fields
   useEffect(() => {
     calcularTotalVenta();
   }, [fields]);
+
+  // Normalizar dirección cuando cambien los campos relevantes
+  useEffect(() => {
+    if (orden.calle && orden.altura && orden.localidad) {
+      const direccion = normalizarDireccion(orden.calle, orden.altura, orden.localidad);
+      setDireccionNormalizada(direccion);
+    } else {
+      setDireccionNormalizada("");
+      setMostrarMapa(false);
+      setCoordenadas(null);
+    }
+  }, [orden.calle, orden.altura, orden.localidad]);
 
   const calcularTotalVenta = useCallback(() => {
     const total = fields.reduce((sum, field) => sum + field.subtotal, 0);
@@ -128,6 +158,32 @@ function CrearOrdenDeVenta() {
     }
   };
 
+  // Función para geocodificar la dirección
+  const geocodificarDireccion = async (direccion) => {
+    try {
+      // Usando Nominatim (OpenStreetMap) - servicio gratuito
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(direccion)}&limit=1&countrycodes=ar`
+      );
+      
+      const data = await response.json();
+      
+      if (data && data.length > 0) {
+        const { lat, lon } = data[0];
+        setCoordenadas({ lat: parseFloat(lat), lng: parseFloat(lon) });
+        setMostrarMapa(true);
+        toast.success("Dirección encontrada en el mapa");
+      } else {
+        toast.warning("No se pudo encontrar la dirección en el mapa");
+        setCoordenadas(null);
+      }
+    } catch (error) {
+      console.error("Error en geocodificación:", error);
+      toast.error("Error al buscar la dirección en el mapa");
+      setCoordenadas(null);
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setOrden(prev => ({ ...prev, [name]: value, }));
@@ -172,12 +228,6 @@ function CrearOrdenDeVenta() {
     }
   };
   // --- FIN LÓGICA PRIORIDAD ---
-
-  const handleZonaChange = (selectedOption) => {
-    const value = selectedOption?.value || "";
-    setOrden(prev => ({ ...prev, zona: value, }));
-    if (errors.zona) { setErrors(prev => ({ ...prev, zona: "", })); }
-  };
 
   const obtenerClientesNombres = useCallback(() => {
     return clientes.sort((a,b) => (a.nombre || '').localeCompare(b.nombre || ''))
@@ -247,7 +297,7 @@ function CrearOrdenDeVenta() {
   };
 
   const validarFormulario = () => {
-    const nuevosErrores = { cliente: "", prioridad: "", fecha_entrega: "", calle: "", altura: "", localidad: "", zona: "", productos: "" };
+    const nuevosErrores = { cliente: "", prioridad: "", fecha_entrega: "", calle: "", altura: "", localidad: "", productos: "" };
     let esValido = true;
 
     if (!orden.id_cliente) { nuevosErrores.cliente = "Debes seleccionar un cliente"; esValido = false; }
@@ -269,7 +319,6 @@ function CrearOrdenDeVenta() {
     if (!orden.calle?.trim()) { nuevosErrores.calle = "Debes ingresar la calle"; esValido = false; }
     if (!orden.altura?.trim()) { nuevosErrores.altura = "Debes ingresar la altura"; esValido = false; }
     if (!orden.localidad?.trim()) { nuevosErrores.localidad = "Debes ingresar la localidad"; esValido = false; }
-    if (!orden.zona?.trim()) { nuevosErrores.zona = "Debes seleccionar una zona"; esValido = false; }
 
     const productosSeleccionados = fields.filter((field) => field.id_producto !== "");
     if (productosSeleccionados.length === 0) { nuevosErrores.productos = "Debes seleccionar al menos un producto"; esValido = false; }
@@ -277,9 +326,6 @@ function CrearOrdenDeVenta() {
       const idsProductos = productosSeleccionados.map((field) => field.id_producto);
       const productosUnicos = new Set(idsProductos);
       if (idsProductos.length !== productosUnicos.size) { nuevosErrores.productos = "No puedes seleccionar el mismo producto más de una vez"; esValido = false; }
-      // Validación de stock (eliminada según tu pedido)
-      // const sinStock = productosSeleccionados.find(f => f.cantidad > f.cantidad_disponible);
-      // if(sinStock) { nuevosErrores.productos=`Stock insuf. p/ ${products.find(p=>p.id_producto.toString() === sinStock.id_producto)?.nombre}`; esValido=false;}
     }
     setErrors(nuevosErrores);
     return esValido;
@@ -298,7 +344,6 @@ function CrearOrdenDeVenta() {
       const usuarioData = localStorage.getItem('usuario');
       if (usuarioData) {
         const parsedData = JSON.parse(usuarioData);
-        // Asegúrate que 'id_empleado' sea el nombre correcto
         if (parsedData && parsedData.id_empleado) {
           idEmpleadoLogueado = parseInt(parsedData.id_empleado);
         } else {
@@ -332,7 +377,8 @@ function CrearOrdenDeVenta() {
     const nuevaOrden = {
       ...orden,
       productos: prodsEnviar,
-      id_empleado: idEmpleadoLogueado // ID del empleado agregado
+      id_empleado: idEmpleadoLogueado,
+      direccion_normalizada: direccionNormalizada // Guardar la dirección normalizada
     };
 
     console.log("Enviando orden:", nuevaOrden);
@@ -343,9 +389,12 @@ function CrearOrdenDeVenta() {
       const response = await api.post("/ventas/ordenes-venta/crear/", nuevaOrden);
       if (response.status === 200 || response.status === 201) {
         toast.update(toastId, { render: `¡Orden #${response.data?.id_orden_venta || ''} creada!`, type: "success", isLoading: false, autoClose: 4000 });
-        setOrden({ id_cliente: "", id_prioridad: "", fecha_entrega: "", calle: "", altura: "", localidad: "", zona: "", productos: [], tipo_venta: "EMP" });
+        setOrden({ id_cliente: "", id_prioridad: "", fecha_entrega: "", calle: "", altura: "", localidad: "", productos: [], tipo_venta: "EMP" });
         setFields([{ id: "1", id_producto: "", cantidad: 1, unidad_medida: "", cantidad_disponible: 0, precio_unitario: 0, subtotal: 0, }]); setTotalVenta(0);
-        setErrors({ cliente: "", prioridad: "", fecha_entrega: "", calle: "", altura: "", localidad: "", zona: "", productos: "" });
+        setErrors({ cliente: "", prioridad: "", fecha_entrega: "", calle: "", altura: "", localidad: "", productos: "" });
+        setDireccionNormalizada("");
+        setMostrarMapa(false);
+        setCoordenadas(null);
       } else {
         throw new Error(response.data?.message || `Error ${response.status}`);
       }
@@ -366,7 +415,6 @@ function CrearOrdenDeVenta() {
   const obtenerFechaMinima = () => { const f = new Date(); f.setDate(f.getDate() + 3); return f.toISOString().split("T")[0]; };
   const obtenerFechaMaxima = () => { const f = new Date(); f.setDate(f.getDate() + 30); return f.toISOString().split("T")[0]; };
   const getSelectedProductValue = (fieldId) => { const f = fields.find(fi => fi.id === fieldId); if (!f || !f.id_producto) return null; const p = products.find(pr => pr.id_producto.toString() === f.id_producto); return p ? { value: p.id_producto, label: `${p.nombre}` } : null; };
-  const getSelectedZonaValue = () => { if (!orden.zona) return null; return opcionesZona.find(opcion => opcion.value === orden.zona); };
 
   // Función para obtener la clase CSS de prioridad
   const getPrioridadClassName = (idPrioridad) => {
@@ -377,6 +425,15 @@ function CrearOrdenDeVenta() {
       '4': styles.prioridadUrgente
     };
     return classMap[idPrioridad] || styles.prioridadDisplayDiv;
+  };
+
+  // Función para mostrar/ocultar el mapa
+  const toggleMapa = () => {
+    if (direccionNormalizada && !mostrarMapa) {
+      geocodificarDireccion(direccionNormalizada);
+    } else {
+      setMostrarMapa(false);
+    }
   };
 
   if (loading) {
@@ -448,20 +505,49 @@ function CrearOrdenDeVenta() {
               <input type="text" id="Localidad" name="localidad" value={orden.localidad} onChange={handleChange} disabled={creatingOrder} placeholder="Ingrese la localidad" className={`${styles.formInput} ${errors.localidad ? styles.inputError : ""} ${creatingOrder ? styles.disabledInput : ""}`} />
               {errors.localidad && (<span className={styles.errorText}>{errors.localidad}</span>)}
             </div>
-            <div className={styles.formGroup}>
-              <label htmlFor="Zona" className={styles.fieldLabel}>Zona</label>
-              <Select
-                id="Zona" name="zona"
-                value={getSelectedZonaValue()}
-                onChange={handleZonaChange}
-                disabled={creatingOrder}
-                options={opcionesZona}
-                isClearable isSearchable
-                className={`${errors.zona ? styles.inputError : ""} ${creatingOrder ? styles.disabledInput : ""}`}
-                placeholder="Seleccione una zona"
-              />
-              {errors.zona && (<span className={styles.errorText}>{errors.zona}</span>)}
-            </div>
+
+            {/* Sección de Dirección Normalizada y Mapa */}
+            {direccionNormalizada && (
+              <div className={styles.direccionSection}>
+                <div className={styles.direccionNormalizada}>
+                  <label className={styles.fieldLabel}>Dirección Normalizada:</label>
+                  <div className={styles.direccionText}>{direccionNormalizada}</div>
+                  <button 
+                    type="button" 
+                    onClick={toggleMapa} 
+                    disabled={creatingOrder}
+                    className={`${styles.mapaButton} ${creatingOrder ? styles.disabledButton : ""}`}
+                  >
+                    {mostrarMapa ? 'Ocultar Mapa' : 'Ver en Mapa'}
+                  </button>
+                </div>
+
+                {mostrarMapa && coordenadas && (
+                  <div className={styles.mapaContainer}>
+                    <iframe
+                      width="100%"
+                      height="300"
+                      frameBorder="0"
+                      scrolling="no"
+                      marginHeight="0"
+                      marginWidth="0"
+                      src={`https://www.openstreetmap.org/export/embed.html?bbox=${coordenadas.lng-0.01}%2C${coordenadas.lat-0.01}%2C${coordenadas.lng+0.01}%2C${coordenadas.lat+0.01}&layer=mapnik&marker=${coordenadas.lat}%2C${coordenadas.lng}`}
+                      title="Mapa de ubicación"
+                    />
+                    <br/>
+                    <small>
+                      <a 
+                        href={`https://www.openstreetmap.org/?mlat=${coordenadas.lat}&mlon=${coordenadas.lng}#map=16/${coordenadas.lat}/${coordenadas.lng}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                      >
+                        Ver mapa más grande
+                      </a>
+                    </small>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className={styles.productsSection}>
               <h2 className={styles.sectionTitle}>Productos</h2>
@@ -505,7 +591,7 @@ function CrearOrdenDeVenta() {
                       <div className={styles.productField}>
                         <label className={styles.fieldLabel}>Stock Disponible</label>
                         <div className={`${styles.stockDisplay} ${styles.displayField} ${creatingOrder ? styles.disabledInput : ""}`}>
-                          {field.id_producto ? `${field.cantidad_disponible} ${field.unidad_medida}` : "-"}
+                          {field.id_producto ? `${field.cantidad_disponible} ` : "-"}
                         </div>
                       </div>
                       <div className={styles.productField}>
