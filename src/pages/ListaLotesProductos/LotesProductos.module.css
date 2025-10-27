@@ -167,15 +167,14 @@
 	font-size: 0.9rem;
 }
 
-.lotesProduccion{
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
-    background-color: #f8fdff;
+.lotesProduccion {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 2rem;
+	background-color: #f8fdff;
 }
 
 .listaLotes {
-
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
 	gap: 1.5rem;
@@ -472,8 +471,8 @@
 	cursor: not-allowed;
 }
 
-.diasInfo{
-  text-align: end;
+.diasInfo {
+	text-align: end;
 }
 
 /* Responsive */
@@ -524,4 +523,73 @@
 	.modalActions {
 		flex-direction: column;
 	}
+}
+
+/* Estilos para paginación */
+.paginacionInfo {
+	margin: 20px 0;
+	text-align: center;
+	color: #666;
+	font-size: 14px;
+}
+
+.paginacionContainer {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin: 30px 0;
+	gap: 10px;
+}
+
+.botonPaginacion {
+	padding: 8px 16px;
+	border: 1px solid #ddd;
+	background-color: white;
+	color: #333;
+	cursor: pointer;
+	border-radius: 4px;
+	transition: all 0.3s ease;
+}
+
+.botonPaginacion:hover:not(:disabled) {
+	background-color: #f8f9fa;
+	border-color: #007bff;
+}
+
+.botonPaginacion:disabled {
+	background-color: #f8f9fa;
+	color: #6c757d;
+	cursor: not-allowed;
+}
+
+.numerosPagina {
+	display: flex;
+	gap: 5px;
+}
+
+.numeroPagina {
+	padding: 8px 12px;
+	border: 1px solid #ddd;
+	background-color: white;
+	color: #333;
+	cursor: pointer;
+	border-radius: 4px;
+	transition: all 0.3s ease;
+	min-width: 40px;
+}
+
+.numeroPagina:hover {
+	background-color: #f8f9fa;
+	border-color: #007bff;
+}
+
+.paginaActiva {
+	background-color: #007bff;
+	color: white;
+	border-color: #007bff;
+}
+
+/* Remover o actualizar la paginación anterior si existe */
+.paginacion {
+	display: none;
 }

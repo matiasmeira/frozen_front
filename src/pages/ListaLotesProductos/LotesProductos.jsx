@@ -14,96 +14,113 @@ const api = axios.create({
 	baseURL: baseURL,
 });
 
-const LotesProductos = () => {
+const LotesProductos = ({ products }) => {
 	const navigate = useNavigate();
 	const [lotes, setLotes] = useState([]);
 	const [lotesFiltrados, setLotesFiltrados] = useState([]);
-	const [lotesPaginados, setLotesPaginados] = useState([]);
 	const [lotesLoading, setLotesLoading] = useState(true);
 	const [generandoQR, setGenerandoQR] = useState(null);
-	const [filtroEstado, setFiltroEstado] = useState("todos"); // Nuevo estado
-	const [estadosLotes, setEstadosLotes] = useState([]); // Nuevo estado para almacenar los estados
 
-	// Estados para paginación CLIENTE-SIDE
+	// Estados para paginación SERVER-SIDE
 	const [paginaActual, setPaginaActual] = useState(1);
-	const [itemsPorPagina] = useState(10);
 	const [totalPaginas, setTotalPaginas] = useState(1);
-	const [totalLotesFiltrados, setTotalLotesFiltrados] = useState(0);
+	const [totalLotes, setTotalLotes] = useState(0);
 
 	// Estados para filtros
 	const [filtroProducto, setFiltroProducto] = useState(null);
 	const [filtroVencimiento, setFiltroVencimiento] = useState("todos");
+	const [filtroEstado, setFiltroEstado] = useState(null);
 
-	// Fetch TODOS los lotes de producción DISPONIBLES (sin paginación del servidor)
-	const fetchLotesProduccion = async () => {
+	// Estados disponibles desde el endpoint
+	const [estadosLotes, setEstadosLotes] = useState([]);
+
+	// Fetch estados de lotes
+	const fetchEstadosLotes = async () => {
+		try {
+			const response = await api.get("/stock/estado-lotes-produccion/");
+			const data = response.data;
+
+			const opcionesEstados = data.results.map((estado) => ({
+				value: estado.id_estado_lote_produccion,
+				label: estado.descripcion,
+			}));
+
+			setEstadosLotes(opcionesEstados);
+		} catch (error) {
+			console.error("Error fetching estados de lotes:", error);
+		}
+	};
+
+	// Fetch productos desde el nuevo endpoint
+	const [opcionesProductos, setOpcionesProductos] = useState([]);
+
+	const fetchProductos = async () => {
+		try {
+			const response = await api.get("/productos/productos/");
+			const data = response.data.results;
+			console.log(data)
+
+			// Mapear los productos usando id_producto y nombre
+			const opciones = data.map((producto) => ({
+				value: producto.id_producto, // Usamos el ID como valor
+				label: producto.nombre, // Usamos el nombre como etiqueta
+			}));
+
+			setOpcionesProductos(opciones);
+		} catch (error) {
+			console.error("Error fetching productos:", error);
+		}
+	};
+
+	// Fetch lotes de producción con paginación SERVER-SIDE
+	const fetchLotesProduccion = async (pagina = 1) => {
 		try {
 			setLotesLoading(true);
 
-			// REMOVER este filtro para traer todos los estados
-			// const params = new URLSearchParams();
-			// params.append("id_estado_lote_produccion", "8");
+			const params = new URLSearchParams();
+			params.append("page", pagina.toString());
 
-			let todosLosLotes = [];
-			let siguientePagina = `/stock/lotes-produccion/`; // Sin parámetros de filtro
-			let pagina = 1;
-
-			while (siguientePagina) {
-				const response = await api.get(siguientePagina);
-				const data = response.data;
-
-				if (data.results && data.results.length > 0) {
-					todosLosLotes = [...todosLosLotes, ...data.results];
-				}
-
-				siguientePagina = data.next;
-				pagina++;
-				await new Promise((resolve) => setTimeout(resolve, 100));
+			// Si hay filtro por producto, agregarlo a los parámetros usando el ID
+			if (filtroProducto) {
+				params.append("id_producto", filtroProducto.value.toString());
 			}
 
-			// Obtener los estados de lotes de producción
-			const estadosResponse = await api.get("/stock/estado-lotes-produccion/");
-			const estadosData = estadosResponse.data.results || estadosResponse.data;
+			// Si hay filtro por estado, agregarlo a los parámetros
+			if (filtroEstado) {
+				params.append(
+					"id_estado_lote_produccion",
+					filtroEstado.value.toString()
+				);
+			}
 
-			setLotes(todosLosLotes);
-			setLotesFiltrados(todosLosLotes);
-			setTotalLotesFiltrados(todosLosLotes.length);
-			setEstadosLotes(estadosData);
+			const response = await api.get(
+				`/stock/lotes-produccion/?${params.toString()}`
+			);
+			const data = response.data;
+
+			setLotes(data.results || []);
+			setLotesFiltrados(data.results || []);
+			setTotalLotes(data.count || 0);
+			setTotalPaginas(
+				Math.ceil((data.count || 1) / (data.results?.length || 1))
+			);
+			setPaginaActual(pagina);
 		} catch (error) {
-			console.error("Error fetching lotes de producción:", error);
+			console.error("Error fetching lotes de producción disponibles:", error);
 		} finally {
 			setLotesLoading(false);
 		}
 	};
 
-	// Aplicar filtros y paginación cuando cambien los valores
-	// Aplicar filtros y paginación cuando cambien los valores
+	// Efecto para cargar lotes cuando cambian los filtros o la página
+	useEffect(() => {
+		fetchLotesProduccion(1);
+	}, [filtroProducto, filtroEstado]);
+
+	// Efecto para aplicar filtro de vencimiento (client-side, ya que es un ordenamiento)
 	useEffect(() => {
 		let resultado = [...lotes];
 
-		// Filtro por producto
-		if (filtroProducto) {
-			resultado = resultado.filter((lote) =>
-				lote.producto_nombre
-					.toLowerCase()
-					.includes(filtroProducto.value.toLowerCase())
-			);
-		}
-
-		// Nuevo filtro por estado
-		if (filtroEstado !== "todos") {
-			const estadoSeleccionado = estadosLotes.find(
-				(estado) => estado.descripcion === filtroEstado
-			);
-			if (estadoSeleccionado) {
-				resultado = resultado.filter(
-					(lote) =>
-						lote.id_estado_lote_produccion ===
-						estadoSeleccionado.id_estado_lote_produccion
-				);
-			}
-		}
-
-		// Filtro por vencimiento - SOLO ORDENAMIENTO
 		if (filtroVencimiento !== "todos") {
 			if (filtroVencimiento === "mas_cercano") {
 				resultado.sort((a, b) => {
@@ -129,29 +146,70 @@ const LotesProductos = () => {
 		}
 
 		setLotesFiltrados(resultado);
-		setTotalLotesFiltrados(resultado.length);
-		setPaginaActual(1);
-	}, [lotes, filtroProducto, filtroEstado, filtroVencimiento, estadosLotes]); // Agregar filtroEstado y estadosLotes
+	}, [lotes, filtroVencimiento]);
 
-	// Aplicar paginación a los lotes filtrados
-	useEffect(() => {
-		const totalPages = Math.ceil(totalLotesFiltrados / itemsPorPagina);
-		setTotalPaginas(totalPages);
+	// Funciones de paginación SERVER-SIDE
+	const irAPagina = (pagina) => {
+		if (pagina >= 1 && pagina <= totalPaginas) {
+			fetchLotesProduccion(pagina);
+			window.scrollTo(0, 0);
+		}
+	};
 
-		const inicio = (paginaActual - 1) * itemsPorPagina;
-		const fin = inicio + itemsPorPagina;
-		const lotesPaginados = lotesFiltrados.slice(inicio, fin);
+	const irAPaginaSiguiente = () => {
+		if (paginaActual < totalPaginas) {
+			fetchLotesProduccion(paginaActual + 1);
+			window.scrollTo(0, 0);
+		}
+	};
 
-		setLotesPaginados(lotesPaginados);
-	}, [lotesFiltrados, paginaActual, itemsPorPagina, totalLotesFiltrados]);
+	const irAPaginaAnterior = () => {
+		if (paginaActual > 1) {
+			fetchLotesProduccion(paginaActual - 1);
+			window.scrollTo(0, 0);
+		}
+	};
 
-	// Preparar opciones para react-select de productos
-	const opcionesProductos = [
-		...new Set(lotes.map((lote) => lote.producto_nombre)),
-	].map((producto) => ({
-		value: producto,
-		label: producto,
-	}));
+	// Función para generar números de página a mostrar
+	const obtenerNumerosPagina = () => {
+		const paginas = [];
+		const paginasAMostrar = 5;
+
+		let inicio = Math.max(1, paginaActual - Math.floor(paginasAMostrar / 2));
+		let fin = Math.min(totalPaginas, inicio + paginasAMostrar - 1);
+
+		if (fin - inicio + 1 < paginasAMostrar) {
+			inicio = Math.max(1, fin - paginasAMostrar + 1);
+		}
+
+		for (let i = inicio; i <= fin; i++) {
+			paginas.push(i);
+		}
+
+		return paginas;
+	};
+
+	// Función para obtener el nombre del estado por ID
+	const obtenerNombreEstado = (idEstado) => {
+		const estado = estadosLotes.find((estado) => estado.value === idEstado);
+		return estado ? estado.label : "Estado desconocido";
+	};
+
+	// Función para obtener el color del estado
+	const getColorEstado = (idEstado) => {
+		const coloresEstados = {
+			2: "#3498db", // En producción - Azul
+			3: "#f39c12", // Para producir - Naranja
+			4: "#27ae60", // Finalizado - Verde
+			6: "#9b59b6", // En espera - Púrpura
+			7: "#e67e22", // Pendiente de inicio - Naranja oscuro
+			8: "#2ecc71", // Disponible - Verde brillante
+			9: "#e74c3c", // Cancelado - Rojo
+			11: "#95a5a6", // Agotado - Gris
+		};
+
+		return coloresEstados[idEstado] || "#95a5a6"; // Color por defecto gris
+	};
 
 	// Función para generar y descargar QR en PDF
 	const generarQRPDF = async (lote) => {
@@ -323,68 +381,27 @@ const LotesProductos = () => {
 	// Función para limpiar todos los filtros
 	const limpiarFiltros = () => {
 		setFiltroProducto(null);
+		setFiltroEstado(null);
 		setFiltroVencimiento("todos");
-		setFiltroEstado("todos");
+		setPaginaActual(1);
+		fetchLotesProduccion(1);
 	};
 
-	// Fetch lotes inicial
+	// Fetch inicial de estados, productos y lotes
 	useEffect(() => {
-		fetchLotesProduccion();
+		fetchEstadosLotes();
+		fetchProductos();
+		fetchLotesProduccion(1);
 	}, []);
-
-	// Funciones de paginación CLIENTE-SIDE
-	const irAPagina = (pagina) => {
-		if (pagina >= 1 && pagina <= totalPaginas) {
-			setPaginaActual(pagina);
-			window.scrollTo(0, 0);
-		}
-	};
-
-	const irAPaginaSiguiente = () => {
-		if (paginaActual < totalPaginas) {
-			setPaginaActual(paginaActual + 1);
-			window.scrollTo(0, 0);
-		}
-	};
-
-	const irAPaginaAnterior = () => {
-		if (paginaActual > 1) {
-			setPaginaActual(paginaActual - 1);
-			window.scrollTo(0, 0);
-		}
-	};
-
-	// Función para manejar cambio de estado
-	const handleEstadoChange = (e) => {
-		setFiltroEstado(e.target.value);
-	};
-
-	// Función para generar números de página a mostrar
-	const obtenerNumerosPagina = () => {
-		const paginas = [];
-		const paginasAMostrar = 5;
-
-		let inicio = Math.max(1, paginaActual - Math.floor(paginasAMostrar / 2));
-		let fin = Math.min(totalPaginas, inicio + paginasAMostrar - 1);
-
-		if (fin - inicio + 1 < paginasAMostrar) {
-			inicio = Math.max(1, fin - paginasAMostrar + 1);
-		}
-
-		for (let i = inicio; i <= fin; i++) {
-			paginas.push(i);
-		}
-
-		return paginas;
-	};
 
 	// Función para formatear fechas
 	const formatDate = (dateString) => {
+		if (!dateString) return "Sin fecha";
 		const date = new Date(dateString);
 		return date.toLocaleDateString("es-ES");
 	};
 
-	// Calcular días hasta vencimiento
+	// Calcular días hasta vencimiento (solo para información, no para estado)
 	const calcularDiasVencimiento = (fechaVencimiento) => {
 		if (!fechaVencimiento) return null;
 
@@ -398,36 +415,13 @@ const LotesProductos = () => {
 		return Math.ceil(diferenciaMs / (1000 * 60 * 60 * 24));
 	};
 
-	// Obtener color para días de vencimiento
+	// Obtener color para días de vencimiento (solo para información)
 	const getColorVencimiento = (dias) => {
 		if (dias === null) return "#95a5a6";
 		if (dias < 0) return "#e74c3c";
 		if (dias <= 3) return "#f39c12";
 		if (dias <= 7) return "#f1c40f";
 		return "#27ae60";
-	};
-	// Función para obtener el color del estado
-	const getColorEstado = (idEstado) => {
-		const estado = obtenerNombreEstado(idEstado).toLowerCase();
-		const colores = {
-			disponible: "#27ae60", // Verde
-			agotado: "#e74c3c", // Rojo
-			finalizado: "#27ae60", // Verde (igual que disponible)
-			"en producción": "#3498db", // Azul
-			"para producir": "#9b59b6", // Morado
-			"en espera": "#f39c12", // Naranja
-			"pendiente de inicio": "#f1c40f", // Amarillo
-			cancelado: "#95a5a6", // Gris
-		};
-		return colores[estado] || "#95a5a6"; // Gris por defecto
-	};
-
-	// Función para obtener el nombre del estado
-	const obtenerNombreEstado = (idEstado) => {
-		const estado = estadosLotes.find(
-			(estado) => estado.id_estado_lote_produccion === idEstado
-		);
-		return estado?.descripcion || "Desconocido";
 	};
 
 	// Función para obtener el color de la cantidad disponible
@@ -450,15 +444,13 @@ const LotesProductos = () => {
 		<div className={styles.lotesProduccion}>
 			{/* Header */}
 			<div className={styles.header}>
-				<h2 className={styles.titulo}>Lotes de Producción Disponibles</h2>
+				<h2 className={styles.titulo}>Lotes de Producción</h2>
 			</div>
 
 			{/* Estadísticas */}
 			<div className={styles.estadisticas}>
 				<div className={styles.estadisticaItem}>
-					<span className={styles.estadisticaNumero}>
-						{totalLotesFiltrados}
-					</span>
+					<span className={styles.estadisticaNumero}>{totalLotes}</span>
 					<span className={styles.estadisticaLabel}>Total Lotes</span>
 				</div>
 			</div>
@@ -479,27 +471,18 @@ const LotesProductos = () => {
 					/>
 				</div>
 
-				{/* Nuevo filtro por estado */}
 				<div className={styles.filtroGrupo}>
-					<label htmlFor="filtroEstado" className={styles.label}>
-						Filtrar por Estado:
-					</label>
-					<select
-						id="filtroEstado"
+					<label className={styles.label}>Filtrar por Estado:</label>
+					<Select
 						value={filtroEstado}
-						onChange={handleEstadoChange}
-						className={styles.select}
-					>
-						<option value="todos">Todos los estados</option>
-						{estadosLotes.map((estado) => (
-							<option
-								key={estado.id_estado_lote_produccion}
-								value={estado.descripcion}
-							>
-								{estado.descripcion}
-							</option>
-						))}
-					</select>
+						onChange={setFiltroEstado}
+						options={estadosLotes}
+						isClearable
+						isSearchable
+						placeholder="Seleccionar estado..."
+						className={styles.reactSelect}
+						classNamePrefix="react-select"
+					/>
 				</div>
 
 				<div className={styles.filtroGrupo}>
@@ -523,16 +506,18 @@ const LotesProductos = () => {
 				</button>
 			</div>
 
-			{/* Contador de resultados */}
-			<div className={styles.contador}>
-				Mostrando {lotesPaginados.length} de {totalLotesFiltrados} lotes (Página{" "}
-				{paginaActual} de {totalPaginas})
+			{/* Información de paginación */}
+			<div className={styles.paginacionInfo}>
+				<p>
+					Mostrando {lotesFiltrados.length} de {totalLotes} lotes (Página{" "}
+					{paginaActual} de {totalPaginas})
+				</p>
 			</div>
 
 			{/* Lista de lotes */}
 			<div className={styles.listaLotes}>
-				{lotesPaginados.length > 0 ? (
-					lotesPaginados.map((lote) => {
+				{lotesFiltrados.length > 0 ? (
+					lotesFiltrados.map((lote) => {
 						const diasVencimiento = calcularDiasVencimiento(
 							lote.fecha_vencimiento
 						);
@@ -549,9 +534,7 @@ const LotesProductos = () => {
 											),
 										}}
 									>
-										{obtenerNombreEstado(
-											lote.id_estado_lote_produccion
-										).toUpperCase()}
+										{obtenerNombreEstado(lote.id_estado_lote_produccion)}
 									</span>
 								</div>
 
@@ -650,25 +633,35 @@ const LotesProductos = () => {
 				)}
 			</div>
 
-			{/* Paginación */}
+			{/* Componente de Paginación - Similar a Ventas */}
 			{totalPaginas > 1 && (
-				<div className={styles.paginacion}>
+				<div className={styles.paginacionContainer}>
 					<button
-						className={styles.btnPaginacion}
 						onClick={irAPaginaAnterior}
 						disabled={paginaActual === 1}
+						className={styles.botonPaginacion}
 					>
 						Anterior
 					</button>
 
-					<div className={styles.infoPaginacion}>
-						Página {paginaActual} de {totalPaginas}
+					<div className={styles.numerosPagina}>
+						{obtenerNumerosPagina().map((numero) => (
+							<button
+								key={numero}
+								onClick={() => irAPagina(numero)}
+								className={`${styles.numeroPagina} ${
+									paginaActual === numero ? styles.paginaActiva : ""
+								}`}
+							>
+								{numero}
+							</button>
+						))}
 					</div>
 
 					<button
-						className={styles.btnPaginacion}
 						onClick={irAPaginaSiguiente}
 						disabled={paginaActual === totalPaginas}
+						className={styles.botonPaginacion}
 					>
 						Siguiente
 					</button>
