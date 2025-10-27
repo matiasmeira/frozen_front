@@ -311,7 +311,6 @@ const VerLotesMateriaPrima = () => {
 								>
 									Trazar Lote
 								</button>
-								<button className={styles.btnAjustar}>Ajustar Stock</button>
 								<button
 									className={styles.btnQR}
 									onClick={() => generarYMostrarQR(lote)}

@@ -213,10 +213,8 @@ const VerLotesProduccion = () => {
 		setFiltroCantidad("todos");
 	};
 
-	// Calcular estadísticas
+	// Calcular estadísticas - Solo necesitamos el total ahora
 	const totalLotes = lotes.length;
-	const lotesDisponibles = lotes.filter(lote => lote.cantidad_disponible > 0).length;
-	const lotesAgotados = lotes.filter(lote => lote.cantidad_disponible === 0).length;
 
 	if (cargando) {
 		return (
@@ -263,19 +261,11 @@ const VerLotesProduccion = () => {
 				</h2>
 			</div>
 
-			{/* Estadísticas */}
+			{/* Estadísticas - Solo mostramos el total de lotes */}
 			<div className={styles.estadisticas}>
 				<div className={styles.estadisticaItem}>
 					<span className={styles.estadisticaNumero}>{totalLotes}</span>
 					<span className={styles.estadisticaLabel}>Total Lotes</span>
-				</div>
-				<div className={styles.estadisticaItem}>
-					<span className={styles.estadisticaNumero}>{lotesDisponibles}</span>
-					<span className={styles.estadisticaLabel}>Disponibles</span>
-				</div>
-				<div className={styles.estadisticaItem}>
-					<span className={styles.estadisticaNumero}>{lotesAgotados}</span>
-					<span className={styles.estadisticaLabel}>Agotados</span>
 				</div>
 			</div>
 
@@ -380,12 +370,6 @@ const VerLotesProduccion = () => {
 									onClick={() => navigate(`/trazabilidadLote/${lote.id_lote_produccion}`)}
 								>
 									Trazar Lote
-								</button>
-								<button 
-									className={styles.btnAjustar}
-									onClick={() => navigate(`/ajustar-stock/${lote.id_lote_produccion}`)}
-								>
-									Ajustar Stock
 								</button>
 								<button
 									className={styles.btnQR}
