@@ -171,7 +171,7 @@ const TrazarLoteMateriaPrima = () => {
 										className={styles.verClientesBtn}
 										onClick={() => abrirModalClientes(lote)}
 									>
-										Ver Ordenes de Compra Relacionadas({lote.clientes_afectados.length})
+										Ver Ordenes de Venta Relacionadas({lote.clientes_afectados.length})
 									</button>
 								</div>
 							</div>
