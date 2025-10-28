@@ -26,7 +26,7 @@ const RenderizarOrdenesDeVenta = ({ idLoteProduccion }) => {
 				setOrdenesVenta(datos);
 				setOrdenesFiltradas(datos);
 			} catch (err) {
-				setError("Error al cargar las órdenes de venta");
+				setError(err.response.data.message);
 				console.error("Error:", err);
 			} finally {
 				setCargando(false);
@@ -132,7 +132,6 @@ const RenderizarOrdenesDeVenta = ({ idLoteProduccion }) => {
 	if (error) {
 		return (
 			<div className={styles.errorContainer}>
-				<h3>Error</h3>
 				<p>{error}</p>
 			</div>
 		);
@@ -140,8 +139,11 @@ const RenderizarOrdenesDeVenta = ({ idLoteProduccion }) => {
 
 	return (
 		<div className={styles.container}>
+			<button>
+				Volver
+			</button>
 			<h2 className={styles.title}>
-				Órdenes de Venta del Lote #{idLoteProduccion}
+				Órdenes de Venta relacionadas al Lote #{idLoteProduccion}
 			</h2>
 
 			{/* Controles de Filtrado */}

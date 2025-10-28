@@ -24,38 +24,14 @@ const TrazarLoteProducto = () => {
 				<h1 className={styles.title}>
 					Trazabilidad del Lote de Producción #{id_lote}
 				</h1>
-				<p className={styles.subtitle}>
-					Selecciona qué información deseas visualizar
-				</p>
+
 			</div>
 
 			{/* Selector de Vista */}
-			<div className={styles.selectorVista}>
-				<button
-					className={`${styles.botonVista} ${
-						vistaActiva === "ordenesVenta" ? styles.botonActivo : ""
-					}`}
-					onClick={() => setVistaActiva("ordenesVenta")}
-				>
-					📦 Órdenes de Venta
-				</button>
-				<button
-					className={`${styles.botonVista} ${
-						vistaActiva === "lotesMateriaPrima" ? styles.botonActivo : ""
-					}`}
-					onClick={() => setVistaActiva("lotesMateriaPrima")}
-				>
-					🧪 Lotes de Materia Prima
-				</button>
-			</div>
 
 			{/* Renderizado Condicional */}
 			<div className={styles.contenidoVista}>
-				{vistaActiva === "ordenesVenta" ? (
 					<RenderizarOrdenesDeVenta idLoteProduccion={id_lote} />
-				) : (
-					<RenderizarLotesMateriaPrima idLoteProduccion={id_lote} />
-				)}
 			</div>
 		</div>
 	);

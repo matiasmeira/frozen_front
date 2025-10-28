@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Modal from "react-modal";
@@ -35,6 +35,8 @@ const LotesProductos = ({ products }) => {
 	// Estados disponibles desde el endpoint
 	const [estadosLotes, setEstadosLotes] = useState([]);
 
+	const isFirstRender = useRef(true);
+
 	// Estados para el modal de QR
 	const [modalQRAbierto, setModalQRAbierto] = useState(false);
 	const [qrImage, setQrImage] = useState("");
@@ -65,7 +67,6 @@ const LotesProductos = ({ products }) => {
 		try {
 			const response = await api.get("/productos/productos/");
 			const data = response.data.results;
-			console.log(data)
 
 			// Mapear los productos usando id_producto y nombre
 			const opciones = data.map((producto) => ({
@@ -82,6 +83,10 @@ const LotesProductos = ({ products }) => {
 	// Fetch lotes de producción con paginación SERVER-SIDE
 	const fetchLotesProduccion = async (pagina = 1) => {
 		try {
+			console.log("Fetching lotes desde página:", pagina, "con filtros:", {
+				producto: filtroProducto,
+				estado: filtroEstado,
+			});
 			setLotesLoading(true);
 
 			const params = new URLSearchParams();
@@ -105,6 +110,8 @@ const LotesProductos = ({ products }) => {
 			);
 			const data = response.data;
 
+			console.log(data);
+
 			setLotes(data.results || []);
 			setLotesFiltrados(data.results || []);
 			setTotalLotes(data.count || 0);
@@ -121,6 +128,10 @@ const LotesProductos = ({ products }) => {
 
 	// Efecto para cargar lotes cuando cambian los filtros o la página
 	useEffect(() => {
+		if (isFirstRender.current) {
+			isFirstRender.current = false;
+			return;
+		}
 		fetchLotesProduccion(1);
 	}, [filtroProducto, filtroEstado]);
 
@@ -272,7 +283,6 @@ const LotesProductos = ({ products }) => {
 		setFiltroEstado(null);
 		setFiltroVencimiento("todos");
 		setPaginaActual(1);
-		fetchLotesProduccion(1);
 	};
 
 	// Fetch inicial de estados, productos y lotes
@@ -349,7 +359,9 @@ const LotesProductos = ({ products }) => {
 					<label className={styles.label}>Filtrar por Producto:</label>
 					<Select
 						value={filtroProducto}
-						onChange={setFiltroProducto}
+						onChange={(value) => {
+							if (value !== filtroProducto) setFiltroProducto(value);
+						}}
 						options={opcionesProductos}
 						isClearable
 						isSearchable
@@ -495,7 +507,6 @@ const LotesProductos = ({ products }) => {
 									>
 										Trazar Lote
 									</button>
-									<button className={styles.btnAjustar}>Ajustar Stock</button>
 									<button
 										className={styles.btnQR}
 										onClick={() => generarYMostrarQR(lote)}
@@ -577,7 +588,9 @@ const LotesProductos = ({ products }) => {
 								<strong>Producto:</strong> {loteSeleccionado.producto_nombre}
 							</p>
 							<p>
-								<strong>Cantidad Disponible:</strong> {loteSeleccionado.cantidad_disponible} {loteSeleccionado.unidad_medida}
+								<strong>Cantidad Disponible:</strong>{" "}
+								{loteSeleccionado.cantidad_disponible}{" "}
+								{loteSeleccionado.unidad_medida}
 							</p>
 							<p>
 								<strong>Estado:</strong>{" "}
