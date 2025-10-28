@@ -43,10 +43,6 @@ const GestionMateriasPrimas = () => {
 		}
 	};
 
-	const verLotes = (idMateriaPrima) => {
-		navigate(`/VerLotesMateriaPrima/${idMateriaPrima}`);
-	};
-
 	// Stock status helper functions
 	const getStockStatusClass = (cantidad, umbral) => {
 		if (cantidad === 0) return styles.outOfStock;
@@ -235,15 +231,6 @@ const GestionMateriasPrimas = () => {
 									<span className={styles.thresholdValue}>
 										{umbral != null ? `${umbral} ${mp.unidad_medida}` : "N/A"}
 									</span>
-								</div>
-								{/* Action Buttons */}
-								<div className={styles.cardFooterGestion}>
-									<button
-										className={styles.btnVerLotes}
-										onClick={() => verLotes(mp.id_materia_prima)}
-									>
-										Ver Lotes
-									</button>
 								</div>
 							</div>
 						);

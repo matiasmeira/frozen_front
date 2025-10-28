@@ -70,10 +70,6 @@ const GestionProductosTerminados = () => {
 		}
 	};
 
-	const verLotesProduccion = (idProducto) => {
-		navigate(`/VerLotesProduccion/${idProducto}`);
-	};
-
 	// Stock status helper functions
 	const getStockStatusClass = (cantidad, umbral) => {
 		if (cantidad === 0) return styles.outOfStock;
@@ -253,15 +249,6 @@ const GestionProductosTerminados = () => {
 									<span className={styles.thresholdValue}>
 										{umbral != null ? `${umbral} ${producto.unidad_medida}` : "N/A"}
 									</span>
-								</div>
-								{/* Action Buttons */}
-								<div className={styles.cardFooterGestion}>
-									<button
-										className={styles.btnVerLotes}
-										onClick={() => verLotesProduccion(producto.id_producto)}
-									>
-										Ver Lotes
-									</button>
 								</div>
 							</div>
 						);
