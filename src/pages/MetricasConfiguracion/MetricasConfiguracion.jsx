@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Tabs } from 'antd';
-import { MateriasPrimas, Productos } from './components';
+import { MateriasPrimas, Productos, Recetas } from './components';
 import styles from './MetricasConfiguracion.module.css';
 const MetricasConfiguracion = () => {
   const [activeTab, setActiveTab] = useState('1');
@@ -15,6 +15,11 @@ const MetricasConfiguracion = () => {
       key: '2',
       label: 'Productos',
       children: <Productos />,
+    },
+    {
+      key: '3',
+      label: 'Recetas',
+      children: <Recetas />,
     },
   ];
 
