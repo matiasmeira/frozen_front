@@ -23,6 +23,7 @@ import TrazarLoteMateriaPrima from "./pages/TrazarLoteMateriaPrima/TrazarLoteMat
 import VerLotesMateriaPrimaGeneral from "./pages/VerLotesMateriaPrimaGeneral/VerLotesMateriaPrimaGeneral"
 import TrazabilidadOrdenVenta from "./pages/TrazabilidadOrdenVenta/TrazabilidadOrdenVenta";
 import TrazarLoteProducto from "./pages/TrazarLoteProducto/TrazarLoteProducto";
+import MetricasConfiguracion from "./pages/MetricasConfiguracion/MetricasConfiguracion";
 //Pages
 
 import "./App.css";
@@ -76,6 +77,7 @@ function App() {
 							<Route path="/trazar_lote_produccion/:id_Lote_Produccion" element={<TrazarLoteProduccion />} />
 							<Route path="/trazabilidadLote/:id_lote" element={<TrazarLoteProducto/>}/>
 							<Route path="/lotesMateriasPrimas" element={<VerLotesMateriaPrimaGeneral/>}/>
+							<Route path="/metricas-configuracion" element={<MetricasConfiguracion/>}/>
 						{/*</Route>*/}
 					</Routes>
 				</main>
