@@ -23,11 +23,8 @@ const Productos = () => {
     const [previewImage, setPreviewImage] = useState('');
     const [previewVisible, setPreviewVisible] = useState(false);
     
-    const [pagination, setPagination] = useState({
-        current: 1,
-        pageSize: 10,
-        total: 0,
-    });
+    // ❌ ELIMINAMOS el estado de paginación
+    // const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 }); 
 
     // 💡 NUEVO: Fetch detalles por ID (Sin cambios)
     const fetchProductoById = async (id) => {
@@ -44,37 +41,44 @@ const Productos = () => {
         }
     };
 
-    // 📥 Fetch productos con ajuste de precio
-    const fetchProductos = async (page = 1, pageSize = 10) => {
+    // 📥 Fetch productos con RECOLECCIÓN RECURSIVA
+    const fetchProductos = async () => {
+        setLoading(true);
+        let allProductos = [];
+        let nextUrl = '/productos/listar/'; // URL inicial
+        
         try {
-            setLoading(true);
-            const response = await api.get(`/productos/listar/?page=${page}&page_size=${pageSize}`);
-            
-            const productosMapeados = response.data.results.map(p => {
+            while (nextUrl) {
+                const urlToFetch = nextUrl.includes('/api/') ? nextUrl.split('/api/')[1] : nextUrl;
+
+                const response = await api.get(urlToFetch);
+                
+                allProductos = allProductos.concat(response.data.results || []);
+                
+                // Si response.data.next es null o undefined, el bucle termina
+                nextUrl = response.data.next; 
+            }
+
+            // Mapeamos los productos después de recolectar todos los datos
+            const productosMapeados = allProductos.map(p => {
                 const unidadObj = unidades.find(u => u.id_unidad === p.id_unidad);
                 return {
                     ...p,
                     unidad_medida: unidadObj ? unidadObj.nombre : p.unidad_medida || 'N/A',
-                    // 💡 AJUSTE DE PRECIO: Usamos p.precio (si existe) o 0
                     precio: p.precio || 0.00
                 };
             });
             
             setProductos(productosMapeados);
-            setPagination(prev => ({
-                ...prev,
-                total: response.data.count,
-                current: page,
-                pageSize: pageSize,
-            }));
+            
         } catch (error) {
-            console.error('Error fetching productos:', error);
+            console.error('Error fetching todos los productos:', error);
         } finally {
             setLoading(false);
         }
     };
 
-    const fetchUnidades = async () => { /* ... se mantiene igual ... */
+    const fetchUnidades = async () => { 
         try {
             const response = await api.get('/productos/unidades/');
             if (response.data && Array.isArray(response.data.results)) {
@@ -88,7 +92,7 @@ const Productos = () => {
         }
     };
 
-    const fetchTiposProducto = async () => { /* ... se mantiene igual ... */
+    const fetchTiposProducto = async () => { 
         try {
             const response = await api.get('/productos/tipos-producto/'); 
             if (response.data && Array.isArray(response.data.results)) {
@@ -104,15 +108,17 @@ const Productos = () => {
 
 
     useEffect(() => {
+        // Ejecutamos fetchUnidades antes para que 'unidades' esté disponible
         fetchUnidades().then(() => {
-            fetchProductos(pagination.current, pagination.pageSize);
+            fetchProductos();
         });
         fetchTiposProducto(); 
     }, []); 
 
-    const handleTableChange = (newPagination) => {
+    // ❌ ELIMINAMOS handleTableChange
+    /* const handleTableChange = (newPagination) => {
         fetchProductos(newPagination.current, newPagination.pageSize);
-    };
+    }; */
 
     const handleEdit = async (producto = null) => {
         form.resetFields();
@@ -128,8 +134,8 @@ const Productos = () => {
             form.setFieldsValue({
                 nombre: fullProductData.nombre,
                 descripcion: fullProductData.descripcion,
-                precio: fullProductData.precio,                 
-                id_unidad: fullProductData.id_unidad,           
+                precio: fullProductData.precio,                 
+                id_unidad: fullProductData.id_unidad,           
                 id_tipo_producto: fullProductData.id_tipo_producto, 
                 umbral_minimo: fullProductData.umbral_minimo,
             });
@@ -145,13 +151,13 @@ const Productos = () => {
                 }]);
             }
         } else {
-             setEditingProducto(null);
+            setEditingProducto(null);
         }
         
         setIsModalVisible(true);
     };
 
-    const handleDelete = (id) => { /* ... se mantiene igual ... */
+    const handleDelete = (id) => { 
         modal.confirm({
             title: '¿Estás seguro de eliminar este Producto?',
             content: 'Esta acción es irreversible y podría afectar recetas.',
@@ -164,7 +170,7 @@ const Productos = () => {
                     setLoading(true);
                     await api.delete(`/productos/productos/${id}/`);
                     toast.success('Producto eliminado correctamente', { id: deleteToast });
-                    fetchProductos(pagination.current, pagination.pageSize);
+                    fetchProductos(); // Recarga sin parámetros de paginación
                 } catch (error) {
                     console.error('Error al eliminar el producto:', error);
                     toast.error('Error al eliminar el producto', { id: deleteToast });
@@ -176,7 +182,7 @@ const Productos = () => {
         });
     };
 
-    const handleSaveProducto = async () => { /* ... se mantiene igual ... */
+    const handleSaveProducto = async () => { 
         const loadingToast = toast.loading(editingProducto ? 'Actualizando producto...' : 'Creando producto...');
         try {
             const values = await form.validateFields();
@@ -234,7 +240,7 @@ const Productos = () => {
             form.resetFields();
             setFileList([]);
             setEditingProducto(null);
-            fetchProductos(pagination.current, pagination.pageSize);
+            fetchProductos(); // Recarga sin parámetros
         } catch (error) {
             console.error('Error al guardar el producto:', error);
             let errorMessage = 'Error al guardar el producto. Revisa la consola para detalles de validación.';
@@ -368,8 +374,8 @@ const Productos = () => {
             }
             variant="default"
             style={{ 
-                borderRadius: 12, 
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+                borderRadius: 'var(--card-border-radius)', 
+                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.05)',
             }}
         >
             {contextHolder}
@@ -379,8 +385,8 @@ const Productos = () => {
                 dataSource={productos} 
                 rowKey="id_producto"
                 loading={loading}
-                pagination={pagination}
-                onChange={handleTableChange}
+                // 🛑 ELIMINAMOS la prop pagination, ya que la carga es completa.
+                pagination={false}
                 scroll={{ x: 'max-content' }}
             />
             

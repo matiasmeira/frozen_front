@@ -9,7 +9,6 @@ const { Title } = Typography;
 
 export const MateriasPrimas = () => {
     const [form] = Form.useForm();
-    // 💡 PASO CLAVE: Usar useModal para obtener el contexto y el modal de confirmación
     const [modal, contextHolder] = Modal.useModal(); 
     
     const [materiasPrimas, setMateriasPrimas] = useState([]);
@@ -17,7 +16,6 @@ export const MateriasPrimas = () => {
     const [editingMateria, setEditingMateria] = useState(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
     
-    // Listas para los Selects
     const [tiposMateria, setTiposMateria] = useState([]); 
     const [unidades, setUnidades] = useState([]); 
     const [proveedores, setProveedores] = useState([]); 
@@ -66,27 +64,42 @@ export const MateriasPrimas = () => {
         }
     };
 
-    const fetchMateriasPrimas = async () => { /* ... (mantener igual) */
+    // 🛑 FUNCIÓN REESCRITA PARA RECOLECTAR TODAS LAS PÁGINAS
+    const fetchMateriasPrimas = async () => { 
+        setLoading(true);
+        let allMaterias = [];
+        let nextUrl = '/materias_primas/materias/'; // URL inicial
+        
         try {
-            setLoading(true);
-            const response = await api.get('/materias_primas/materias/');
-            const apiResults = response.data?.results || [];
+            while (nextUrl) {
+                // Extraer solo la ruta relativa si nextUrl es una URL absoluta de DRF
+                const urlToFetch = nextUrl.includes('/api/') ? nextUrl.split('/api/')[1] : nextUrl;
 
-            const materiasMapeadas = apiResults.map(materia => ({
+                const response = await api.get(urlToFetch);
+                
+                allMaterias = allMaterias.concat(response.data.results || []);
+                
+                // Si response.data.next es null, el bucle termina
+                nextUrl = response.data.next; 
+            }
+
+            // Después de recolectar todos los datos
+            const materiasMapeadas = allMaterias.map(materia => ({
                 ...materia,
                 tipo_descripcion: materia.tipo_descripcion || materia.tipo_materia_prima?.descripcion || 'Sin tipo',
             }));
             
             setMateriasPrimas(materiasMapeadas);
+
         } catch (error) {
-            console.error('Error al cargar las materias primas:', error);
+            console.error('Error al cargar todas las materias primas:', error);
             setMateriasPrimas([]);
         } finally {
             setLoading(false);
         }
     };
 
-    const fetchTiposMateria = async () => { /* ... (mantener igual) */
+    const fetchTiposMateria = async () => { 
         try {
             const response = await api.get('/materias_primas/tipos/');
             if (response.data && Array.isArray(response.data.results)) {
@@ -100,7 +113,7 @@ export const MateriasPrimas = () => {
         }
     };
 
-    const fetchUnidades = async () => { /* ... (mantener igual) */
+    const fetchUnidades = async () => { 
         try {
             const response = await api.get('/productos/unidades/'); 
             if (response.data && Array.isArray(response.data.results)) {
@@ -114,7 +127,7 @@ export const MateriasPrimas = () => {
         }
     };
 
-    const fetchProveedores = async () => { /* ... (mantener igual) */
+    const fetchProveedores = async () => { 
         try {
             const response = await api.get('/materias_primas/proveedores/'); 
             if (response.data && Array.isArray(response.data.results)) {
@@ -152,7 +165,7 @@ export const MateriasPrimas = () => {
 
     // 🗑️ Función para eliminar una materia prima (DELETE) - USANDO `modal` del hook
     const handleDeleteMateria = (id) => {
-        modal.confirm({ // 💡 Usamos `modal.confirm` en lugar de `Modal.confirm`
+        modal.confirm({ 
             title: '¿Estás seguro de eliminar esta materia prima?',
             content: 'Esta acción es irreversible.',
             okText: 'Sí, Eliminar',
@@ -256,11 +269,10 @@ export const MateriasPrimas = () => {
             }
             variant="default"
             style={{ 
-                borderRadius: 12, 
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+                borderRadius: 'var(--card-border-radius)', 
+                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.05)',
             }}
         >
-            {/* 💡 PASO CLAVE: Renderiza el contextHolder para que el modal funcione */}
             {contextHolder} 
             
             <Table 
@@ -268,7 +280,8 @@ export const MateriasPrimas = () => {
                 dataSource={materiasPrimas} 
                 rowKey="id_materia_prima"
                 loading={loading}
-                pagination={{ pageSize: 10, showSizeChanger: true }}
+                // Deshabilitamos la paginación de forma explícita
+                pagination={false} 
                 scroll={{ x: 'max-content' }}
             />
             
