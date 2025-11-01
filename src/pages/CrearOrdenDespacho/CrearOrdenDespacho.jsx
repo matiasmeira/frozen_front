@@ -90,11 +90,13 @@ const CrearOrdenDespacho = ({ onCancel, onSuccess }) => {
         ordenes_venta: formData.ordenes_venta
       };
 
+      
       // Agregar patente solo si no está vacía
       if (formData.repartidor.patente.trim()) {
         datosEnvio.repartidor.patente = formData.repartidor.patente.trim();
       }
-
+      console.log(datosEnvio)
+      
       await api.post('despachos/ordenes-despacho/', datosEnvio);
       
       onSuccess();
@@ -161,7 +163,7 @@ const CrearOrdenDespacho = ({ onCancel, onSuccess }) => {
             </div>
 
             <div className={styles.inputGroup}>
-              <label htmlFor="patente">Patente (Opcional)</label>
+              <label htmlFor="patente">Patente *</label>
               <input
                 id="patente"
                 type="text"
