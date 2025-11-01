@@ -583,24 +583,24 @@ const VerOrdenesProduccion = () => {
               </div>
 
               <div className={styles.cardFooter}>
-                {orden.estado === "Pendiente de inicio" ? (
+                {/* {orden.estado === "Pendiente de inicio" ? (
                   <button
                     className={styles.btnIniciar}
                     onClick={() => manejarIniciarOrden(orden.id)}
                   >
                     Iniciar
                   </button>
-                ) : null}
+                ) : null} */}
 
                 {orden.estado === "En proceso" ? (
                   <>
-                    <button
+                    {/* <button
                       className={styles.btnFinalizar}
                       onClick={() => manejarFinalizar(orden.id)}
                     >
                       Finalizar
                     </button>
-                    {console.log(puedeCancelar())}
+                    {console.log(puedeCancelar())} */}
                     {puedeCancelar() ? (
                       <button
                         className={styles.btnCancelar}
@@ -613,14 +613,14 @@ const VerOrdenesProduccion = () => {
                 ) : null}
 
                 {/* CAMBIO AQUÍ: Mostrar solo cuando id_estado = 4 (En proceso) */}
-                {orden.id_estado === 4 ? (
+                {/* {orden.id_estado === 4 ? (
                   <button
                     className={styles.btnNoConformidad}
                     onClick={() => abrirModalNoConformidad(orden)}
                   >
                     Agregar No Conformidad
                   </button>
-                ) : null}
+                ) : null} */}
               </div>
             </div>
           ))
