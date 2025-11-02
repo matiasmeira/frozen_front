@@ -25,6 +25,7 @@ import TrazabilidadOrdenVenta from "./pages/TrazabilidadOrdenVenta/TrazabilidadO
 import TrazarLoteProducto from "./pages/TrazarLoteProducto/TrazarLoteProducto";
 import MetricasConfiguracion from "./pages/MetricasConfiguracion/MetricasConfiguracion";
 import VerOrdenesDeTrabajo from "./pages/VerOrdenesDeTrabajo/VerOrdenesDeTrabajo";
+import Dashboard from "./pages/Dashboard/Dashboard";
 //Pages
 
 import "./App.css";
@@ -78,6 +79,7 @@ function App() {
 							<Route path="/trazabilidadOrdenVenta" element={<TrazabilidadOrdenVenta />}/>
 							<Route path="/trazar_lote_produccion/:id_Lote_Produccion" element={<TrazarLoteProduccion />} />
 							<Route path="/trazabilidadLote/:id_lote" element={<TrazarLoteProducto/>}/>
+							<Route path="/dashboard" element={<Dashboard/>}/>
 							<Route path="/lotesMateriasPrimas" element={<VerLotesMateriaPrimaGeneral/>}/>
 							<Route path="/metricas-configuracion" element={<MetricasConfiguracion/>}/>
 						{/*</Route>*/}
