@@ -64,30 +64,35 @@ export const MateriasPrimas = () => {
         }
     };
 
-    // 🛑 FUNCIÓN REESCRITA PARA RECOLECTAR TODAS LAS PÁGINAS
     const fetchMateriasPrimas = async () => { 
         setLoading(true);
         let allMaterias = [];
-        let nextUrl = '/materias_primas/materias/'; // URL inicial
+        let nextUrl = '/materias_primas/materias/';
         
         try {
-            while (nextUrl) {
-                // Extraer solo la ruta relativa si nextUrl es una URL absoluta de DRF
-                const urlToFetch = nextUrl.includes('/api/') ? nextUrl.split('/api/')[1] : nextUrl;
+            const [tiposResult, unidadesResult] = await Promise.all([
+                fetchTiposMateria(), 
+                fetchUnidades()
+            ]);
 
+            while (nextUrl) {
+                const urlToFetch = nextUrl.includes('/api/') ? nextUrl.split('/api/')[1] : nextUrl;
                 const response = await api.get(urlToFetch);
                 
                 allMaterias = allMaterias.concat(response.data.results || []);
-                
-                // Si response.data.next es null, el bucle termina
                 nextUrl = response.data.next; 
             }
 
-            // Después de recolectar todos los datos
-            const materiasMapeadas = allMaterias.map(materia => ({
-                ...materia,
-                tipo_descripcion: materia.tipo_descripcion || materia.tipo_materia_prima?.descripcion || 'Sin tipo',
-            }));
+            const materiasMapeadas = allMaterias.map(materia => {
+                const tipoObj = tiposResult.find(t => t.id_tipo_materia_prima === materia.id_tipo_materia_prima);
+                const unidadObj = unidadesResult.find(u => u.id_unidad === materia.id_unidad);
+
+                return {
+                    ...materia,
+                    tipo_descripcion: tipoObj ? tipoObj.descripcion : materia.tipo_descripcion || 'Sin tipo',
+                    unidad_nombre: unidadObj ? unidadObj.nombre : 'N/A', 
+                };
+            });
             
             setMateriasPrimas(materiasMapeadas);
 
@@ -103,13 +108,17 @@ export const MateriasPrimas = () => {
         try {
             const response = await api.get('/materias_primas/tipos/');
             if (response.data && Array.isArray(response.data.results)) {
-                setTiposMateria(response.data.results.map(tipo => ({
+                const result = response.data.results.map(tipo => ({
                     id_tipo_materia_prima: tipo.id_tipo_materia_prima,
                     descripcion: tipo.descripcion
-                })));
+                }));
+                setTiposMateria(result);
+                return result; 
             }
+            return [];
         } catch (error) {
             console.error('Error al cargar los tipos de materia:', error);
+            return [];
         }
     };
 
@@ -117,13 +126,17 @@ export const MateriasPrimas = () => {
         try {
             const response = await api.get('/productos/unidades/'); 
             if (response.data && Array.isArray(response.data.results)) {
-                setUnidades(response.data.results.map(item => ({
+                const result = response.data.results.map(item => ({
                     id_unidad: item.id_unidad,
                     nombre: item.descripcion
-                })));
+                }));
+                setUnidades(result);
+                return result; 
             }
+            return [];
         } catch (error) {
             console.error('Error al cargar las unidades de medida:', error);
+            return [];
         }
     };
 
@@ -140,8 +153,6 @@ export const MateriasPrimas = () => {
 
     useEffect(() => {
         fetchMateriasPrimas();
-        fetchTiposMateria();
-        fetchUnidades();
         fetchProveedores();
     }, []);
 
@@ -163,7 +174,6 @@ export const MateriasPrimas = () => {
         setIsModalVisible(true);
     };
 
-    // 🗑️ Función para eliminar una materia prima (DELETE) - USANDO `modal` del hook
     const handleDeleteMateria = (id) => {
         modal.confirm({ 
             title: '¿Estás seguro de eliminar esta materia prima?',
@@ -186,29 +196,20 @@ export const MateriasPrimas = () => {
         });
     };
 
-    // Definición de columnas para la tabla (sin cambios)
+    // 🛑 DEFINICIÓN DE COLUMNAS UNIFICADA
     const columns = [
         {
             title: 'Nombre',
             dataIndex: 'nombre',
             key: 'nombre',
             sorter: (a, b) => a.nombre.localeCompare(b.nombre),
-            width: '20%',
+            width: '15%',
         },
         {
             title: 'Descripción',
             dataIndex: 'descripcion',
             key: 'descripcion',
-            width: '30%',
-        },
-        {
-            title: 'Tipo',
-            dataIndex: 'tipo_descripcion',
-            key: 'tipo',
-            filters: tiposMateria.map(t => ({ text: t.descripcion, value: t.descripcion })),
-            onFilter: (value, record) => record.tipo_descripcion && record.tipo_descripcion.indexOf(value) === 0,
-            render: (tipoDescripcion) => tipoDescripcion || 'Sin tipo',
-            width: '15%',
+            width: '20%',
         },
         {
             title: 'Precio',
@@ -224,7 +225,31 @@ export const MateriasPrimas = () => {
                     </span>
                 );
             },
-            width: '15%',
+            width: '10%', // Ancho unificado
+        },
+        {
+            title: 'Tipo',
+            dataIndex: 'tipo_descripcion',
+            key: 'tipo',
+            // 💡 Filtros por la lista global de tipos
+            filters: tiposMateria.map(t => ({ text: t.descripcion, value: t.descripcion })),
+            onFilter: (value, record) => record.tipo_descripcion && record.tipo_descripcion.indexOf(value) === 0,
+            render: (tipoDescripcion) => tipoDescripcion || 'Sin tipo',
+            width: '12%', // Ancho unificado
+        },
+        {
+            title: 'Unidad',
+            dataIndex: 'unidad_nombre', 
+            key: 'unidad',
+            width: '10%', // Ancho unificado
+        },
+        {
+            title: 'Umbral Mínimo',
+            dataIndex: 'umbral_minimo',
+            key: 'umbral_minimo',
+            align: 'right',
+            sorter: (a, b) => parseFloat(a.umbral_minimo) - parseFloat(b.umbral_minimo),
+            width: '13%', // Ancho unificado
         },
         {
             title: 'Acciones',
@@ -245,7 +270,7 @@ export const MateriasPrimas = () => {
                     />
                 </Space>
             ),
-            width: '10%',
+            width: '20%', // Ancho unificado
         },
     ];
 
@@ -280,7 +305,6 @@ export const MateriasPrimas = () => {
                 dataSource={materiasPrimas} 
                 rowKey="id_materia_prima"
                 loading={loading}
-                // Deshabilitamos la paginación de forma explícita
                 pagination={false} 
                 scroll={{ x: 'max-content' }}
             />

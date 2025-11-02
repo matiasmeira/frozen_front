@@ -267,7 +267,6 @@
 
 
 /* --- 7. Estilos para Card de Ingredientes --- */
-/* Esta sección de la tabla de ingredientes es un div, la convertiremos a Card */
 :global(.ant-card.ingredients-card) { /* Añadiremos esta clase en el JSX del div */
     background-color: #FFFFFF;
     border-radius: var(--card-border-radius);
@@ -295,3 +294,24 @@
     border-radius: 10px;
     box-shadow: 0 4px 12px rgba(74, 144, 226, 0.2);
 }
+
+/* --- ESTILO CRÍTICO PARA ELIMINAR EL SOLAPAMIENTO DE VALIDACIÓN --- */
+
+:global(.ant-form-item) {
+    margin-bottom: 24px !important; /* Reserva espacio para el mensaje de error de validación */
+}
+/* Aumentamos el margen en el footer si es necesario para el botón */
+:global(.ant-modal-footer) {
+    padding: 20px 30px; 
+    margin-top: 10px; /* Separar del último campo, si es necesario */
+}
+
+/* 🛑 --- INICIO DE LA MODIFICACIÓN --- 🛑 */
+/* Oculta el texto de error de AntD.
+   La lógica en Recetas.jsx ahora lo muestra en un toast.
+   El borde rojo seguirá apareciendo, lo cual es deseable.
+*/
+:global(.ant-form-item-explain-error) {
+    display: none !important;
+}
+/* 🛑 --- FIN DE LA MODIFICACIÓN --- 🛑 */

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Button, Table, Modal, Form, Input, InputNumber, Select, Card, Space, Typography, message } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, ContainerOutlined } from '@ant-design/icons';
 import { api } from '../../../../services/api';
+import toast from 'react-hot-toast'; 
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -21,7 +22,10 @@ export const Recetas = () => {
     const [editingRecetaMateria, setEditingRecetaMateria] = useState(null);
     const [selectedRecetaId, setSelectedRecetaId] = useState(null);
 
-    // --- FUNCIONES DE FETCH (RECOLECCIÓN TOTAL / INFINITE SCROLLING) ---
+    // Estado para guardar la lista de unidades
+    const [unidades, setUnidades] = useState([]);
+
+    // --- FUNCIONES DE FETCH (RECOLECCIÓN TOTAL) ---
 
     const fetchRecetas = useCallback(async () => {
         setLoading(true);
@@ -39,7 +43,7 @@ export const Recetas = () => {
             setRecetas(allRecetas);
         } catch (error) {
             console.error('Error fetching todas las recetas:', error);
-            message.error('Error al cargar todas las recetas');
+            toast.error('Error al cargar todas las recetas'); 
         } finally {
             setLoading(false);
         }
@@ -63,6 +67,7 @@ export const Recetas = () => {
         }
     }, []);
 
+    // Este fetch trae el `id_unidad`
     const fetchMateriasPrimas = useCallback(async () => {
         let allMaterias = [];
         let nextUrl = '/materias_primas/materias/'; 
@@ -80,6 +85,26 @@ export const Recetas = () => {
             console.error('Error fetching todas las materias primas:', error);
         }
     }, []);
+
+    // Función para traer la lista de unidades
+    const fetchUnidades = useCallback(async () => {
+        let allUnidades = [];
+        let nextUrl = '/productos/unidades/'; 
+        
+        try {
+            while (nextUrl) {
+                const urlToFetch = nextUrl.includes('/api/') ? nextUrl.split('/api/')[1] : nextUrl;
+                const response = await api.get(urlToFetch);
+                
+                allUnidades = allUnidades.concat(response.data.results || []);
+                nextUrl = response.data.next; 
+            }
+            setUnidades(allUnidades);
+        } catch (error) {
+            console.error('Error fetching todas las unidades:', error);
+            toast.error('Error al cargar las unidades de medida');
+        }
+    }, []);
     
     const fetchRecetaMaterias = useCallback(async (recetaId) => {
         try {
@@ -88,7 +113,7 @@ export const Recetas = () => {
             setRecetaMaterias(response.data.results || []);
         } catch (error) {
             console.error('Error al cargar los ingredientes de la receta:', error);
-            message.error('Error al cargar los ingredientes de la receta');
+            toast.error('Error al cargar los ingredientes de la receta'); 
         } finally {
             setLoading(false);
         }
@@ -98,15 +123,16 @@ export const Recetas = () => {
     useEffect(() => {
         Promise.all([
             fetchMateriasPrimas(),
-            fetchProductos()
+            fetchProductos(),
+            fetchUnidades() 
         ]).then(() => {
             fetchRecetas();
         });
-    }, [fetchRecetas, fetchMateriasPrimas, fetchProductos]);
+    }, [fetchRecetas, fetchMateriasPrimas, fetchProductos, fetchUnidades]); 
 
-    // --- Manejadores de Submit ---
-
+    // --- Manejadores ---
     const handleSubmit = async () => { 
+        const loadingToast = toast.loading(editingReceta ? 'Actualizando receta...' : 'Creando receta...');
         try {
             const values = await form.validateFields();
             setLoading(true);
@@ -117,10 +143,10 @@ export const Recetas = () => {
 
             if (editingReceta) {
                 await api.put(`/recetas/recetas/${editingReceta.id_receta}/`, payload);
-                message.success('Receta actualizada correctamente');
+                toast.success('Receta actualizada correctamente', { id: loadingToast });
             } else {
                 await api.post('/recetas/recetas/', payload);
-                message.success('Receta creada correctamente');
+                toast.success('Receta creada correctamente', { id: loadingToast });
             }
 
             setIsModalVisible(false);
@@ -129,17 +155,23 @@ export const Recetas = () => {
             fetchRecetas();
         } catch (error) {
             console.error('Error saving receta:', error);
-            message.error('Error al guardar la receta');
+            toast.dismiss(loadingToast); 
+
+            if (error.errorFields && error.errorFields.length > 0) {
+                const errorMessage = error.errorFields[0].errors[0]; 
+                toast.error(errorMessage);
+            } else {
+                toast.error('Error al guardar la receta');
+            }
         } finally {
             setLoading(false);
         }
     };
 
     const handleMateriaSubmit = async () => { 
+        const loadingToast = toast.loading(editingRecetaMateria ? 'Actualizando ingrediente...' : 'Agregando ingrediente...');
         try {
-            // Obtenemos los valores para manipulación antes de la validación
             const currentValues = form.getFieldsValue(); 
-            // Esto lanza una excepción si falla, deteniendo la ejecución
             await form.validateFields(); 
             
             setLoading(true);
@@ -147,7 +179,7 @@ export const Recetas = () => {
             const recetaIdNum = Number(selectedRecetaId);
             
             if (!recetaIdNum) {
-                message.error('El ID de la receta seleccionada es inválido.');
+                toast.error('El ID de la receta seleccionada es inválido.', { id: loadingToast });
                 setLoading(false);
                 return;
             }
@@ -155,12 +187,11 @@ export const Recetas = () => {
             const materiaPrimaId = currentValues.id_materia_prima ? Number(currentValues.id_materia_prima) : null;
 
             if (!materiaPrimaId) {
-                 message.error('Por favor, seleccione una Materia Prima válida.');
+                 toast.error('Por favor, seleccione una Materia Prima válida.', { id: loadingToast });
                  setLoading(false);
                  return;
             }
 
-            // 🛑 Construcción del payload con valores ya validados y convertidos
             const payload = {
                 cantidad: Number(currentValues.cantidad),
                 id_materia_prima: materiaPrimaId,
@@ -169,10 +200,10 @@ export const Recetas = () => {
 
             if (editingRecetaMateria) {
                 await api.put(`/recetas/recetas-materias/${editingRecetaMateria.id_receta_materia_prima}/`, payload);
-                message.success('Ingrediente actualizado correctamente');
+                toast.success('Ingrediente actualizado correctamente', { id: loadingToast });
             } else {
                 await api.post('/recetas/recetas-materias/', payload);
-                message.success('Ingrediente agregado correctamente');
+                toast.success('Ingrediente agregado correctamente', { id: loadingToast });
             }
 
             setIsMateriaModalVisible(false);
@@ -181,13 +212,20 @@ export const Recetas = () => {
             fetchRecetaMaterias(selectedRecetaId);
         } catch (error) {
             console.error('Error saving receta materia:', { error, values: form.getFieldsValue(), errorFields: form.getFieldsError() });
-            message.error('Error al guardar el ingrediente. Revise los campos.');
+            toast.dismiss(loadingToast); 
+
+            if (error.errorFields && error.errorFields.length > 0) {
+                const errorMessage = error.errorFields[0].errors[0]; 
+                toast.error(errorMessage);
+            } else {
+                toast.error('Error al guardar el ingrediente. Revise los campos.');
+            }
         } finally {
             setLoading(false);
         }
     };
     
-    const handleDelete = (id) => { /* ... se mantiene igual ... */
+    const handleDelete = (id) => {
         modal.confirm({
             title: '¿Estás seguro de eliminar esta Receta?',
             content: 'Esta acción es irreversible.',
@@ -195,10 +233,11 @@ export const Recetas = () => {
             okType: 'danger',
             cancelText: 'Cancelar',
             onOk: async () => {
+                const deleteToast = toast.loading('Eliminando receta...');
                 try {
                     setLoading(true);
                     await api.delete(`/recetas/recetas/${id}/`);
-                    message.success('Receta eliminada correctamente');
+                    toast.success('Receta eliminada correctamente', { id: deleteToast });
                     
                     if (selectedRecetaId === id) {
                         setSelectedRecetaId(null);
@@ -208,7 +247,7 @@ export const Recetas = () => {
                     fetchRecetas();
                 } catch (error) {
                     console.error('Error deleting receta:', error);
-                    message.error('Error al eliminar la receta');
+                    toast.error('Error al eliminar la receta', { id: deleteToast });
                     return Promise.reject(error);
                 } finally {
                     setLoading(false);
@@ -217,7 +256,7 @@ export const Recetas = () => {
         });
     };
 
-    const handleDeleteMateria = (id) => { /* ... se mantiene igual ... */
+    const handleDeleteMateria = (id) => {
         modal.confirm({
             title: '¿Estás seguro de eliminar este Ingrediente?',
             content: 'Esta acción es irreversible.',
@@ -225,14 +264,15 @@ export const Recetas = () => {
             okType: 'danger',
             cancelText: 'Cancelar',
             onOk: async () => {
+                const deleteToast = toast.loading('Eliminando ingrediente...');
                 try {
                     setLoading(true);
                     await api.delete(`/recetas/recetas-materias/${id}/`);
-                    message.success('Ingrediente eliminado correctamente');
+                    toast.success('Ingrediente eliminado correctamente', { id: deleteToast });
                     fetchRecetaMaterias(selectedRecetaId);
                 } catch (error) {
                     console.error('Error deleting receta materia:', error);
-                    message.error('Error al eliminar el ingrediente');
+                    toast.error('Error al eliminar el ingrediente', { id: deleteToast });
                     return Promise.reject(error);
                 } finally {
                     setLoading(false);
@@ -241,7 +281,7 @@ export const Recetas = () => {
         });
     };
 
-    const openRecetaModal = (receta = null) => { /* ... se mantiene igual ... */
+    const openRecetaModal = (receta = null) => {
         setEditingReceta(receta);
         if (receta) {
             form.setFieldsValue({
@@ -254,20 +294,22 @@ export const Recetas = () => {
         setIsModalVisible(true);
     };
 
-    const openRecetaMateriaModal = (recetaMateria = null) => { /* ... se mantiene igual ... */
+    const openRecetaMateriaModal = (recetaMateria = null) => {
         setEditingRecetaMateria(recetaMateria);
         if (recetaMateria) {
             form.setFieldsValue({
                 id_materia_prima: recetaMateria.id_materia_prima,
                 cantidad: recetaMateria.cantidad,
+                // Ya no seteamos 'unidad_medida' aquí
             });
+
         } else {
             form.resetFields();
         }
         setIsMateriaModalVisible(true);
     };
 
-    const showRecetaMaterias = (receta) => { /* ... se mantiene igual ... */
+    const showRecetaMaterias = (receta) => {
         if (receta.id_receta === selectedRecetaId) {
              setSelectedRecetaId(null);
              setRecetaMaterias([]);
@@ -336,7 +378,7 @@ export const Recetas = () => {
                     onClick={() => openRecetaModal()}
                     size="large"
                 >
-                    Nueva Receta
+                    Agregar Receta
                 </Button>
             }
             style={{ 
@@ -390,6 +432,22 @@ export const Recetas = () => {
                                 render: (cantidad) => cantidad !== null && cantidad !== undefined ? Number(cantidad).toFixed(2) : '0.00',
                             },
                             {
+                                title: 'Unidad',
+                                dataIndex: 'id_materia_prima', 
+                                key: 'unidad',
+                                render: (id_materia_prima) => {
+                                    // 1. Encontrar la materia prima
+                                    const materia = materiasPrimas.find(m => m.id_materia_prima === id_materia_prima);
+                                    if (!materia) return 'N/A';
+                                    
+                                    // 2. Encontrar la unidad usando el id_unidad
+                                    const unidad = unidades.find(u => u.id_unidad === materia.id_unidad);
+                                    
+                                    // 3. Renderizar el texto (usando 'descripcion' del JSON de unidades)
+                                    return unidad ? (unidad.descripcion || 'N/A') : 'N/A';
+                                },
+                            },
+                            {
                                 title: 'Acciones',
                                 key: 'acciones',
                                 render: (_, record) => (
@@ -419,8 +477,9 @@ export const Recetas = () => {
                     form.resetFields();
                 }}
                 confirmLoading={loading}
+                destroyOnClose 
             >
-                <Form form={form} layout="vertical">
+                <Form form={form} layout="vertical"> 
                     <Form.Item name="descripcion" label="Descripción" rules={[{ required: true, message: 'Por favor ingrese una descripción' }]}>
                         <Input />
                     </Form.Item>
@@ -443,7 +502,7 @@ export const Recetas = () => {
                                     
                                     if (isDuplicate) {
                                         const productoName = productos.find(p => p.id_producto === value)?.nombre || 'este producto';
-                                        return Promise.reject(new Error(`Ya existe una receta para "${productoName}".`));
+                                        return Promise.reject(new Error(`Ya existe receta para ${productoName}.`));
                                     }
                                     
                                     return Promise.resolve();
@@ -468,15 +527,43 @@ export const Recetas = () => {
                 open={isMateriaModalVisible}
                 onOk={handleMateriaSubmit}
                 onCancel={() => {
-                    setIsMateriaModalVisible(false);
+                    setIsMateriaModalVisible(false); // Cierra este modal
                     setEditingRecetaMateria(null);
                     form.resetFields();
                 }}
                 confirmLoading={loading}
+                destroyOnClose
             >
                 <Form form={form} layout="vertical">
-                    <Form.Item name="id_materia_prima" label="Materia Prima" rules={[{ required: true, message: 'Por favor seleccione una materia prima' }]}>
-                        <Select placeholder="Seleccione una materia prima" showSearch optionFilterProp="children">
+                    <Form.Item 
+                        name="id_materia_prima" 
+                        label="Materia Prima" 
+                        rules={[
+                            { required: true, message: 'Por favor seleccione una materia prima' },
+                            ({ getFieldValue }) => ({
+                                validator(_, value) {
+                                    if (!value) {
+                                        return Promise.resolve();
+                                    }
+                                    const isDuplicate = recetaMaterias.some(materia => 
+                                        materia.id_materia_prima === value &&
+                                        (!editingRecetaMateria || materia.id_receta_materia_prima !== editingRecetaMateria.id_receta_materia_prima)
+                                    );
+                                    if (isDuplicate) {
+                                        const materiaName = materiasPrimas.find(m => m.id_materia_prima === value)?.nombre || 'este ingrediente';
+                                        return Promise.reject(new Error(`La receta ya contiene ${materiaName}.`));
+                                    }
+                                    return Promise.resolve();
+                                },
+                            }),
+                        ]}
+                    >
+                        <Select 
+                            placeholder="Seleccione una materia prima" 
+                            showSearch 
+                            optionFilterProp="children"
+                            // Ya no necesitamos actualizar 'unidad_medida' aquí
+                        >
                             {materiasPrimas.map(materia => (
                                 <Option key={materia.id_materia_prima} value={materia.id_materia_prima}>
                                     {materia.nombre}
@@ -493,7 +580,6 @@ export const Recetas = () => {
                                 required: true, 
                                 message: 'Por favor ingrese la cantidad',
                             },
-                            // 🛑 Validación numérica explícita con min y transform para decimales
                             {
                                 type: 'number',
                                 min: 0.01,
@@ -506,11 +592,13 @@ export const Recetas = () => {
                             style={{ width: '100%' }} 
                             min={0.01} 
                             step={0.01} 
-                            // Aseguramos que la coma se reemplace por punto antes de que Ant Design lo interprete
-                            formatter={value => `${value}`.replace('.', ',')} 
+                            formatter={value => `${value}`.replace('.', ',')}
                             parser={value => value.replace(',', '.')}
                         />
                     </Form.Item>
+
+                    {/* 🛑 Eliminado el Form.Item de "Unidad de Medida" de aquí */}
+
                 </Form>
             </Modal>
         </Card>
