@@ -32,14 +32,19 @@ ChartJS.register(
 );
 
 const Dashboard = () => {
-  const [fechaDesde, setFechaDesde] = useState('2024-01-01');
-  const [fechaHasta, setFechaHasta] = useState('2024-01-31');
   const [generandoReporte, setGenerandoReporte] = useState(false);
   const dashboardRef = useRef(null);
+  const chartRefs = useRef({
+    productionChart: null,
+    oeeTrendChart: null,
+    wasteChart: null,
+    nonConformitiesChart: null
+  });
 
-  // Indicadores principales (mantener igual)
+  // Indicadores principales
   const indicadores = {
     oee: 78.5,
+    objetivoOEE: 80.0, // Objetivo añadido
     cumplimientoPlan: 92.3,
     tasaDesperdicio: 2.1,
     tasaNoConformidades: 1.4,
@@ -243,6 +248,17 @@ const Dashboard = () => {
         pointBorderWidth: 2,
         pointRadius: 5,
         pointHoverRadius: 7
+      },
+      {
+        label: 'Objetivo OEE',
+        data: [80, 80, 80, 80, 80, 80],
+        borderColor: 'rgba(231, 76, 60, 1)',
+        backgroundColor: 'rgba(231, 76, 60, 0.1)',
+        borderWidth: 2,
+        borderDash: [5, 5],
+        fill: false,
+        pointRadius: 0,
+        tension: 0
       }
     ]
   };
@@ -267,71 +283,9 @@ const Dashboard = () => {
     return styles.poor;
   };
 
-  const handleGenerarReporte = async () => {
-    setGenerandoReporte(true);
-    
-    try {
-      const reportElement = document.createElement('div');
-      reportElement.style.padding = '20px';
-      reportElement.style.backgroundColor = 'white';
-      reportElement.style.fontFamily = 'Arial, sans-serif';
-      
-      // Contenido del reporte (mantener igual)
-      reportElement.innerHTML = `
-        <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px;">
-          <h1 style="color: #2c3e50; margin: 0;">Reporte de Auditoría - Producción</h1>
-          <h2 style="color: #7f8c8d; margin: 5px 0;">Alimentos Congelados S.A.</h2>
-          <p style="color: #666; margin: 5px 0;">Período: ${fechaDesde} a ${fechaHasta}</p>
-          <p style="color: #666; margin: 5px 0;">Generado: ${new Date().toLocaleDateString()}</p>
-        </div>
-        
-        <!-- Resto del contenido del reporte igual -->
-      `;
-
-      document.body.appendChild(reportElement);
-
-      const canvas = await html2canvas(reportElement, {
-        scale: 2,
-        useCORS: true,
-        logging: false
-      });
-
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgWidth = 210;
-      const pageHeight = 295;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      let heightLeft = imgHeight;
-      let position = 0;
-
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
-
-      const fileName = `Reporte_Auditoria_${fechaDesde}_a_${fechaHasta}.pdf`;
-      pdf.save(fileName);
-
-      document.body.removeChild(reportElement);
-
-    } catch (error) {
-      console.error('Error generando reporte:', error);
-      alert('Error al generar el reporte. Por favor, intente nuevamente.');
-    } finally {
-      setGenerandoReporte(false);
-    }
-  };
-
-  const handleFiltrar = () => {
-    console.log('Filtrando datos desde:', fechaDesde, 'hasta:', fechaHasta);
-    alert(`Buscando datos para el período: ${fechaDesde} a ${fechaHasta}`);
-  };
+  // Calcular diferencia con el objetivo
+  const diferenciaOEE = indicadores.oee - indicadores.objetivoOEE;
+  const porcentajeObjetivo = (indicadores.oee / indicadores.objetivoOEE) * 100;
 
   return (
     <div className={styles.dashboard} ref={dashboardRef}>
@@ -340,67 +294,14 @@ const Dashboard = () => {
         <p>Indicadores de Eficiencia y Calidad</p>
       </header>
 
-      {/* Controles de fecha y reporte */}
-      <div className={styles.controls}>
-        <div className={styles.dateControls}>
-          <div className={styles.dateGroup}>
-            <label htmlFor="fechaDesde" className={styles.dateLabel}>
-              Desde:
-            </label>
-            <input
-              type="date"
-              id="fechaDesde"
-              value={fechaDesde}
-              onChange={(e) => setFechaDesde(e.target.value)}
-              className={styles.dateInput}
-            />
-          </div>
-          
-          <div className={styles.dateGroup}>
-            <label htmlFor="fechaHasta" className={styles.dateLabel}>
-              Hasta:
-            </label>
-            <input
-              type="date"
-              id="fechaHasta"
-              value={fechaHasta}
-              onChange={(e) => setFechaHasta(e.target.value)}
-              className={styles.dateInput}
-            />
-          </div>
-          
-          <button 
-            onClick={handleFiltrar}
-            className={styles.filterButton}
-          >
-            🔍 Filtrar
-          </button>
-        </div>
-        
-        <button 
-          onClick={handleGenerarReporte}
-          className={styles.reportButton}
-          disabled={generandoReporte}
-        >
-          {generandoReporte ? '⏳ Generando...' : '📊 Generar Reporte de Auditoría'}
-        </button>
-      </div>
-
-      {/* Información del período seleccionado */}
-      <div className={styles.periodInfo}>
-        <h3>Período seleccionado: {fechaDesde} a {fechaHasta}</h3>
-        <p>Mostrando datos del rango de fechas especificado</p>
-      </div>
-
       <div className={styles.grid}>
         {/* Tarjeta OEE */}
         <div className={`${styles.card} ${styles.oeeCard}`}>
           <div className={styles.cardHeader}>
             <h3>OEE (Overall Equipment Effectiveness)</h3>
-            <span className={`${styles.badge} ${getOeeColor(indicadores.oee)}`}>
-              {indicadores.oee}%
-            </span>
           </div>
+        
+
           <div className={styles.oeeComponents}>
             <div className={styles.oeeComponent}>
               <span className={styles.componentLabel}>Disponibilidad</span>
@@ -435,13 +336,11 @@ const Dashboard = () => {
           </div>
         </div>
 
+
         {/* Indicadores principales */}
-        <div className={styles.card}>
+        <div className={`${styles.card} ${styles.indicadorCard}`}>
           <div className={styles.cardHeader}>
             <h3>Cumplimiento del Plan</h3>
-            <span className={`${styles.badge} ${getStatusColor(indicadores.cumplimientoPlan)}`}>
-              {indicadores.cumplimientoPlan}%
-            </span>
           </div>
           <div className={styles.cardContent}>
             <p className={styles.metric}>{indicadores.cumplimientoPlan}%</p>
@@ -449,12 +348,9 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className={styles.card}>
+        <div className={`${styles.card} ${styles.indicadorCard}`}>
           <div className={styles.cardHeader}>
             <h3>Tasa de Desperdicio</h3>
-            <span className={`${styles.badge} ${getStatusColor(indicadores.tasaDesperdicio, true)}`}>
-              {indicadores.tasaDesperdicio}%
-            </span>
           </div>
           <div className={styles.cardContent}>
             <p className={styles.metric}>{indicadores.tasaDesperdicio}%</p>
@@ -462,12 +358,9 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className={styles.card}>
+        <div className={`${styles.card} ${styles.indicadorCard}`}>
           <div className={styles.cardHeader}>
             <h3>No Conformidades</h3>
-            <span className={`${styles.badge} ${getStatusColor(indicadores.tasaNoConformidades, true)}`}>
-              {indicadores.tasaNoConformidades}%
-            </span>
           </div>
           <div className={styles.cardContent}>
             <p className={styles.metric}>{indicadores.tasaNoConformidades}%</p>
