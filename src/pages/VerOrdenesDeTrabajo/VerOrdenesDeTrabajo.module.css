@@ -260,6 +260,24 @@
 	cursor: not-allowed;
 }
 
+.btnDesperdicio {
+	background-color: #e74c3c;
+	color: white;
+}
+
+.btnDesperdicio:hover {
+	background-color: #c0392b;
+}
+
+.btnReanudar {
+	background-color: slateblue;
+	color: white;
+}
+
+.btnReanudar:hover {
+	background-color: rgb(86, 66, 211);
+}
+
 .sinResultados {
 	text-align: center;
 	padding: 60px 20px;

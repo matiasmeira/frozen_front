@@ -1,97 +1,54 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import styles from "./VerOrdenesDeTrabajo.module.css";
 
-// Mock data - reemplazar con llamada a API cuando esté disponible
-const mockOrdenes = [
-	{
-		id_orden_trabajo: 1,
-		cantidad_programada: 500,
-		hora_inicio_programada: "2025-11-01T08:00:00",
-		hora_fin_programada: "2025-11-01T14:00:00",
-		hora_inicio_real: "2025-11-01T08:10:00",
-		hora_fin_real: "2025-11-01T13:50:00",
-		cantidad_producida: 480,
-		id_estado_orden_trabajo: 2, // 1=Pendiente, 2=En proceso, 3=Finalizada
-		id_linea_produccion: 1,
-		id_orden_produccion: 10,
-	},
-	{
-		id_orden_trabajo: 2,
-		cantidad_programada: 750,
-		hora_inicio_programada: "2025-11-01T14:30:00",
-		hora_fin_programada: "2025-11-01T20:30:00",
-		hora_inicio_real: "2025-11-01T14:45:00",
-		hora_fin_real: "2025-11-01T20:10:00",
-		cantidad_producida: 700,
-		id_estado_orden_trabajo: 3,
-		id_linea_produccion: 2,
-		id_orden_produccion: 11,
-	},
-	{
-		id_orden_trabajo: 3,
-		cantidad_programada: 300,
-		hora_inicio_programada: "2025-11-02T07:00:00",
-		hora_fin_programada: "2025-11-02T11:00:00",
-		hora_inicio_real: "2025-11-02T07:05:00",
-		hora_fin_real: null, // Aún no finalizó
-		cantidad_producida: 150,
-		id_estado_orden_trabajo: 1,
-		id_linea_produccion: 3,
-		id_orden_produccion: 12,
-	},
-	{
-		id_orden_trabajo: 4,
-		cantidad_programada: 600,
-		hora_inicio_programada: "2025-11-02T12:00:00",
-		hora_fin_programada: "2025-11-02T18:00:00",
-		hora_inicio_real: "2025-11-02T12:00:00",
-		hora_fin_real: "2025-11-02T18:10:00",
-		cantidad_producida: 590,
-		id_estado_orden_trabajo: 3,
-		id_linea_produccion: 1,
-		id_orden_produccion: 13,
-	},
-	{
-		id_orden_trabajo: 5,
-		cantidad_programada: 450,
-		hora_inicio_programada: "2025-11-03T06:00:00",
-		hora_fin_programada: "2025-11-03T12:00:00",
-		hora_inicio_real: null, // No ha comenzado
-		hora_fin_real: null,
-		cantidad_producida: 0,
-		id_estado_orden_trabajo: 1,
-		id_linea_produccion: 2,
-		id_orden_produccion: 14,
-	},
-];
+const baseURL = import.meta.env.VITE_API_BASE_URL;
+
+const api = axios.create({
+  baseURL: baseURL,
+});
 
 const VerOrdenesDeTrabajo = () => {
 	const [ordenes, setOrdenes] = useState([]);
 	const [ordenesFiltradas, setOrdenesFiltradas] = useState([]);
 	const [cargando, setCargando] = useState(true);
+	const [error, setError] = useState(null);
 	const [filtroEstado, setFiltroEstado] = useState("todos");
 	const [filtroLinea, setFiltroLinea] = useState("todas");
+	const [procesando, setProcesando] = useState(null); // Para controlar botones en proceso
 
-	// Estados para órdenes
+	// Estados para órdenes - actualizado con todos los estados posibles
 	const estados = {
 		1: { texto: "Pendiente", color: "#f39c12" },
 		2: { texto: "En Proceso", color: "#3498db" },
-		3: { texto: "Finalizada", color: "#27ae60" },
+		3: { texto: "Completada", color: "#27ae60" },
+		4: { texto: "En Pausa", color: "red" },
 	};
 
-	// Cargar datos iniciales
+	// Cargar datos desde la API
 	useEffect(() => {
-		const cargarDatos = async () => {
-			setCargando(true);
-			// Simular carga de API
-			await new Promise((resolve) => setTimeout(resolve, 1000));
-			setOrdenes(mockOrdenes);
-			setOrdenesFiltradas(mockOrdenes);
-			setCargando(false);
-		};
-
 		cargarDatos();
 	}, []);
+
+	const cargarDatos = async () => {
+		try {
+			setCargando(true);
+			setError(null);
+			
+			const response = await api.get('/produccion/ordenes-trabajo/');
+			const ordenesData = response.data.results || [];
+			console.log("Órdenes de trabajo obtenidas:", ordenesData);
+			
+			setOrdenes(ordenesData);
+			setOrdenesFiltradas(ordenesData);
+		} catch (err) {
+			const errorMessage = err.response?.data?.message || "Error al cargar las órdenes de trabajo";
+			setError(errorMessage);
+			console.error("Error fetching órdenes de trabajo:", err);
+		} finally {
+			setCargando(false);
+		}
+	};
 
 	// Aplicar filtros
 	useEffect(() => {
@@ -99,7 +56,7 @@ const VerOrdenesDeTrabajo = () => {
 
 		if (filtroEstado !== "todos") {
 			resultado = resultado.filter(
-				(orden) => orden.id_estado_orden_trabajo === parseInt(filtroEstado)
+				(orden) => orden.id_orden_trabajo === parseInt(filtroEstado)
 			);
 		}
 
@@ -140,32 +97,104 @@ const VerOrdenesDeTrabajo = () => {
 		return "#e74c3c";
 	};
 
-	// Funciones de botones (placeholder por ahora)
-	const handleIniciar = (ordenId) => {
-		console.log("Iniciar orden:", ordenId);
-		alert(`Iniciando orden ${ordenId}`);
+	// Función para iniciar orden de trabajo
+	const handleIniciar = async (ordenId) => {
+		try {
+			setProcesando(ordenId);
+			console.log("Iniciando orden:", ordenId);
+			
+			await api.patch(`/produccion/ordenes-trabajo/${ordenId}/iniciar_ot/`);
+			
+			alert(`Orden ${ordenId} iniciada correctamente`);
+			// Recargar los datos para reflejar el cambio de estado
+			await cargarDatos();
+		} catch (error) {
+			console.error("Error al iniciar la orden:", error);
+			const errorMessage = error.response?.data?.message || "Error al iniciar la orden de trabajo";
+			alert(`Error: ${errorMessage}`);
+		} finally {
+			setProcesando(null);
+		}
 	};
 
-	const handlePausar = (ordenId) => {
-		console.log("Pausar orden:", ordenId);
-		alert(`Pausando orden ${ordenId}`);
+	// Función para pausar orden de trabajo
+	const handlePausar = async (ordenId) => {
+		try {
+			setProcesando(ordenId);
+			console.log("Pausando orden:", ordenId);
+			
+			// Nota: El endpoint de pausa no está especificado, lo dejo como placeholder
+			// await api.patch(`/produccion/ordenes-trabajo/${ordenId}/pausar_ot/`);
+			
+			alert(`La funcionalidad de pausa estará disponible próximamente`);
+		} catch (error) {
+			console.error("Error al pausar la orden:", error);
+			const errorMessage = error.response?.data?.message || "Error al pausar la orden de trabajo";
+			alert(`Error: ${errorMessage}`);
+		} finally {
+			setProcesando(null);
+		}
 	};
 
-	const handleFinalizar = (ordenId) => {
-		console.log("Finalizar orden:", ordenId);
-		alert(`Finalizando orden ${ordenId}`);
+	// Función para reanudar orden de trabajo
+	const handleReanudar = async (ordenId) => {
+		try {
+			setProcesando(ordenId);
+			console.log("Reanudando orden:", ordenId);
+			
+			const datosReanudar = {
+				duracion_minutos: 15
+			};
+			
+			await api.patch(`/produccion/ordenes-trabajo/${ordenId}/reanudar_ot/`, datosReanudar);
+			
+			alert(`Orden ${ordenId} reanudada correctamente`);
+			// Recargar los datos para reflejar el cambio de estado
+			await cargarDatos();
+		} catch (error) {
+			console.error("Error al reanudar la orden:", error);
+			const errorMessage = error.response?.data?.message || "Error al reanudar la orden de trabajo";
+			alert(`Error: ${errorMessage}`);
+		} finally {
+			setProcesando(null);
+		}
 	};
 
-	const handleDetalles = (ordenId) => {
-		console.log("Ver detalles orden:", ordenId);
-		alert(`Mostrando detalles de orden ${ordenId}`);
+	// Función para finalizar orden de trabajo
+	const handleFinalizar = async (ordenId) => {
+		try {
+			setProcesando(ordenId);
+			console.log("Finalizando orden:", ordenId);
+			
+			await api.patch(`/produccion/ordenes-trabajo/${ordenId}/finalizar_ot/`);
+			
+			alert(`Orden ${ordenId} finalizada correctamente`);
+			// Recargar los datos para reflejar el cambio de estado
+			await cargarDatos();
+		} catch (error) {
+			console.error("Error al finalizar la orden:", error);
+			const errorMessage = error.response?.data?.message || "Error al finalizar la orden de trabajo";
+			alert(`Error: ${errorMessage}`);
+		} finally {
+			setProcesando(null);
+		}
 	};
+
+	const handleRegistrarDesperdicio = (ordenId) => {
+		console.log("Registrar desperdicio para orden:", ordenId);
+		alert(`Registrando desperdicio para orden ${ordenId}`);
+		// Aquí iría la lógica para abrir modal/formulario de registro de desperdicio
+	};
+
 
 	// Limpiar filtros
 	const limpiarFiltros = () => {
 		setFiltroEstado("todos");
 		setFiltroLinea("todas");
 	};
+
+	// Obtener líneas únicas para el filtro
+	const lineasUnicas = [...new Set(ordenes.map(orden => orden.id_linea_produccion))].sort();
 
 	// Calcular estadísticas
 	const totalOrdenes = ordenes.length;
@@ -175,8 +204,11 @@ const VerOrdenesDeTrabajo = () => {
 	const ordenesEnProceso = ordenes.filter(
 		(o) => o.id_estado_orden_trabajo === 2
 	).length;
-	const ordenesFinalizadas = ordenes.filter(
+	const ordenesCompletadas = ordenes.filter(
 		(o) => o.id_estado_orden_trabajo === 3
+	).length;
+	const ordenesEnPausa = ordenes.filter(
+		(o) => o.id_estado_orden_trabajo === 4
 	).length;
 
 	if (cargando) {
@@ -184,6 +216,18 @@ const VerOrdenesDeTrabajo = () => {
 			<div className={styles.cargando}>
 				<div className={styles.spinner}></div>
 				<p>Cargando órdenes de trabajo...</p>
+			</div>
+		);
+	}
+
+	if (error) {
+		return (
+			<div className={styles.error}>
+				<h3>Error al cargar las órdenes</h3>
+				<p>{error}</p>
+				<button onClick={cargarDatos} className={styles.btnReintentar}>
+					Reintentar
+				</button>
 			</div>
 		);
 	}
@@ -210,8 +254,12 @@ const VerOrdenesDeTrabajo = () => {
 					<span className={styles.estadisticaLabel}>En Proceso</span>
 				</div>
 				<div className={styles.estadisticaItem}>
-					<span className={styles.estadisticaNumero}>{ordenesFinalizadas}</span>
-					<span className={styles.estadisticaLabel}>Finalizadas</span>
+					<span className={styles.estadisticaNumero}>{ordenesEnPausa}</span>
+					<span className={styles.estadisticaLabel}>En Pausa</span>
+				</div>
+				<div className={styles.estadisticaItem}>
+					<span className={styles.estadisticaNumero}>{ordenesCompletadas}</span>
+					<span className={styles.estadisticaLabel}>Completadas</span>
 				</div>
 			</div>
 
@@ -230,7 +278,8 @@ const VerOrdenesDeTrabajo = () => {
 						<option value="todos">Todos los estados</option>
 						<option value="1">Pendiente</option>
 						<option value="2">En Proceso</option>
-						<option value="3">Finalizada</option>
+						<option value="4">En Pausa</option>
+						<option value="3">Completada</option>
 					</select>
 				</div>
 
@@ -245,9 +294,9 @@ const VerOrdenesDeTrabajo = () => {
 						className={styles.select}
 					>
 						<option value="todas">Todas las líneas</option>
-						<option value="1">Línea 1</option>
-						<option value="2">Línea 2</option>
-						<option value="3">Línea 3</option>
+						{lineasUnicas.map(linea => (
+							<option key={linea} value={linea}>Línea {linea}</option>
+						))}
 					</select>
 				</div>
 
@@ -262,16 +311,22 @@ const VerOrdenesDeTrabajo = () => {
 					ordenesFiltradas.map((orden) => {
 						const progreso = calcularProgreso(orden);
 						const estado = estados[orden.id_estado_orden_trabajo];
+						const estaProcesando = procesando === orden.id_orden_trabajo;
 
 						return (
 							<div key={orden.id_orden_trabajo} className={styles.cardOrden}>
 								<div className={styles.cardHeader}>
-									<h3>Orden #{orden.id_orden_trabajo}</h3>
+									<div className={styles.headerInfo}>
+										<h3>Orden #{orden.id_orden_trabajo}</h3>
+										<span className={styles.productoNombre}>
+											{orden.producto_nombre}
+										</span>
+									</div>
 									<span
 										className={styles.estado}
-										style={{ backgroundColor: estado.color }}
+										style={{ backgroundColor: estado?.color || "#95a5a6" }}
 									>
-										{estado.texto}
+										{estado?.texto || orden.estado_descripcion}
 									</span>
 								</div>
 
@@ -312,6 +367,11 @@ const VerOrdenesDeTrabajo = () => {
 										<strong>Línea de Producción</strong>
 										<span>Línea {orden.id_linea_produccion}</span>
 									</div>
+
+									<div className={styles.infoGrupo}>
+										<strong>Estado</strong>
+										<span>{orden.estado_descripcion}</span>
+									</div>
 								</div>
 
 								{/* Barra de Progreso */}
@@ -331,50 +391,68 @@ const VerOrdenesDeTrabajo = () => {
 									</div>
 								</div>
 
-								{/* Botones de Acción */}
+								{/* Botones de Acción - Lógica actualizada */}
 								<div className={styles.cardFooter}>
-									<button
-										className={`${styles.btnAccion} ${styles.btnIniciar} ${
-											orden.id_estado_orden_trabajo !== 1
-												? styles.btnDeshabilitado
-												: ""
-										}`}
-										onClick={() => handleIniciar(orden.id_orden_trabajo)}
-										disabled={orden.id_estado_orden_trabajo !== 1}
-									>
-										Iniciar
-									</button>
+									{/* Estado: Pendiente - Solo botón Iniciar */}
+									{orden.id_estado_orden_trabajo === 1 && (
+										<button
+											className={`${styles.btnAccion} ${styles.btnIniciar} ${
+												estaProcesando ? styles.btnDeshabilitado : ""
+											}`}
+											onClick={() => handleIniciar(orden.id_orden_trabajo)}
+											disabled={estaProcesando}
+										>
+											{estaProcesando ? "Procesando..." : "Iniciar"}
+										</button>
+									)}
 
-									<button
-										className={`${styles.btnAccion} ${styles.btnPausar} ${
-											orden.id_estado_orden_trabajo !== 2
-												? styles.btnDeshabilitado
-												: ""
-										}`}
-										onClick={() => handlePausar(orden.id_orden_trabajo)}
-										disabled={orden.id_estado_orden_trabajo !== 2}
-									>
-										Pausar
-									</button>
+									{/* Estado: En Proceso - Botones Pausar, Finalizar y Registrar Desperdicio */}
+									{orden.id_estado_orden_trabajo === 2 && (
+										<>
+											<button
+												className={`${styles.btnAccion} ${styles.btnPausar} ${
+													estaProcesando ? styles.btnDeshabilitado : ""
+												}`}
+												onClick={() => handlePausar(orden.id_orden_trabajo)}
+												disabled={estaProcesando}
+											>
+												{estaProcesando ? "Procesando..." : "Pausar"}
+											</button>
+											<button
+												className={`${styles.btnAccion} ${styles.btnFinalizar} ${
+													estaProcesando ? styles.btnDeshabilitado : ""
+												}`}
+												onClick={() => handleFinalizar(orden.id_orden_trabajo)}
+												disabled={estaProcesando}
+											>
+												{estaProcesando ? "Procesando..." : "Finalizar"}
+											</button>
+											<button
+												className={`${styles.btnAccion} ${styles.btnDesperdicio} ${
+													estaProcesando ? styles.btnDeshabilitado : ""
+												}`}
+												onClick={() => handleRegistrarDesperdicio(orden.id_orden_trabajo)}
+												disabled={estaProcesando}
+											>
+												Registrar Desperdicio
+											</button>
+										</>
+									)}
 
-									<button
-										className={`${styles.btnAccion} ${styles.btnFinalizar} ${
-											orden.id_estado_orden_trabajo !== 2
-												? styles.btnDeshabilitado
-												: ""
-										}`}
-										onClick={() => handleFinalizar(orden.id_orden_trabajo)}
-										disabled={orden.id_estado_orden_trabajo !== 2}
-									>
-										Finalizar
-									</button>
+									{/* Estado: En Pausa - Solo botón Reanudar */}
+									{orden.id_estado_orden_trabajo === 4 && (
+										<button
+											className={`${styles.btnAccion} ${styles.btnReanudar} ${
+												estaProcesando ? styles.btnDeshabilitado : ""
+											}`}
+											onClick={() => handleReanudar(orden.id_orden_trabajo)}
+											disabled={estaProcesando}
+										>
+											{estaProcesando ? "Procesando..." : "Reanudar"}
+										</button>
+									)}
 
-									<button
-										className={`${styles.btnAccion} ${styles.btnDetalles}`}
-										onClick={() => handleDetalles(orden.id_orden_trabajo)}
-									>
-										Ver Detalles
-									</button>
+									{/* Estado: Completada - No mostrar botones de acción */}
 								</div>
 							</div>
 						);
