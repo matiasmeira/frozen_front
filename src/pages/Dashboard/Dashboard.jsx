@@ -404,37 +404,50 @@ const Dashboard = () => {
         </div>
       </div>
 
-        {/* MODIFICADO: Gráfico de tasa de desperdicio por producto */}
-        <div className={`${styles.card} ${styles.chartCard}`}>
-          <h3>Tasa de Desperdicio por Producto (%)</h3>
-          <div className={styles.chartContainer}>
-            <Bar 
-              data={wasteChartData} 
-              options={{
-                ...chartOptions,
-                indexAxis: 'y',
-                plugins: {
-                  ...chartOptions.plugins,
-                  title: {
-                    display: false
-                  }
+    <div className={`${styles.card} ${styles.chartCard}`}>
+      <h3>Tasa de Desperdicio por Producto (%)</h3>
+      <div className={styles.chartContainer}>
+        <Bar 
+          data={wasteChartData} 
+          options={{
+            ...chartOptions,
+            // Quitamos indexAxis: 'y' para que sea vertical
+            plugins: {
+              ...chartOptions.plugins,
+              title: {
+                display: false
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: {
+                  color: 'rgba(0, 0, 0, 0.05)'
                 },
-                scales: {
-                  x: {
-                    ...chartOptions.scales.x,
-                    ticks: {
-                      ...chartOptions.scales.x.ticks,
-                      callback: function(value) {
-                        return value + '%';
-                      }
-                    }
+                ticks: {
+                  font: {
+                    size: 10
                   },
-                  y: chartOptions.scales.y
+                  callback: function(value) {
+                    return value + '%';
+                  }
                 }
-              }} 
-            />
-          </div>
-        </div>
+              },
+              x: {
+                grid: {
+                  display: false
+                },
+                ticks: {
+                  font: {
+                    size: 10
+                  }
+                }
+              }
+            }
+          }} 
+        />
+      </div>
+    </div>
 
         {/* MODIFICADO: Gráfico de distribución de desperdicios por tipo */}
         <div className={`${styles.card} ${styles.chartCard}`}>
