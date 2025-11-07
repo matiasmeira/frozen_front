@@ -26,6 +26,7 @@ import TrazarLoteProducto from "./pages/TrazarLoteProducto/TrazarLoteProducto";
 import MetricasConfiguracion from "./pages/MetricasConfiguracion/MetricasConfiguracion";
 import VerOrdenesDeTrabajo from "./pages/VerOrdenesDeTrabajo/VerOrdenesDeTrabajo";
 import Dashboard from "./pages/Dashboard/Dashboard";
+import VerLineasDeProduccion from "./pages/VerLineasDeProduccion/VerLineasDeProduccion";
 //Pages
 
 import "./App.css";
@@ -36,6 +37,7 @@ import ProtectedLogin from "./utils/ProtectedLogin";
 import GestionMateriasPrimas from "./pages/GestionMateriaPrima/GestionMateriaPrima";
 import VerLotesMateriaPrima from "./pages/VerLotesMateriaPrima/VerLotesMateriaPrima";
 import OrdenesDespacho from "./pages/verOrdenesDespacho/OrdenesDespacho";
+
 
 function App() {
 	return (
@@ -70,6 +72,7 @@ function App() {
 							<Route path="/lotesProductos" element={<LotesProductos />}/>
 							<Route path="/GestionMateriasPrimas" element={<GestionMateriasPrimas/>}/>
 							<Route path="/VerOrdenesCompra" element={<VerOrdenesCompra/>}/>
+							<Route path="/VerLineasDeProduccion" element={<VerLineasDeProduccion/>}/>
 							<Route path="/verOrdenesDespacho" element={<OrdenesDespacho/>}/>
 							<Route path="/verOrdenesDeTrabajo" element={<VerOrdenesDeTrabajo/>}/>
 							<Route path="/VerLotesProduccion/:id_Producto" element={<VerLotesProduccion/>}/>
