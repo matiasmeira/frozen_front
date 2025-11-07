@@ -72,33 +72,13 @@ const Dashboard = () => {
     { producto: 'Verduras', desperdicio: 150, porcentaje: 1.2 }
   ];
 
-  // Datos para no conformidades por tipo
-  const datosNoConformidades = [
-    { tipo: 'Peso Insuficiente', cantidad: 12, porcentaje: 35 },
-    { tipo: 'Envase Defectuoso', cantidad: 8, porcentaje: 24 },
-    { tipo: 'Temperatura', cantidad: 6, porcentaje: 18 },
-    { tipo: 'Etiquetado', cantidad: 5, porcentaje: 15 },
-    { tipo: 'Otros', cantidad: 3, porcentaje: 8 }
-  ];
-
-  // Datos para análisis OEE
-  const datosDisponibilidad = [
-    { causa: 'Cambio Formato', tiempo: 120, porcentaje: 45 },
-    { causa: 'Limpieza', tiempo: 80, porcentaje: 30 },
-    { causa: 'Falla Equipo', tiempo: 40, porcentaje: 15 },
-    { causa: 'Falta Material', tiempo: 25, porcentaje: 10 }
-  ];
-
-  const datosRendimiento = [
-    { causa: 'Velocidad Reducida', perdida: 4.2, porcentaje: 60 },
-    { causa: 'Microparadas', perdida: 2.1, porcentaje: 30 },
-    { causa: 'Ajustes', perdida: 0.7, porcentaje: 10 }
-  ];
-
-  const datosCalidad = [
-    { causa: 'Rechazo Inicial', unidades: 85, porcentaje: 55 },
-    { causa: 'Retrabajo', unidades: 45, porcentaje: 29 },
-    { causa: 'Scrap', unidades: 25, porcentaje: 16 }
+  // NUEVO: Datos para desperdicios por tipo
+  const datosDesperdiciosPorTipo = [
+    { tipo: 'Corte y Preparación', cantidad: 380, porcentaje: 32 },
+    { tipo: 'Sobrante Cocción', cantidad: 280, porcentaje: 23 },
+    { tipo: 'Caducidad', cantidad: 220, porcentaje: 18 },
+    { tipo: 'Envase Dañado', cantidad: 180, porcentaje: 15 },
+    { tipo: 'Control Calidad', cantidad: 150, porcentaje: 12 }
   ];
 
   // Configuración para Chart.js
@@ -137,6 +117,9 @@ const Dashboard = () => {
         ticks: {
           font: {
             size: 10
+          },
+          callback: function(value) {
+            return value + '%';
           }
         }
       },
@@ -153,22 +136,13 @@ const Dashboard = () => {
     }
   };
 
-  // Datos para gráfico de producción
+  // MODIFICADO: Datos para gráfico de producción en porcentaje
   const productionChartData = {
     labels: datosProduccion.map(item => item.semana),
     datasets: [
       {
-        label: 'Planificado (kg)',
-        data: datosProduccion.map(item => item.planificado),
-        backgroundColor: 'rgba(52, 152, 219, 0.7)',
-        borderColor: 'rgba(52, 152, 219, 1)',
-        borderWidth: 2,
-        borderRadius: 4,
-        barPercentage: 0.6,
-      },
-      {
-        label: 'Real (kg)',
-        data: datosProduccion.map(item => item.real),
+        label: 'Cumplimiento (%)',
+        data: datosProduccion.map(item => (item.real / item.planificado) * 100),
         backgroundColor: 'rgba(46, 204, 113, 0.7)',
         borderColor: 'rgba(46, 204, 113, 1)',
         borderWidth: 2,
@@ -178,13 +152,13 @@ const Dashboard = () => {
     ]
   };
 
-  // Datos para gráfico de desperdicio
+  // MODIFICADO: Datos para gráfico de desperdicio en porcentaje
   const wasteChartData = {
     labels: datosDesperdicio.map(item => item.producto),
     datasets: [
       {
-        label: 'Desperdicio (kg)',
-        data: datosDesperdicio.map(item => item.desperdicio),
+        label: 'Tasa de Desperdicio (%)',
+        data: datosDesperdicio.map(item => item.porcentaje),
         backgroundColor: [
           'rgba(231, 76, 60, 0.8)',
           'rgba(230, 126, 34, 0.8)',
@@ -205,25 +179,25 @@ const Dashboard = () => {
     ]
   };
 
-  // Datos para gráfico de no conformidades
-  const nonConformitiesChartData = {
-    labels: datosNoConformidades.map(item => item.tipo),
+  // MODIFICADO: Datos para gráfico de desperdicios por tipo en porcentaje
+  const wasteByTypeChartData = {
+    labels: datosDesperdiciosPorTipo.map(item => item.tipo),
     datasets: [
       {
-        data: datosNoConformidades.map(item => item.cantidad),
+        data: datosDesperdiciosPorTipo.map(item => item.porcentaje),
         backgroundColor: [
-          'rgba(52, 152, 219, 0.8)',
-          'rgba(155, 89, 182, 0.8)',
-          'rgba(52, 73, 94, 0.8)',
-          'rgba(241, 196, 15, 0.8)',
-          'rgba(230, 126, 34, 0.8)'
+          'rgba(231, 76, 60, 0.8)',    // Rojo - Corte y Preparación
+          'rgba(230, 126, 34, 0.8)',   // Naranja - Sobrante Cocción
+          'rgba(241, 196, 15, 0.8)',   // Amarillo - Caducidad
+          'rgba(39, 174, 96, 0.8)',    // Verde - Envase Dañado
+          'rgba(52, 152, 219, 0.8)'    // Azul - Control Calidad
         ],
         borderColor: [
-          'rgba(52, 152, 219, 1)',
-          'rgba(155, 89, 182, 1)',
-          'rgba(52, 73, 94, 1)',
+          'rgba(231, 76, 60, 1)',
+          'rgba(230, 126, 34, 1)',
           'rgba(241, 196, 15, 1)',
-          'rgba(230, 126, 34, 1)'
+          'rgba(39, 174, 96, 1)',
+          'rgba(52, 152, 219, 1)'
         ],
         borderWidth: 2,
         hoverOffset: 15
@@ -231,7 +205,7 @@ const Dashboard = () => {
     ]
   };
 
-  // Datos para gráfico de tendencia OEE
+  // Datos para gráfico de tendencia OEE (ya está en porcentaje)
   const oeeTrendData = {
     labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
     datasets: [
@@ -283,10 +257,6 @@ const Dashboard = () => {
     return styles.poor;
   };
 
-  // Calcular diferencia con el objetivo
-  const diferenciaOEE = indicadores.oee - indicadores.objetivoOEE;
-  const porcentajeObjetivo = (indicadores.oee / indicadores.objetivoOEE) * 100;
-
   return (
     <div className={styles.dashboard} ref={dashboardRef}>
       <header className={styles.header}>
@@ -295,98 +265,79 @@ const Dashboard = () => {
       </header>
 
       <div className={styles.grid}>
-        {/* Tarjeta OEE */}
-        <div className={`${styles.card} ${styles.oeeCard}`}>
-          <div className={styles.cardHeader}>
-            <h3>OEE (Overall Equipment Effectiveness)</h3>
+        {/* Columna izquierda - OEE */}
+        <div className={styles.leftColumn}>
+          <div className={`${styles.card} ${styles.oeeCard}`}>
+            <div className={styles.cardHeader}>
+              <h3>OEE (Overall Equipment Effectiveness)</h3>
+            </div>
+            
+            {/* Valor principal del OEE */}
+            <div className={styles.oeeMain}>
+              <div className={styles.oeeValueContainer}>
+                <span className={styles.oeeValue}>{indicadores.oee}%</span>
+                <span className={styles.oeeLabel}>Eficiencia General</span>
+              </div>
+            </div>
+
+            <div className={styles.oeeComponents}>
+              <div className={styles.oeeComponent}>
+                <span className={styles.componentLabel}>Disponibilidad</span>
+                <div className={styles.progressBar}>
+                  <div 
+                    className={`${styles.progressFill} ${getStatusColor(indicadores.disponibilidad)}`}
+                    style={{ width: `${indicadores.disponibilidad}%` }}
+                  ></div>
+                </div>
+                <span className={styles.componentValue}>{indicadores.disponibilidad}%</span>
+              </div>
+              <div className={styles.oeeComponent}>
+                <span className={styles.componentLabel}>Rendimiento</span>
+                <div className={styles.progressBar}>
+                  <div 
+                    className={`${styles.progressFill} ${getStatusColor(indicadores.rendimiento)}`}
+                    style={{ width: `${indicadores.rendimiento}%` }}
+                  ></div>
+                </div>
+                <span className={styles.componentValue}>{indicadores.rendimiento}%</span>
+              </div>
+              <div className={styles.oeeComponent}>
+                <span className={styles.componentLabel}>Calidad</span>
+                <div className={styles.progressBar}>
+                  <div 
+                    className={`${styles.progressFill} ${getStatusColor(indicadores.calidad)}`}
+                    style={{ width: `${indicadores.calidad}%` }}
+                  ></div>
+                </div>
+                <span className={styles.componentValue}>{indicadores.calidad}%</span>
+              </div>
+            </div>
           </div>
+        </div>
+
+        {/* Columna derecha - Indicadores compactos */}
+        <div className={styles.rightColumn}>
+          <div className={`${styles.card} ${styles.indicadorCard}`}>
+            <div className={styles.cardHeader}>
+              <h3>Cumplimiento del Plan</h3>
+            </div>
+            <div className={styles.cardContent}>
+              <p className={styles.metric}>{indicadores.cumplimientoPlan}%</p>
+              <p className={styles.metricSubtitle}>Producción vs Plan</p>
+            </div>
+          </div>
+
+          <div className={`${styles.card} ${styles.indicadorCard}`}>
+            <div className={styles.cardHeader}>
+              <h3>Tasa de Desperdicio</h3>
+            </div>
+            <div className={styles.cardContent}>
+              <p className={styles.metric}>{indicadores.tasaDesperdicio}%</p>
+              <p className={styles.metricSubtitle}>Del total producido</p>
+            </div>
+          </div>
+        </div>
         
-
-          <div className={styles.oeeComponents}>
-            <div className={styles.oeeComponent}>
-              <span className={styles.componentLabel}>Disponibilidad</span>
-              <div className={styles.progressBar}>
-                <div 
-                  className={`${styles.progressFill} ${getStatusColor(indicadores.disponibilidad)}`}
-                  style={{ width: `${indicadores.disponibilidad}%` }}
-                ></div>
-              </div>
-              <span className={styles.componentValue}>{indicadores.disponibilidad}%</span>
-            </div>
-            <div className={styles.oeeComponent}>
-              <span className={styles.componentLabel}>Rendimiento</span>
-              <div className={styles.progressBar}>
-                <div 
-                  className={`${styles.progressFill} ${getStatusColor(indicadores.rendimiento)}`}
-                  style={{ width: `${indicadores.rendimiento}%` }}
-                ></div>
-              </div>
-              <span className={styles.componentValue}>{indicadores.rendimiento}%</span>
-            </div>
-            <div className={styles.oeeComponent}>
-              <span className={styles.componentLabel}>Calidad</span>
-              <div className={styles.progressBar}>
-                <div 
-                  className={`${styles.progressFill} ${getStatusColor(indicadores.calidad)}`}
-                  style={{ width: `${indicadores.calidad}%` }}
-                ></div>
-              </div>
-              <span className={styles.componentValue}>{indicadores.calidad}%</span>
-            </div>
-          </div>
-        </div>
-
-
-        {/* Indicadores principales */}
-        <div className={`${styles.card} ${styles.indicadorCard}`}>
-          <div className={styles.cardHeader}>
-            <h3>Cumplimiento del Plan</h3>
-          </div>
-          <div className={styles.cardContent}>
-            <p className={styles.metric}>{indicadores.cumplimientoPlan}%</p>
-            <p className={styles.metricSubtitle}>Producción vs Plan</p>
-          </div>
-        </div>
-
-        <div className={`${styles.card} ${styles.indicadorCard}`}>
-          <div className={styles.cardHeader}>
-            <h3>Tasa de Desperdicio</h3>
-          </div>
-          <div className={styles.cardContent}>
-            <p className={styles.metric}>{indicadores.tasaDesperdicio}%</p>
-            <p className={styles.metricSubtitle}>Del total producido</p>
-          </div>
-        </div>
-
-        <div className={`${styles.card} ${styles.indicadorCard}`}>
-          <div className={styles.cardHeader}>
-            <h3>No Conformidades</h3>
-          </div>
-          <div className={styles.cardContent}>
-            <p className={styles.metric}>{indicadores.tasaNoConformidades}%</p>
-            <p className={styles.metricSubtitle}>Productos no conformes</p>
-          </div>
-        </div>
-
-        {/* Gráfico Producción Real vs Planificada */}
-        <div className={`${styles.card} ${styles.chartCard}`}>
-          <h3>Producción Real vs Planificada (kg)</h3>
-          <div className={styles.chartContainer}>
-            <Bar 
-              data={productionChartData} 
-              options={{
-                ...chartOptions,
-                plugins: {
-                  ...chartOptions.plugins,
-                  title: {
-                    display: false
-                  }
-                }
-              }} 
-            />
-          </div>
-        </div>
-
         {/* Gráfico Tendencias OEE */}
         <div className={`${styles.card} ${styles.chartCard}`}>
           <h3>Tendencia OEE - Últimos 6 Meses</h3>
@@ -406,9 +357,41 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Gráfico Desperdicio por Producto */}
+        {/* MODIFICADO: Gráfico de cumplimiento de producción */}
         <div className={`${styles.card} ${styles.chartCard}`}>
-          <h3>Desperdicio por Producto (kg)</h3>
+          <h3>Cumplimiento de Producción por Semana (%)</h3>
+          <div className={styles.chartContainer}>
+            <Bar 
+              data={productionChartData} 
+              options={{
+                ...chartOptions,
+                plugins: {
+                  ...chartOptions.plugins,
+                  title: {
+                    display: false
+                  }
+                },
+                scales: {
+                  ...chartOptions.scales,
+                  y: {
+                    ...chartOptions.scales.y,
+                    max: 100,
+                    ticks: {
+                      ...chartOptions.scales.y.ticks,
+                      callback: function(value) {
+                        return value + '%';
+                      }
+                    }
+                  }
+                }
+              }} 
+            />
+          </div>
+        </div>
+
+        {/* MODIFICADO: Gráfico de tasa de desperdicio por producto */}
+        <div className={`${styles.card} ${styles.chartCard}`}>
+          <h3>Tasa de Desperdicio por Producto (%)</h3>
           <div className={styles.chartContainer}>
             <Bar 
               data={wasteChartData} 
@@ -420,18 +403,30 @@ const Dashboard = () => {
                   title: {
                     display: false
                   }
+                },
+                scales: {
+                  x: {
+                    ...chartOptions.scales.x,
+                    ticks: {
+                      ...chartOptions.scales.x.ticks,
+                      callback: function(value) {
+                        return value + '%';
+                      }
+                    }
+                  },
+                  y: chartOptions.scales.y
                 }
               }} 
             />
           </div>
         </div>
 
-        {/* Gráfico No Conformidades por Tipo */}
+        {/* MODIFICADO: Gráfico de distribución de desperdicios por tipo */}
         <div className={`${styles.card} ${styles.chartCard}`}>
-          <h3>No Conformidades por Tipo</h3>
+          <h3>Distribución de Desperdicios por Tipo (%)</h3>
           <div className={styles.chartContainer}>
             <Doughnut 
-              data={nonConformitiesChartData} 
+              data={wasteByTypeChartData} 
               options={{
                 ...chartOptions,
                 plugins: {
@@ -444,77 +439,20 @@ const Dashboard = () => {
                         size: 10
                       }
                     }
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function(context) {
+                        const label = context.label || '';
+                        const value = context.parsed;
+                        return `${label}: ${value}%`;
+                      }
+                    }
                   }
                 },
                 cutout: '60%'
               }} 
             />
-          </div>
-        </div>
-
-        {/* Análisis OEE - Disponibilidad */}
-        <div className={`${styles.card} ${styles.analysisCard}`}>
-          <h3>Análisis OEE - Disponibilidad</h3>
-          <p className={styles.analysisSubtitle}>Tiempo perdido por causa (minutos)</p>
-          <div className={styles.analysisList}>
-            {datosDisponibilidad.map((item, index) => (
-              <div key={item.causa} className={styles.analysisItem}>
-                <span className={styles.analysisLabel}>{item.causa}</span>
-                <div className={styles.analysisBarContainer}>
-                  <div 
-                    className={styles.analysisBarShort}
-                    style={{ width: `${item.porcentaje}%` }}
-                  ></div>
-                  <span className={styles.analysisValueExternal}>
-                    {item.tiempo} min ({item.porcentaje}%)
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Análisis OEE - Rendimiento */}
-        <div className={`${styles.card} ${styles.analysisCard}`}>
-          <h3>Análisis OEE - Rendimiento</h3>
-          <p className={styles.analysisSubtitle}>Pérdidas de velocidad (% de capacidad)</p>
-          <div className={styles.analysisList}>
-            {datosRendimiento.map((item, index) => (
-              <div key={item.causa} className={styles.analysisItem}>
-                <span className={styles.analysisLabel}>{item.causa}</span>
-                <div className={styles.analysisBarContainer}>
-                  <div 
-                    className={styles.analysisBarShort}
-                    style={{ width: `${item.porcentaje}%` }}
-                  ></div>
-                  <span className={styles.analysisValueExternal}>
-                    {item.perdida}% ({item.porcentaje}%)
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Análisis OEE - Calidad */}
-        <div className={`${styles.card} ${styles.analysisCard}`}>
-          <h3>Análisis OEE - Calidad</h3>
-          <p className={styles.analysisSubtitle}>Unidades afectadas</p>
-          <div className={styles.analysisList}>
-            {datosCalidad.map((item, index) => (
-              <div key={item.causa} className={styles.analysisItem}>
-                <span className={styles.analysisLabel}>{item.causa}</span>
-                <div className={styles.analysisBarContainer}>
-                  <div 
-                    className={styles.analysisBarShort}
-                    style={{ width: `${item.porcentaje}%` }}
-                  ></div>
-                  <span className={styles.analysisValueExternal}>
-                    {item.unidades} unid. ({item.porcentaje}%)
-                  </span>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </div>
