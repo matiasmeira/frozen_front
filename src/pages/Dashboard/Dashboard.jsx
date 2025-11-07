@@ -357,37 +357,52 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* MODIFICADO: Gráfico de cumplimiento de producción */}
-        <div className={`${styles.card} ${styles.chartCard}`}>
-          <h3>Cumplimiento de Producción por Semana (%)</h3>
-          <div className={styles.chartContainer}>
-            <Bar 
-              data={productionChartData} 
-              options={{
-                ...chartOptions,
-                plugins: {
-                  ...chartOptions.plugins,
-                  title: {
-                    display: false
+      <div className={`${styles.card} ${styles.chartCard}`}>
+        <h3>Cumplimiento de Producción por Semana (%)</h3>
+        <div className={styles.chartContainer}>
+          <Bar 
+            data={productionChartData} 
+            options={{
+              ...chartOptions,
+              plugins: {
+                ...chartOptions.plugins,
+                title: {
+                  display: false
+                }
+              },
+              scales: {
+                y: {
+                  // Escala dinámica basada en los valores mínimos y máximos
+                  beginAtZero: false,
+                  min: Math.floor(Math.min(...productionChartData.datasets[0].data) - 2), // Mínimo con margen
+                  max: 100, // Siempre máximo 100%
+                  grid: {
+                    color: 'rgba(0, 0, 0, 0.05)'
+                  },
+                  ticks: {
+                    font: {
+                      size: 10
+                    },
+                    callback: function(value) {
+                      return value + '%';
+                    }
                   }
                 },
-                scales: {
-                  ...chartOptions.scales,
-                  y: {
-                    ...chartOptions.scales.y,
-                    max: 100,
-                    ticks: {
-                      ...chartOptions.scales.y.ticks,
-                      callback: function(value) {
-                        return value + '%';
-                      }
+                x: {
+                  grid: {
+                    display: false
+                  },
+                  ticks: {
+                    font: {
+                      size: 10
                     }
                   }
                 }
-              }} 
-            />
-          </div>
+              }
+            }} 
+          />
         </div>
+      </div>
 
         {/* MODIFICADO: Gráfico de tasa de desperdicio por producto */}
         <div className={`${styles.card} ${styles.chartCard}`}>
