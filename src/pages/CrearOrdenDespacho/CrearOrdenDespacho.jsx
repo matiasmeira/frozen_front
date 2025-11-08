@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import Select from 'react-select';
 import styles from './CrearOrdenDespacho.module.css';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
@@ -9,45 +10,100 @@ const api = axios.create({
 
 const CrearOrdenDespacho = ({ onCancel, onSuccess }) => {
   const [formData, setFormData] = useState({
-    repartidor: {
-      nombre: '',
-      telefono: '',
-      patente: ''
-    },
+    repartidor_id: null,
     ordenes_venta: []
   });
-  const [ordenVentaInput, setOrdenVentaInput] = useState('');
+  const [repartidores, setRepartidores] = useState([]);
+  const [ordenesVentaDisponibles, setOrdenesVentaDisponibles] = useState([]);
+  const [loadingRepartidores, setLoadingRepartidores] = useState(false);
+  const [loadingOrdenesVenta, setLoadingOrdenesVenta] = useState(false);
+  const [ordenVentaSeleccionada, setOrdenVentaSeleccionada] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleInputChange = (field, value) => {
-    if (field.startsWith('repartidor.')) {
-      const repartidorField = field.split('.')[1];
-      setFormData(prev => ({
-        ...prev,
-        repartidor: {
-          ...prev.repartidor,
-          [repartidorField]: value
+  // Cargar repartidores desde la API
+  useEffect(() => {
+    const fetchRepartidores = async () => {
+      setLoadingRepartidores(true);
+      try {
+        let allRepartidores = [];
+        let nextUrl = 'despachos/repartidores/';
+
+        while (nextUrl) {
+          const response = await api.get(nextUrl);
+          allRepartidores = [...allRepartidores, ...response.data.results];
+          nextUrl = response.data.next;
         }
-      }));
-    }
+
+        setRepartidores(allRepartidores);
+      } catch (err) {
+        console.error('Error cargando repartidores:', err);
+        setError('Error al cargar la lista de repartidores');
+      } finally {
+        setLoadingRepartidores(false);
+      }
+    };
+
+    fetchRepartidores();
+  }, []);
+
+  // Cargar órdenes de venta disponibles
+  useEffect(() => {
+    const fetchOrdenesVentaDisponibles = async () => {
+      setLoadingOrdenesVenta(true);
+      try {
+        const response = await api.get('ventas/ordenes-venta/no-pagadas-o-facturadas/');
+        setOrdenesVentaDisponibles(response.data);
+      } catch (err) {
+        console.error('Error cargando órdenes de venta:', err);
+        setError('Error al cargar las órdenes de venta disponibles');
+      } finally {
+        setLoadingOrdenesVenta(false);
+      }
+    };
+
+    fetchOrdenesVentaDisponibles();
+  }, []);
+
+  // Opciones para React Select de repartidores
+  const repartidorOptions = repartidores.map(repartidor => ({
+    value: repartidor.id_repartidor,
+    label: `${repartidor.nombre} - ${repartidor.patente || 'Sin patente'} - Tel: ${repartidor.telefono}`
+  }));
+
+  // Opciones para React Select de órdenes de venta
+  const ordenVentaOptions = ordenesVentaDisponibles.map(orden => ({
+    value: orden.id_orden_venta,
+    label: `#${orden.id_orden_venta} - ${orden.cliente.nombre} ${orden.cliente.apellido} - ${orden.estado_venta.descripcion}`
+  }));
+
+  const handleRepartidorChange = (selectedOption) => {
+    setFormData(prev => ({
+      ...prev,
+      repartidor_id: selectedOption ? selectedOption.value : null
+    }));
+  };
+
+  const handleOrdenVentaChange = (selectedOption) => {
+    setOrdenVentaSeleccionada(selectedOption);
   };
 
   const handleAgregarOrdenVenta = () => {
-    const ordenId = parseInt(ordenVentaInput.trim());
-    if (!isNaN(ordenId) && ordenId > 0) {
+    if (ordenVentaSeleccionada) {
+      const ordenId = ordenVentaSeleccionada.value;
+      
       if (!formData.ordenes_venta.includes(ordenId)) {
         setFormData(prev => ({
           ...prev,
           ordenes_venta: [...prev.ordenes_venta, ordenId]
         }));
-        setOrdenVentaInput('');
+        setOrdenVentaSeleccionada(null);
         setError('');
       } else {
         setError('Esta orden de venta ya está agregada');
       }
     } else {
-      setError('Por favor ingresa un ID de orden de venta válido');
+      setError('Por favor selecciona una orden de venta');
     }
   };
 
@@ -63,13 +119,8 @@ const CrearOrdenDespacho = ({ onCancel, onSuccess }) => {
     setError('');
 
     // Validaciones
-    if (!formData.repartidor.nombre.trim()) {
-      setError('El nombre del repartidor es requerido');
-      return;
-    }
-
-    if (!formData.repartidor.telefono.trim()) {
-      setError('El teléfono del repartidor es requerido');
+    if (!formData.repartidor_id) {
+      setError('Debe seleccionar un repartidor');
       return;
     }
 
@@ -81,19 +132,26 @@ const CrearOrdenDespacho = ({ onCancel, onSuccess }) => {
     setLoading(true);
 
     try {
-      // Preparar los datos para enviar (sin patente si está vacía)
+      // Encontrar el repartidor seleccionado completo
+      const repartidorSeleccionado = repartidores.find(
+        rep => rep.id_repartidor === formData.repartidor_id
+      );
+
+      if (!repartidorSeleccionado) {
+        setError('Repartidor no encontrado');
+        return;
+      }
+
+      // Preparar los datos para enviar - objeto repartidor completo
       const datosEnvio = {
         repartidor: {
-          nombre: formData.repartidor.nombre.trim(),
-          telefono: formData.repartidor.telefono.trim()
+          id_repartidor: repartidorSeleccionado.id_repartidor,
+          nombre: repartidorSeleccionado.nombre,
+          telefono: repartidorSeleccionado.telefono,
+          patente: repartidorSeleccionado.patente || ''
         },
         ordenes_venta: formData.ordenes_venta
       };
-
-      // Agregar patente solo si no está vacía
-      if (formData.repartidor.patente.trim()) {
-        datosEnvio.repartidor.patente = formData.repartidor.patente.trim();
-      }
 
       await api.post('despachos/ordenes-despacho/', datosEnvio);
       
@@ -111,12 +169,10 @@ const CrearOrdenDespacho = ({ onCancel, onSuccess }) => {
     }
   };
 
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleAgregarOrdenVenta();
-    }
-  };
+  // Filtrar órdenes de venta disponibles para excluir las ya agregadas
+  const ordenVentaOptionsFiltradas = ordenVentaOptions.filter(
+    option => !formData.ordenes_venta.includes(option.value)
+  );
 
   return (
     <div className={styles.overlay}>
@@ -137,37 +193,17 @@ const CrearOrdenDespacho = ({ onCancel, onSuccess }) => {
             <h3>Información del Repartidor</h3>
             
             <div className={styles.inputGroup}>
-              <label htmlFor="nombre">Nombre *</label>
-              <input
-                id="nombre"
-                type="text"
-                value={formData.repartidor.nombre}
-                onChange={(e) => handleInputChange('repartidor.nombre', e.target.value)}
-                placeholder="Ej: Juan Perez"
-                required
-              />
-            </div>
-
-            <div className={styles.inputGroup}>
-              <label htmlFor="telefono">Teléfono *</label>
-              <input
-                id="telefono"
-                type="text"
-                value={formData.repartidor.telefono}
-                onChange={(e) => handleInputChange('repartidor.telefono', e.target.value)}
-                placeholder="Ej: 123456789"
-                required
-              />
-            </div>
-
-            <div className={styles.inputGroup}>
-              <label htmlFor="patente">Patente (Opcional)</label>
-              <input
-                id="patente"
-                type="text"
-                value={formData.repartidor.patente}
-                onChange={(e) => handleInputChange('repartidor.patente', e.target.value)}
-                placeholder="Ej: ABC123"
+              <label htmlFor="repartidor">Repartidor *</label>
+              <Select
+                id="repartidor"
+                options={repartidorOptions}
+                value={repartidorOptions.find(option => option.value === formData.repartidor_id)}
+                onChange={handleRepartidorChange}
+                placeholder="Selecciona un repartidor..."
+                isSearchable
+                isLoading={loadingRepartidores}
+                noOptionsMessage={() => "No se encontraron repartidores"}
+                classNamePrefix="react-select"
               />
             </div>
           </div>
@@ -177,18 +213,21 @@ const CrearOrdenDespacho = ({ onCancel, onSuccess }) => {
             
             <div className={styles.ordenesInput}>
               <div className={styles.inputWithButton}>
-                <input
-                  type="number"
-                  value={ordenVentaInput}
-                  onChange={(e) => setOrdenVentaInput(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="Ingresa el ID de la orden de venta"
-                  min="1"
+                <Select
+                  options={ordenVentaOptionsFiltradas}
+                  value={ordenVentaSeleccionada}
+                  onChange={handleOrdenVentaChange}
+                  placeholder="Selecciona una orden de venta..."
+                  isSearchable
+                  isLoading={loadingOrdenesVenta}
+                  noOptionsMessage={() => "No hay órdenes de venta disponibles"}
+                  classNamePrefix="react-select"
                 />
                 <button
                   type="button"
                   onClick={handleAgregarOrdenVenta}
                   className={styles.agregarButton}
+                  disabled={!ordenVentaSeleccionada}
                 >
                   Agregar
                 </button>
@@ -199,18 +238,21 @@ const CrearOrdenDespacho = ({ onCancel, onSuccess }) => {
               <div className={styles.ordenesList}>
                 <h4>Órdenes de venta agregadas:</h4>
                 <div className={styles.ordenesTags}>
-                  {formData.ordenes_venta.map((ordenId) => (
-                    <span key={ordenId} className={styles.ordenTag}>
-                      #{ordenId}
-                      <button
-                        type="button"
-                        onClick={() => handleEliminarOrdenVenta(ordenId)}
-                        className={styles.eliminarTag}
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
+                  {formData.ordenes_venta.map((ordenId) => {
+                    const ordenInfo = ordenesVentaDisponibles.find(orden => orden.id_orden_venta === ordenId);
+                    return (
+                      <span key={ordenId} className={styles.ordenTag}>
+                        #{ordenId} {ordenInfo && `- ${ordenInfo.cliente.nombre} ${ordenInfo.cliente.apellido}`}
+                        <button
+                          type="button"
+                          onClick={() => handleEliminarOrdenVenta(ordenId)}
+                          className={styles.eliminarTag}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -234,7 +276,7 @@ const CrearOrdenDespacho = ({ onCancel, onSuccess }) => {
             <button
               type="submit"
               className={styles.submitButton}
-              disabled={loading}
+              disabled={loading || !formData.repartidor_id || formData.ordenes_venta.length === 0}
             >
               {loading ? (
                 <>
