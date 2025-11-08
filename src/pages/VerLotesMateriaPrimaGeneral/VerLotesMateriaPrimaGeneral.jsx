@@ -244,7 +244,7 @@ const ListaLotesMateriaPrima = () => {
 		<div className={styles.lotesMateriaPrima}>
 			{/* Header */}
 			<div className={styles.header}>
-				<h2 className={styles.titulo}>Todos los Lotes de Materia Prima</h2>
+				<h2 className={styles.titulo}>Lotes de Materia Prima</h2>
 			</div>
 
 			{/* Estadísticas */}

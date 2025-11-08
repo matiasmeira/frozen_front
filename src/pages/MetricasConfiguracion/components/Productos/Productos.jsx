@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Table, Modal, Form, Input, InputNumber, Upload, Image, Select, Card, Space, Typography } from 'antd';
+import { Button, Form, Input, InputNumber, Upload, Image, Select, Table, Modal, Card, Space, Typography } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, ContainerOutlined } from '@ant-design/icons';
 import { api } from '../../../../services/api';
 import toast from 'react-hot-toast'; 
@@ -23,13 +23,7 @@ const Productos = () => {
     const [previewImage, setPreviewImage] = useState('');
     const [previewVisible, setPreviewVisible] = useState(false);
     
-    const [pagination, setPagination] = useState({
-        current: 1,
-        pageSize: 10,
-        total: 0,
-    });
-
-    // 💡 NUEVO: Fetch detalles por ID (Sin cambios)
+    // 💡 Fetch detalles por ID
     const fetchProductoById = async (id) => {
         try {
             setLoading(true);
@@ -44,75 +38,91 @@ const Productos = () => {
         }
     };
 
-    // 📥 Fetch productos con ajuste de precio
-    const fetchProductos = async (page = 1, pageSize = 10) => {
+    // 📥 Fetch unidades de medida (Devuelve la lista para Promise.all)
+    const fetchUnidades = async () => { 
         try {
-            setLoading(true);
-            const response = await api.get(`/productos/listar/?page=${page}&page_size=${pageSize}`);
-            
-            const productosMapeados = response.data.results.map(p => {
-                const unidadObj = unidades.find(u => u.id_unidad === p.id_unidad);
+            const response = await api.get('/productos/unidades/');
+            if (response.data && Array.isArray(response.data.results)) {
+                 return response.data.results.map(u => ({
+                    id_unidad: u.id_unidad, 
+                    nombre: u.nombre || u.descripcion 
+                 }));
+            }
+            return [];
+        } catch (error) {
+            console.error('Error al cargar las unidades de medida:', error);
+            return [];
+        }
+    };
+
+    // 📥 Fetch tipos de producto (Devuelve la lista para Promise.all)
+    const fetchTiposProducto = async () => { 
+        try {
+            const response = await api.get('/productos/tipos-producto/'); 
+            if (response.data && Array.isArray(response.data.results)) {
+                 return response.data.results.map(t => ({
+                    id_tipo_producto: t.id_tipo_producto, 
+                    descripcion: t.descripcion || t.nombre 
+                 }));
+            }
+            return [];
+        } catch (error) {
+            console.error('Error al cargar los tipos de producto:', error);
+            return [];
+        }
+    };
+
+    // 📥 Fetch productos con RECOLECCIÓN RECURSIVA Y MAPEO
+    const fetchProductos = async (currentUnidades, currentTipos) => { 
+        setLoading(true);
+        let allProductos = [];
+        let nextUrl = '/productos/listar/'; 
+        
+        try {
+            while (nextUrl) {
+                const urlToFetch = nextUrl.includes('/api/') ? nextUrl.split('/api/')[1] : nextUrl;
+
+                const response = await api.get(urlToFetch);
+                
+                allProductos = allProductos.concat(response.data.results || []);
+                
+                nextUrl = response.data.next; 
+            }
+
+            const productosMapeados = allProductos.map(p => {
+                const unidadObj = currentUnidades.find(u => u.id_unidad === p.id_unidad);
+                const tipoObj = currentTipos.find(t => t.id_tipo_producto === p.id_tipo_producto); 
+                
                 return {
                     ...p,
-                    unidad_medida: unidadObj ? unidadObj.nombre : p.unidad_medida || 'N/A',
-                    // 💡 AJUSTE DE PRECIO: Usamos p.precio (si existe) o 0
+                    unidad_medida: unidadObj ? unidadObj.nombre : 'N/A', 
+                    tipo_descripcion: tipoObj ? tipoObj.descripcion : 'Sin Tipo', 
                     precio: p.precio || 0.00
                 };
             });
             
             setProductos(productosMapeados);
-            setPagination(prev => ({
-                ...prev,
-                total: response.data.count,
-                current: page,
-                pageSize: pageSize,
-            }));
+            
         } catch (error) {
-            console.error('Error fetching productos:', error);
+            console.error('Error fetching todos los productos:', error);
         } finally {
             setLoading(false);
         }
     };
 
-    const fetchUnidades = async () => { /* ... se mantiene igual ... */
-        try {
-            const response = await api.get('/productos/unidades/');
-            if (response.data && Array.isArray(response.data.results)) {
-                 setUnidades(response.data.results.map(u => ({
-                    id_unidad: u.id_unidad, 
-                    nombre: u.nombre || u.descripcion 
-                 })));
-            }
-        } catch (error) {
-            console.error('Error al cargar las unidades de medida:', error);
-        }
-    };
-
-    const fetchTiposProducto = async () => { /* ... se mantiene igual ... */
-        try {
-            const response = await api.get('/productos/tipos-producto/'); 
-            if (response.data && Array.isArray(response.data.results)) {
-                 setTiposProducto(response.data.results.map(t => ({
-                    id_tipo_producto: t.id_tipo_producto, 
-                    descripcion: t.descripcion || t.nombre 
-                 })));
-            }
-        } catch (error) {
-            console.error('Error al cargar los tipos de producto:', error);
-        }
-    };
-
 
     useEffect(() => {
-        fetchUnidades().then(() => {
-            fetchProductos(pagination.current, pagination.pageSize);
+        // Lógica de carga secuencial
+        Promise.all([
+            fetchUnidades(),
+            fetchTiposProducto()
+        ]).then(([unidadesResult, tiposResult]) => {
+            setUnidades(unidadesResult);
+            setTiposProducto(tiposResult);
+            
+            fetchProductos(unidadesResult, tiposResult);
         });
-        fetchTiposProducto(); 
     }, []); 
-
-    const handleTableChange = (newPagination) => {
-        fetchProductos(newPagination.current, newPagination.pageSize);
-    };
 
     const handleEdit = async (producto = null) => {
         form.resetFields();
@@ -128,8 +138,8 @@ const Productos = () => {
             form.setFieldsValue({
                 nombre: fullProductData.nombre,
                 descripcion: fullProductData.descripcion,
-                precio: fullProductData.precio,                 
-                id_unidad: fullProductData.id_unidad,           
+                precio: fullProductData.precio,                 
+                id_unidad: fullProductData.id_unidad,           
                 id_tipo_producto: fullProductData.id_tipo_producto, 
                 umbral_minimo: fullProductData.umbral_minimo,
             });
@@ -145,13 +155,13 @@ const Productos = () => {
                 }]);
             }
         } else {
-             setEditingProducto(null);
+            setEditingProducto(null);
         }
         
         setIsModalVisible(true);
     };
 
-    const handleDelete = (id) => { /* ... se mantiene igual ... */
+    const handleDelete = (id) => { 
         modal.confirm({
             title: '¿Estás seguro de eliminar este Producto?',
             content: 'Esta acción es irreversible y podría afectar recetas.',
@@ -164,7 +174,7 @@ const Productos = () => {
                     setLoading(true);
                     await api.delete(`/productos/productos/${id}/`);
                     toast.success('Producto eliminado correctamente', { id: deleteToast });
-                    fetchProductos(pagination.current, pagination.pageSize);
+                    fetchProductos(unidades, tiposProducto); 
                 } catch (error) {
                     console.error('Error al eliminar el producto:', error);
                     toast.error('Error al eliminar el producto', { id: deleteToast });
@@ -176,7 +186,7 @@ const Productos = () => {
         });
     };
 
-    const handleSaveProducto = async () => { /* ... se mantiene igual ... */
+    const handleSaveProducto = async () => { 
         const loadingToast = toast.loading(editingProducto ? 'Actualizando producto...' : 'Creando producto...');
         try {
             const values = await form.validateFields();
@@ -223,7 +233,7 @@ const Productos = () => {
             }
 
             if (editingProducto) {
-                await api.put(`/productos/actualizar/${editingProducto.id_producto}/`, productoData);
+              await api.put(`/productos/productos/${editingProducto.id_producto}/`, productoData);
                 toast.success('Producto actualizado correctamente', { id: loadingToast });
             } else {
                 await api.post('/productos/productos/', productoData); 
@@ -234,7 +244,7 @@ const Productos = () => {
             form.resetFields();
             setFileList([]);
             setEditingProducto(null);
-            fetchProductos(pagination.current, pagination.pageSize);
+            fetchProductos(unidades, tiposProducto); 
         } catch (error) {
             console.error('Error al guardar el producto:', error);
             let errorMessage = 'Error al guardar el producto. Revisa la consola para detalles de validación.';
@@ -254,14 +264,14 @@ const Productos = () => {
         }
     };
 
-    const handleCancelModal = () => { /* ... se mantiene igual ... */
+    const handleCancelModal = () => { 
         setIsModalVisible(false);
         setEditingProducto(null);
         setFileList([]);
         form.resetFields();
     };
 
-    const handlePreview = async (file) => { /* ... se mantiene igual ... */
+    const handlePreview = async (file) => { 
         if (!file.url && !file.preview) {
             file.preview = await new Promise(resolve => {
                 const reader = new FileReader();
@@ -273,36 +283,42 @@ const Productos = () => {
         setPreviewVisible(true);
     };
 
-    const handleChange = ({ fileList: newFileList }) => setFileList(newFileList); /* ... se mantiene igual ... */
+    const handleChange = ({ fileList: newFileList }) => setFileList(newFileList); 
 
-    const uploadButton = ( /* ... se mantiene igual ... */
+    const uploadButton = ( 
         <div>
             <PlusOutlined />
             <div style={{ marginTop: 8 }}>Subir Imagen</div>
         </div>
     );
 
+    // 🛑 DEFINICIÓN DE COLUMNAS UNIFICADA Y ORDENADA
     const columns = [
+        // 1. Nombre
         {
             title: 'Nombre',
             dataIndex: 'nombre',
             key: 'nombre',
             sorter: (a, b) => a.nombre.localeCompare(b.nombre),
-            width: '20%',
+            width: '15%',
         },
+        // 2. Descripción
         {
             title: 'Descripción',
             dataIndex: 'descripcion',
             key: 'descripcion',
             render: (text) => text || '-',
-            width: '25%',
+            width: '20%',
         },
+        // 3. Precio
         {
             title: 'Precio',
             dataIndex: 'precio',
             key: 'precio',
             align: 'right',
-            width: '15%',
+            width: '10%',
+            // 💡 AÑADIDO: Ordenar por precio
+            sorter: (a, b) => parseFloat(a.precio) - parseFloat(b.precio),
             render: (precio) => {
                 const price = parseFloat(precio);
                 return (
@@ -312,24 +328,38 @@ const Productos = () => {
                 );
             },
         },
+        // 4. Tipo
+        {
+            title: 'Tipo',
+            dataIndex: 'tipo_descripcion',
+            key: 'tipo',
+            filters: tiposProducto.map(t => ({ text: t.descripcion, value: t.descripcion })),
+            onFilter: (value, record) => record.tipo_descripcion && record.tipo_descripcion.indexOf(value) === 0,
+            width: '12%', 
+        },
+        // 5. Unidad
         {
             title: 'Unidad',
             dataIndex: 'unidad_medida',
             key: 'unidad_medida',
-            width: '15%',
+            width: '10%',
         },
+        // 6. Umbral Mínimo
         {
             title: 'Umbral Mínimo',
             dataIndex: 'umbral_minimo',
             key: 'umbral_minimo',
             align: 'right',
-            width: '10%',
+            width: '13%',
+            // 💡 AÑADIDO: Ordenar por umbral mínimo
+            sorter: (a, b) => parseFloat(a.umbral_minimo) - parseFloat(b.umbral_minimo),
         },
+        // 7. Acciones
         {
             title: 'Acciones',
             key: 'acciones',
             align: 'center',
-            width: '10%',
+            width: '20%',
             render: (_, record) => (
                 <Space>
                     <Button 
@@ -368,8 +398,8 @@ const Productos = () => {
             }
             variant="default"
             style={{ 
-                borderRadius: 12, 
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+                borderRadius: 'var(--card-border-radius)', 
+                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.05)',
             }}
         >
             {contextHolder}
@@ -379,8 +409,7 @@ const Productos = () => {
                 dataSource={productos} 
                 rowKey="id_producto"
                 loading={loading}
-                pagination={pagination}
-                onChange={handleTableChange}
+                pagination={false}
                 scroll={{ x: 'max-content' }}
             />
             

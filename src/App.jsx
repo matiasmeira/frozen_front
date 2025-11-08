@@ -24,6 +24,9 @@ import VerLotesMateriaPrimaGeneral from "./pages/VerLotesMateriaPrimaGeneral/Ver
 import TrazabilidadOrdenVenta from "./pages/TrazabilidadOrdenVenta/TrazabilidadOrdenVenta";
 import TrazarLoteProducto from "./pages/TrazarLoteProducto/TrazarLoteProducto";
 import MetricasConfiguracion from "./pages/MetricasConfiguracion/MetricasConfiguracion";
+import VerOrdenesDeTrabajo from "./pages/VerOrdenesDeTrabajo/VerOrdenesDeTrabajo";
+import Dashboard from "./pages/Dashboard/Dashboard";
+import VerLineasDeProduccion from "./pages/VerLineasDeProduccion/VerLineasDeProduccion";
 //Pages
 
 import "./App.css";
@@ -34,6 +37,7 @@ import ProtectedLogin from "./utils/ProtectedLogin";
 import GestionMateriasPrimas from "./pages/GestionMateriaPrima/GestionMateriaPrima";
 import VerLotesMateriaPrima from "./pages/VerLotesMateriaPrima/VerLotesMateriaPrima";
 import OrdenesDespacho from "./pages/verOrdenesDespacho/OrdenesDespacho";
+
 
 function App() {
 	return (
@@ -68,7 +72,9 @@ function App() {
 							<Route path="/lotesProductos" element={<LotesProductos />}/>
 							<Route path="/GestionMateriasPrimas" element={<GestionMateriasPrimas/>}/>
 							<Route path="/VerOrdenesCompra" element={<VerOrdenesCompra/>}/>
+							<Route path="/VerLineasDeProduccion" element={<VerLineasDeProduccion/>}/>
 							<Route path="/verOrdenesDespacho" element={<OrdenesDespacho/>}/>
+							<Route path="/verOrdenesDeTrabajo" element={<VerOrdenesDeTrabajo/>}/>
 							<Route path="/VerLotesProduccion/:id_Producto" element={<VerLotesProduccion/>}/>
 							<Route path="/gestionar-entrega/:idOrdenVenta" element={<GestionarEntrega />} />
 							<Route path="/VerLotesMateriaPrima/:id_Materia_Prima" element={<VerLotesMateriaPrima/>}/>
@@ -76,6 +82,7 @@ function App() {
 							<Route path="/trazabilidadOrdenVenta" element={<TrazabilidadOrdenVenta />}/>
 							<Route path="/trazar_lote_produccion/:id_Lote_Produccion" element={<TrazarLoteProduccion />} />
 							<Route path="/trazabilidadLote/:id_lote" element={<TrazarLoteProducto/>}/>
+							<Route path="/dashboard" element={<Dashboard/>}/>
 							<Route path="/lotesMateriasPrimas" element={<VerLotesMateriaPrimaGeneral/>}/>
 							<Route path="/metricas-configuracion" element={<MetricasConfiguracion/>}/>
 						{/*</Route>*/}

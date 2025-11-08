@@ -1,0 +1,194 @@
+.container {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 20px;
+	font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.header {
+	text-align: center;
+	margin-bottom: 30px;
+}
+
+.title {
+	color: #2c3e50;
+	font-size: 2.5rem;
+	font-weight: 600;
+	margin-bottom: 10px;
+}
+
+/* Loading Styles */
+.loadingContainer {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 60px 20px;
+}
+
+.loadingSpinner {
+	width: 50px;
+	height: 50px;
+	border: 5px solid #f3f3f3;
+	border-top: 5px solid #3498db;
+	border-radius: 50%;
+	animation: spin 1s linear infinite;
+	margin-bottom: 20px;
+}
+
+@keyframes spin {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+/* Error Styles */
+.error {
+	background-color: #fee;
+	border: 1px solid #f5c6cb;
+	color: #721c24;
+	padding: 20px;
+	border-radius: 8px;
+	text-align: center;
+	margin: 20px;
+	font-size: 1.1rem;
+}
+
+/* Pagination Info */
+.paginacionInfo {
+	margin-bottom: 20px;
+	text-align: center;
+	color: #6c757d;
+	font-style: italic;
+}
+
+/* Cards Grid */
+.cardsGrid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+	gap: 20px;
+	margin-top: 20px;
+}
+
+.card {
+	background: white;
+	border-radius: 12px;
+	padding: 20px;
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+	border: 1px solid #e9ecef;
+	transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.cardHeader {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	margin-bottom: 15px;
+}
+
+.lineaName {
+	color: #2c3e50;
+	font-size: 1.3rem;
+	font-weight: 600;
+	margin: 0;
+	flex: 1;
+}
+
+.estadoIcon {
+	font-size: 1.5rem;
+	margin-left: 10px;
+}
+
+.estadoInfo {
+	margin-bottom: 15px;
+}
+
+.estado {
+	display: inline-block;
+	padding: 6px 12px;
+	border-radius: 20px;
+	font-size: 0.85rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+/* Estado Styles */
+.disponible {
+	background-color: #d4edda;
+	color: #155724;
+}
+
+.ocupada {
+	background-color: #fff3cd;
+	color: #856404;
+}
+
+.mantenimiento {
+	background-color: #d1ecf1;
+	color: #0c5460;
+}
+
+.detenida {
+	background-color: #f8d7da;
+	color: #721c24;
+}
+
+.desconocido {
+	background-color: #e2e3e5;
+	color: #383d41;
+}
+
+.infoAdicional {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding-top: 10px;
+	border-top: 1px solid #e9ecef;
+}
+
+.infoLabel {
+	font-weight: 600;
+	color: #6c757d;
+	font-size: 0.9rem;
+}
+
+.infoValue {
+	color: #495057;
+	font-weight: 500;
+}
+
+/* No Results */
+.sinResultados {
+	grid-column: 1 / -1;
+	text-align: center;
+	padding: 60px 20px;
+	color: #6c757d;
+	font-size: 1.1rem;
+	background-color: #f8f9fa;
+	border-radius: 8px;
+	border: 2px dashed #dee2e6;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+	.container {
+		padding: 10px;
+	}
+
+	.title {
+		font-size: 2rem;
+	}
+
+	.cardsGrid {
+		grid-template-columns: 1fr;
+	}
+}

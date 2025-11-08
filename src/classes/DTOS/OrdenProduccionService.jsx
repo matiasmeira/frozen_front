@@ -11,9 +11,9 @@ class OrdenProduccionService {
 		return {
 			// Datos básicos de la orden
 			id: datosBackend.id_orden_produccion,
-			id_linea: datosBackend.id_linea_produccion.id_linea_produccion || null,
-			linea_descripcion:
-				datosBackend.id_linea_produccion.descripcion || "Sin línea",
+		//	id_linea: datosBackend.id_linea_produccion?.id_linea_produccion || null,
+		//	linea_descripcion:
+		//		datosBackend.id_linea_produccion.descripcion || "Sin línea",
 
 			// Estado
 			estado:

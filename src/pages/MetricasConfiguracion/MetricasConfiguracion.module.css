@@ -1,94 +1,317 @@
-/* MetricasConfiguracion.module.css */
+/* MetricasConfiguracion.module.css - SUPER RE CONTRA HIPER MEGA MEJORA ESTÉTICA */
 
-/* 1. Contenedor Principal (Si se usa en MetricasConfiguracion.jsx) */
-.container {
-    padding: 24px; /* Aumentar padding para más aire */
-    max-width: 1400px; /* Aumentar ancho máximo */
-    margin: 0 auto;
-    background-color: #f0f2f5; /* Fondo suave para que el contenido resalte */
-    min-height: 100vh;
+/* --- 0. Variables CSS (para consistencia) --- */
+:root {
+    --primary-blue: #4A90E2;
+    --primary-blue-dark: #357ABD;
+    --light-grey-bg: #F8F9FA;
+    --card-shadow-light: rgba(0, 0, 0, 0.05);
+    --card-shadow-medium: rgba(0, 0, 0, 0.1);
+    --card-border-radius: 16px; /* Aún más redondeado */
+    --transition-speed: 0.3s ease-in-out;
 }
 
-/* 2. Mejoras a Tabs */
+/* --- 1. Contenedor Principal (Fondo Limpio y Amplio) --- */
+.container {
+    padding: 40px; /* Más aire aún */
+    max-width: 1600px; /* Más ancho para contenido */
+    margin: 0 auto;
+    background-color: var(--light-grey-bg);
+    min-height: 100vh;
+    font-family: 'Roboto', sans-serif; /* Fuente moderna y limpia */
+}
+
+/* --- 2. Tabs y Navegación (Elegante y Flotante) --- */
+
 :global(.ant-tabs) {
-    background-color: white;
-    padding: 16px 24px 0; /* Padding para separar las pestañas del borde */
-    border-radius: 12px 12px 0 0; /* Redondear solo las esquinas superiores */
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* Sombra sutil para destacar */
+    background-color: #FFFFFF;
+    border-radius: var(--card-border-radius);
+    box-shadow: 0 10px 30px var(--card-shadow-medium); /* Sombra más pronunciada */
+    overflow: hidden;
+    transition: box-shadow var(--transition-speed);
 }
 
 :global(.ant-tabs-nav) {
-    margin-bottom: 20px;
-    border-bottom: 1px solid #f0f0f0; /* Borde más sutil */
+    padding: 20px 30px 0; /* Más padding para las pestañas */
+    margin-bottom: 0;
+    border-bottom: none; /* Quitamos el borde para un look más limpio */
+    position: relative;
+    z-index: 1; /* Para que la sombra no lo cubra si hay una sombra en el content */
+}
+
+:global(.ant-tabs-tab) {
+    padding: 16px 0 !important; /* Más aire vertical */
+    font-size: 16px; /* Texto un poco más grande */
+    font-weight: 500;
+    color: #666; /* Gris neutro para pestañas inactivas */
+    transition: color var(--transition-speed);
+}
+
+:global(.ant-tabs-tab:hover) {
+    color: var(--primary-blue); /* Resaltar al pasar el mouse */
 }
 
 :global(.ant-tabs-tab-active .ant-tabs-tab-btn) {
-    color: #0055D4 !important; /* Azul más oscuro y profesional al seleccionar */
-    font-weight: 600;
+    color: var(--primary-blue) !important;
+    font-weight: 700; /* Más negrita para destacar */
 }
 
 :global(.ant-tabs-ink-bar) {
-    background-color: #0055D4 !important; /* Barra azul más oscuro */
+    background: linear-gradient(to right, #6A82FB, var(--primary-blue)) !important; /* Degradado vibrante */
+    height: 4px !important; /* Línea aún más gruesa */
+    border-radius: 2px; /* Bordes redondeados para la línea */
 }
 
-/* 3. Estilos de Formulario y Controles */
+/* --- 3. Estilos de Formularios (Inputs/Selects - Limpios y Modernos) --- */
 
 :global(.ant-input-number),
-:global(.ant-select),
+:global(.ant-select:not(.ant-select-customize-input) .ant-select-selector),
 :global(.ant-input),
 :global(.ant-input-textarea) {
-    border-radius: 6px; /* Bordes más suaves */
-    width: 100%;
+    border-radius: 10px; /* Bordes más suaves */
+    border: 1px solid #D9D9D9; /* Borde sutil */
+    height: 44px; /* Altura uniforme para mejor consistencia */
+    padding: 8px 12px;
+    font-size: 15px;
+    color: #333;
+    transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
 }
 
-/* 4. Estilos de la Tabla */
-
-/* La tabla ahora está dentro de un Antd Card, por lo que muchos de los estilos
-   se manejarán en el Card, pero mantenemos los estilos de encabezado y fila. */
-
-:global(.ant-table-thead > tr > th) {
-    background-color: #e6f7ff; /* Fondo de encabezado azul muy claro para un look moderno */
-    color: #0055D4; /* Color de texto del encabezado */
-    font-weight: 700;
-    border-bottom: 2px solid #91d5ff; /* Línea inferior del encabezado */
+:global(.ant-input-number:hover),
+:global(.ant-select:not(.ant-select-customize-input) .ant-select-selector:hover),
+:global(.ant-input:hover) {
+    border-color: var(--primary-blue) !important;
 }
 
-:global(.ant-table-tbody > tr > td) {
-    padding: 12px 16px; /* Más padding para airear las filas */
+:global(.ant-input-number:focus),
+:global(.ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input) .ant-select-selector),
+:global(.ant-input:focus) {
+    border-color: var(--primary-blue) !important;
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2); /* Sombra de enfoque sutil */
+    outline: none;
+}
+
+:global(.ant-form-item-label > label) {
+    font-weight: 500; /* Etiquetas más destacadas */
+    color: #555;
     font-size: 14px;
 }
 
-:global(.ant-table-tbody > tr:hover > td) {
-    background: #f5f5f5 !important; /* Resaltado suave al pasar el ratón */
+/* --- 4. Estilos de la Tabla (Elegante y Detallada) --- */
+
+:global(.ant-card .ant-table-wrapper) { /* Target the wrapper if table itself isn't card-like */
+    border-radius: 0 0 var(--card-border-radius) var(--card-border-radius); 
+    overflow: hidden;
+    /* No shadow here, the parent Card will handle it */
 }
 
-/* 5. Estilos de Botones */
+:global(.ant-table-thead > tr > th) {
+    background-color: var(--light-grey-bg); /* Fondo más neutro para el encabezado */
+    color: #555; /* Texto oscuro */
+    font-weight: 600;
+    font-size: 14px;
+    padding: 16px 20px; /* Más padding para aire */
+    border-bottom: 1px solid #e0e0e0; /* Borde más suave */
+    text-align: left;
+}
+
+:global(.ant-table-tbody > tr > td) {
+    padding: 16px 20px; /* Más aire en las celdas */
+    font-size: 15px;
+    color: #333;
+    border-bottom: 1px solid #f0f0f0; /* Separación sutil entre filas */
+}
+
+:global(.ant-table-tbody > tr:hover > td) {
+    background: #F0F8FF !important; /* Resaltado azulado suave */
+}
+
+/* Paginación */
+:global(.ant-pagination .ant-pagination-item) {
+    border-radius: 8px; /* Más redondeado */
+    border: 1px solid #D9D9D9;
+    transition: all var(--transition-speed);
+}
+:global(.ant-pagination .ant-pagination-item-active) {
+    background-color: var(--primary-blue);
+    border-color: var(--primary-blue);
+    color: #FFF;
+}
+:global(.ant-pagination .ant-pagination-item-active:hover) {
+    background-color: var(--primary-blue-dark);
+    border-color: var(--primary-blue-dark);
+}
+
+/* --- 5. Estilos de Botones y Acciones (Impactantes y Modernos) --- */
 
 :global(.ant-btn-primary) {
-    background-color: #0055D4; /* Azul oscuro corporativo */
-    border-color: #0055D4;
-    border-radius: 8px;
-    font-weight: 500;
-    transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+    background: linear-gradient(to right, #6A82FB, var(--primary-blue)); /* Degradado para primario */
+    border: none;
+    border-radius: 12px; /* Más redondeado */
+    font-weight: 600;
+    height: 48px; /* Botones más grandes */
+    padding: 0 24px;
+    font-size: 16px;
+    color: #FFFFFF;
+    box-shadow: 0 6px 18px rgba(74, 144, 226, 0.3); /* Sombra para "pop" */
+    transition: all var(--transition-speed);
 }
 
 :global(.ant-btn-primary:hover) {
-    background-color: #1677ff !important; /* Azul estándar de Antd al hover */
-    border-color: #1677ff !important;
+    transform: translateY(-2px); /* Pequeño efecto 3D al pasar el mouse */
+    box-shadow: 0 8px 25px rgba(74, 144, 226, 0.4);
+    opacity: 0.9;
+}
+:global(.ant-btn-primary:active) {
+    transform: translateY(0); /* Vuelve a su posición al hacer clic */
+    box-shadow: 0 4px 12px rgba(74, 144, 226, 0.2);
 }
 
-:global(.ant-btn-link) {
-    /* Mantener para otros enlaces, pero para acciones de tabla usamos 'default' */
-    color: #0055D4;
+/* Botones de acción en la tabla (Editar/Eliminar/Ver) */
+:global(.ant-table-tbody .ant-btn) { /* Aplicar a todos los botones en la tabla */
+    border: none;
+    background: none;
+    padding: 0 6px; /* Más pequeño y sutil */
+    height: auto;
+    font-size: 14px;
+    transition: all 0.2s ease-in-out;
+    opacity: 0.7; /* Ligeramente transparentes por defecto */
 }
 
-/* 6. Estilo del Modal */
+:global(.ant-table-tbody .ant-btn:hover) {
+    opacity: 1; /* Destacar al pasar el mouse */
+    transform: translateY(-1px);
+}
+
+:global(.ant-table-tbody .ant-btn .anticon) {
+    font-size: 18px; /* Iconos un poco más grandes */
+}
+
+/* Icono de editar (amarillo vibrante) */
+:global(.ant-table-tbody .ant-btn .anticon-edit) {
+    color: #F39C12; /* Naranja/amarillo más vivo */
+}
+
+/* Icono de eliminar (rojo de peligro) */
+:global(.ant-table-tbody .ant-btn.ant-btn-dangerous .anticon-delete) {
+    color: #E74C3C; /* Rojo más intenso */
+}
+
+/* Botón "Ver Ingredientes" */
+:global(.ant-table-tbody .ant-btn.ant-btn-link) {
+    color: var(--primary-blue);
+    font-weight: 500;
+    font-size: 14px;
+    padding: 0 8px; /* Ajuste para que se vea más como un link */
+}
+:global(.ant-table-tbody .ant-btn.ant-btn-link:hover) {
+    text-decoration: underline; /* Subrayar al pasar el mouse */
+}
+
+
+/* --- 6. Estilos del Modal (Moderno y Confortable) --- */
+:global(.ant-modal-content) {
+    border-radius: var(--card-border-radius);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25); /* Sombra de modal más profunda */
+    padding-bottom: 0; /* Controlamos el padding del footer */
+}
+
 :global(.ant-modal-header) {
-    border-bottom: 1px solid #eee;
-    padding: 16px 24px;
+    border-bottom: none;
+    padding: 30px 30px 10px; /* Más padding superior */
+    border-radius: var(--card-border-radius) var(--card-border-radius) 0 0;
 }
 
 :global(.ant-modal-title) {
+    font-size: 26px; /* Título más grande */
+    font-weight: 700;
+    color: #222; /* Negro más oscuro para impacto */
+}
+
+:global(.ant-modal-body) {
+    padding: 20px 30px 30px; /* Padding generoso */
+}
+
+:global(.ant-modal-footer) {
+    border-top: 1px solid #f0f0f0;
+    padding: 20px 30px; /* Padding generoso en el footer */
+    text-align: right;
+}
+
+:global(.ant-modal-footer .ant-btn) {
+    border-radius: 10px;
+    height: 40px;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+:global(.ant-modal-footer .ant-btn-default) {
+    border-color: #D9D9D9;
+    color: #555;
+    transition: all var(--transition-speed);
+}
+:global(.ant-modal-footer .ant-btn-default:hover) {
+    border-color: var(--primary-blue);
+    color: var(--primary-blue);
+}
+
+:global(.ant-modal-footer .ant-btn-primary) {
+    background: linear-gradient(to right, #6A82FB, var(--primary-blue));
+    border: none;
+    box-shadow: 0 4px 15px rgba(74, 144, 226, 0.25);
+}
+:global(.ant-modal-footer .ant-btn-primary:hover) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(74, 144, 226, 0.35);
+}
+
+
+/* --- 7. Estilos para Card de Ingredientes --- */
+:global(.ant-card.ingredients-card) { /* Añadiremos esta clase en el JSX del div */
+    background-color: #FFFFFF;
+    border-radius: var(--card-border-radius);
+    box-shadow: 0 8px 24px var(--card-shadow-light);
+    padding: 20px; /* Padding interno */
+    margin-top: 30px; /* Separación del card principal */
+}
+
+:global(.ant-card.ingredients-card .ant-card-head) {
+    border-bottom: none;
+    padding: 0 0 15px 0;
+    margin-bottom: 15px;
+}
+
+:global(.ant-card.ingredients-card .ant-card-head-title) {
     font-size: 20px;
     font-weight: 600;
+    color: var(--primary-blue);
 }
+
+:global(.ant-card.ingredients-card .ant-card-extra .ant-btn-primary) {
+    height: 40px;
+    font-size: 15px;
+    padding: 0 18px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(74, 144, 226, 0.2);
+}
+
+/* --- ESTILO CRÍTICO PARA ELIMINAR EL SOLAPAMIENTO DE VALIDACIÓN --- */
+
+:global(.ant-form-item) {
+    margin-bottom: 24px !important; /* Reserva espacio para el mensaje de error de validación */
+}
+/* Aumentamos el margen en el footer si es necesario para el botón */
+:global(.ant-modal-footer) {
+    padding: 20px 30px; 
+    margin-top: 10px; /* Separar del último campo, si es necesario */
+}
+
+/* 🛑 --- INICIO DE LA MODIFICACIÓN --- 🛑 */
+/* Oculta el texto de error de AntD.
+   La lógica en Recetas.jsx ahora lo muestra en un toast.
+   El borde rojo seguirá apareciendo, lo cual es deseable.
+*/
+:global(.ant-form-item-explain-error) {
+    display: none !important;
+}
+/* 🛑 --- FIN DE LA MODIFICACIÓN --- 🛑 */
