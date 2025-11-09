@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import axios from "axios";
 import styles from "./VerOrdenesDeTrabajo.module.css";
 
@@ -9,12 +10,14 @@ const api = axios.create({
 });
 
 const VerOrdenesDeTrabajo = () => {
+	const [searchParams] = useSearchParams();
 	const [ordenes, setOrdenes] = useState([]);
 	const [ordenesFiltradas, setOrdenesFiltradas] = useState([]);
 	const [cargando, setCargando] = useState(true);
 	const [error, setError] = useState(null);
 	const [filtroEstado, setFiltroEstado] = useState("todos");
 	const [filtroLinea, setFiltroLinea] = useState("todas");
+	const [filtroOrdenProduccion, setFiltroOrdenProduccion] = useState("");
 	const [procesando, setProcesando] = useState(null); // Para controlar botones en proceso
 
 	// Estados para órdenes - actualizado con todos los estados posibles
@@ -24,6 +27,14 @@ const VerOrdenesDeTrabajo = () => {
 		3: { texto: "Completada", color: "#27ae60" },
 		4: { texto: "En Pausa", color: "red" },
 	};
+
+	// Leer parámetro de URL
+	useEffect(() => {
+		const ordenProduccionParam = searchParams.get("ordenProduccion");
+		if (ordenProduccionParam) {
+			setFiltroOrdenProduccion(ordenProduccionParam);
+		}
+	}, [searchParams]);
 
 	// Cargar datos desde la API
 	useEffect(() => {
@@ -56,7 +67,7 @@ const VerOrdenesDeTrabajo = () => {
 
 		if (filtroEstado !== "todos") {
 			resultado = resultado.filter(
-				(orden) => orden.id_orden_trabajo === parseInt(filtroEstado)
+				(orden) => orden.id_estado_orden_trabajo === parseInt(filtroEstado)
 			);
 		}
 
@@ -66,8 +77,17 @@ const VerOrdenesDeTrabajo = () => {
 			);
 		}
 
+		if (filtroOrdenProduccion !== "") {
+			const idBuscado = parseInt(filtroOrdenProduccion);
+			if (!isNaN(idBuscado)) {
+				resultado = resultado.filter(
+					(orden) => orden.id_orden_produccion === idBuscado
+				);
+			}
+		}
+
 		setOrdenesFiltradas(resultado);
-	}, [filtroEstado, filtroLinea, ordenes]);
+	}, [filtroEstado, filtroLinea, filtroOrdenProduccion, ordenes]);
 
 	// Función para formatear fecha
 	const formatearFecha = (fechaISO) => {
@@ -191,6 +211,7 @@ const VerOrdenesDeTrabajo = () => {
 	const limpiarFiltros = () => {
 		setFiltroEstado("todos");
 		setFiltroLinea("todas");
+		setFiltroOrdenProduccion("");
 	};
 
 	// Obtener líneas únicas para el filtro
@@ -300,6 +321,20 @@ const VerOrdenesDeTrabajo = () => {
 					</select>
 				</div>
 
+				<div className={styles.filtroGrupo}>
+					<label htmlFor="filtroOrdenProduccion" className={styles.label}>
+						Filtrar por Orden de Producción:
+					</label>
+					<input
+						id="filtroOrdenProduccion"
+						type="number"
+						value={filtroOrdenProduccion}
+						onChange={(e) => setFiltroOrdenProduccion(e.target.value)}
+						placeholder="Ingrese ID de orden"
+						className={styles.select}
+					/>
+				</div>
+
 				<button onClick={limpiarFiltros} className={styles.btnLimpiar}>
 					Limpiar Filtros
 				</button>
@@ -319,7 +354,7 @@ const VerOrdenesDeTrabajo = () => {
 									<div className={styles.headerInfo}>
 										<h3>Orden #{orden.id_orden_trabajo}</h3>
 										<span className={styles.productoNombre}>
-											{orden.producto_nombre}
+											{orden.producto_nombre} (Orden de Producción: {orden.id_orden_produccion})
 										</span>
 									</div>
 									<span

@@ -218,7 +218,8 @@
 /* Botones principales - ocupan todo el ancho individualmente */
 .btnIniciar,
 .btnFinalizar,
-.btnNoConformidad {
+.btnNoConformidad,
+.btnVerOrdenesTrabajo {
 	flex: 1 1 100%;
 	min-height: 42px;
 	font-size: 0.9em;
@@ -298,6 +299,23 @@
 
 .btnNoConformidad:active {
 	background-color: #a04000;
+	transform: translateY(0);
+}
+
+/* Botón Ver Órdenes de Trabajo */
+.btnVerOrdenesTrabajo {
+	background-color: #3498db;
+	color: white;
+}
+
+.btnVerOrdenesTrabajo:hover {
+	background-color: #2980b9;
+	transform: translateY(-2px);
+	box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+}
+
+.btnVerOrdenesTrabajo:active {
+	background-color: #1f6ca5;
 	transform: translateY(0);
 }
 

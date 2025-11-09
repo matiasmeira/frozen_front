@@ -621,6 +621,14 @@ const VerOrdenesProduccion = () => {
                     Agregar No Conformidad
                   </button>
                 ) : null} */}
+
+                {/* Botón para ver órdenes de trabajo filtradas */}
+                <button
+                  className={styles.btnVerOrdenesTrabajo}
+                  onClick={() => navigate(`/verOrdenesDeTrabajo?ordenProduccion=${orden.id}`)}
+                >
+                  Ver Órdenes de Trabajo
+                </button>
               </div>
             </div>
           ))
