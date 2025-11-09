@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Tabs } from 'antd';
 import { MateriasPrimas, Productos, Recetas } from './components';
+import LineasProduccion from './components/LineasProduccion/LineasProduccion';
 import styles from './MetricasConfiguracion.module.css';
 import { Toaster } from 'react-hot-toast'; // 💡 Importamos el componente Toaster
 
@@ -22,6 +23,11 @@ const MetricasConfiguracion = () => {
             key: '3',
             label: 'Recetas',
             children: <Recetas />,
+        },
+        {
+            key: '4',
+            label: 'Líneas de Producción',
+            children: <LineasProduccion />,
         },
     ];
 
