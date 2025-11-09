@@ -561,17 +561,6 @@ const VerOrdenesProduccion = () => {
                 </div>
 
                 <div className={styles.infoGrupo}>
-                  <strong>Línea:</strong>
-                  
-                  <span>#{orden.id_linea}</span>
-                </div>
-
-                <div className={styles.infoGrupo}>
-                  <strong>Operario:</strong>
-                  <span>{orden.operario}</span>
-                </div>
-
-                <div className={styles.infoGrupo}>
                   <strong>Creada:</strong>
                   <span>{formatearFecha(orden.fecha_creacion)}</span>
                 </div>
@@ -580,6 +569,8 @@ const VerOrdenesProduccion = () => {
                   <strong>Iniciada:</strong>
                   <span>{formatearFecha(orden.fecha_inicio)}</span>
                 </div>
+
+
               </div>
 
               <div className={styles.cardFooter}>
@@ -630,7 +621,11 @@ const VerOrdenesProduccion = () => {
                   Ver Órdenes de Trabajo
                 </button>
               </div>
+
+              
             </div>
+
+            
           ))
         ) : (
           <div className={styles.sinResultados}>
