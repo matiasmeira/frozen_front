@@ -31,17 +31,58 @@ ChartJS.register(
   Filler
 );
 
+// Función helper para formatear fechas
+const formatDateToAPI = (date) => {
+  return date.toISOString().split('T')[0];
+};
+
+// Función para calcular fechas del período
+const getDateRange = (dias = 30) => {
+  const hoy = new Date();
+  const fechaInicio = new Date();
+  fechaInicio.setDate(hoy.getDate() - dias);
+  
+  return {
+    fechaDesde: formatDateToAPI(fechaInicio),
+    fechaHasta: formatDateToAPI(hoy)
+  };
+};
+
+// Función helper para ajustar fechas según la API
+const getFechasParaAPI = (apiTipo) => {
+  const { fechaDesde, fechaHasta } = getDateRange(30);
+  
+  if (apiTipo === 'cumplimiento') {
+    // Para cumplimiento: ajustar fecha_hasta sumando 1 día
+    const fechaHastaAjustada = new Date(fechaHasta);
+    fechaHastaAjustada.setDate(fechaHastaAjustada.getDate() + 1);
+    return {
+      fecha_desde: fechaDesde,
+      fecha_hasta: formatDateToAPI(fechaHastaAjustada)
+    };
+  }
+  
+  // Para OEE y desperdicio: usar fechas originales
+  return {
+    fecha_desde: fechaDesde,
+    fecha_hasta: fechaHasta
+  };
+};
+
 const Dashboard = () => {
   const [generandoReporte, setGenerandoReporte] = useState(false);
   const [datosCumplimiento, setDatosCumplimiento] = useState(null);
   const [datosDesperdicio, setDatosDesperdicio] = useState(null);
+  const [datosOEE, setDatosOEE] = useState(null);
   const [cargando, setCargando] = useState({
     cumplimiento: true,
-    desperdicio: true
+    desperdicio: true,
+    oee: true
   });
   const [error, setError] = useState({
     cumplimiento: null,
-    desperdicio: null
+    desperdicio: null,
+    oee: null
   });
   const dashboardRef = useRef(null);
   const chartRefs = useRef({
@@ -51,15 +92,15 @@ const Dashboard = () => {
     nonConformitiesChart: null
   });
 
-  // Indicadores principales
-  const indicadores = {
-    oee: 78.5,
+  // Indicadores principales - ahora se cargan desde la API
+  const [indicadores, setIndicadores] = useState({
+    oee: 0,
     objetivoOEE: 80.0,
     tasaNoConformidades: 1.4,
-    disponibilidad: 85.2,
-    rendimiento: 92.1,
-    calidad: 95.8
-  };
+    disponibilidad: 0,
+    rendimiento: 0,
+    calidad: 0
+  });
 
   // Datos para producción real vs planificada - SOLO 4 SEMANAS
   const datosProduccion = [
@@ -87,12 +128,79 @@ const Dashboard = () => {
     { tipo: 'Control Calidad', cantidad: 150, porcentaje: 12 }
   ];
 
-  // Efecto para cargar datos de cumplimiento
+  // Efecto para cargar datos de OEE con fechas dinámicas
+  useEffect(() => {
+    const fetchOEE = async () => {
+      try {
+        setCargando(prev => ({ ...prev, oee: true }));
+        
+        // Obtener fechas para OEE
+        const fechas = getFechasParaAPI('oee');
+        
+        // Construir URL con query params
+        const params = new URLSearchParams(fechas);
+        
+        const url = `https://frozenback-test.up.railway.app/api/reportes/oee/?${params}`;
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+          throw new Error(`Error en la petición OEE: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        setDatosOEE(data);
+        
+        // Actualizar indicadores con los datos de la API
+        if (data && data.length > 0) {
+          const ultimoMes = data[data.length - 1];
+          setIndicadores(prev => ({
+            ...prev,
+            oee: Math.min(ultimoMes.oee_total, 100), // Limitar a 100% como máximo
+            disponibilidad: Math.min(ultimoMes.disponibilidad, 100),
+            rendimiento: Math.min(ultimoMes.rendimiento, 100),
+            calidad: Math.min(ultimoMes.calidad, 100)
+          }));
+        }
+        
+        setError(prev => ({ ...prev, oee: null }));
+      } catch (err) {
+        console.error('Error al cargar datos de OEE:', err);
+        setError(prev => ({ ...prev, oee: 'No se pudieron cargar los datos de OEE' }));
+        // Datos de respaldo en caso de error
+        const fechas = getFechasParaAPI('oee');
+        setDatosOEE([
+          {
+            mes: "2025-10",
+            disponibilidad: 85.2,
+            rendimiento: 92.1,
+            calidad: 95.8,
+            oee_total: 78.5
+          }
+        ]);
+      } finally {
+        setCargando(prev => ({ ...prev, oee: false }));
+      }
+    };
+
+    fetchOEE();
+  }, []);
+
+  // Efecto para cargar datos de cumplimiento con fechas dinámicas AJUSTADAS
   useEffect(() => {
     const fetchCumplimientoPlan = async () => {
       try {
         setCargando(prev => ({ ...prev, cumplimiento: true }));
-        const response = await fetch('https://frozenback-test.up.railway.app/api/reportes/produccion/cumplimiento-plan/');
+        
+        // Obtener fechas ajustadas para cumplimiento
+        const fechas = getFechasParaAPI('cumplimiento');
+        
+        // Construir URL con query params
+        const params = new URLSearchParams(fechas);
+        
+        const url = `https://frozenback-test.up.railway.app/api/reportes/produccion/cumplimiento-plan/?${params}`;
+        
+        const response = await fetch(url);
         
         if (!response.ok) {
           throw new Error(`Error en la petición: ${response.status}`);
@@ -105,10 +213,11 @@ const Dashboard = () => {
         console.error('Error al cargar datos de cumplimiento:', err);
         setError(prev => ({ ...prev, cumplimiento: 'No se pudieron cargar los datos de cumplimiento' }));
         // Datos de respaldo en caso de error
+        const fechas = getFechasParaAPI('cumplimiento');
         setDatosCumplimiento({
-          fecha_desde: "2025-10-09",
-          fecha_hasta: "2025-11-07",
-          total_planificado: 333,
+          fecha_desde: fechas.fecha_desde,
+          fecha_hasta: fechas.fecha_hasta,
+          total_planificado: 0,
           total_cantidad_cumplida_a_tiempo: 0,
           porcentaje_cumplimiento_adherencia: 0
         });
@@ -120,12 +229,21 @@ const Dashboard = () => {
     fetchCumplimientoPlan();
   }, []);
 
-  // Efecto para cargar datos de desperdicio
+  // Efecto para cargar datos de desperdicio con fechas dinámicas
   useEffect(() => {
     const fetchTasaDesperdicio = async () => {
       try {
         setCargando(prev => ({ ...prev, desperdicio: true }));
-        const response = await fetch('https://frozenback-test.up.railway.app/api/reportes/desperdicio/tasa/');
+        
+        // Obtener fechas para desperdicio
+        const fechas = getFechasParaAPI('desperdicio');
+        
+        // Construir URL con query params
+        const params = new URLSearchParams(fechas);
+        
+        const url = `https://frozenback-test.up.railway.app/api/reportes/desperdicio/tasa/?${params}`;
+        
+        const response = await fetch(url);
         
         if (!response.ok) {
           throw new Error(`Error en la petición: ${response.status}`);
@@ -138,9 +256,10 @@ const Dashboard = () => {
         console.error('Error al cargar datos de desperdicio:', err);
         setError(prev => ({ ...prev, desperdicio: 'No se pudieron cargar los datos de desperdicio' }));
         // Datos de respaldo en caso de error
+        const fechas = getFechasParaAPI('desperdicio');
         setDatosDesperdicio({
-          fecha_desde: "2025-10-09",
-          fecha_hasta: "2025-11-08",
+          fecha_desde: fechas.fecha_desde,
+          fecha_hasta: fechas.fecha_hasta,
           total_programado_completado: 0,
           total_desperdiciado: 0,
           tasa_desperdicio_porcentaje: 0
@@ -277,13 +396,16 @@ const Dashboard = () => {
     ]
   };
 
-  // Datos para gráfico de tendencia OEE
+  // Datos para gráfico de tendencia OEE - basado en datos históricos de la API
   const oeeTrendData = {
-    labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+    labels: datosOEE ? datosOEE.map(item => {
+      const fecha = new Date(item.mes + '-01');
+      return fecha.toLocaleDateString('es-ES', { month: 'short' });
+    }) : ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
     datasets: [
       {
         label: 'OEE (%)',
-        data: [72.1, 75.3, 76.8, 78.5, 79.2, 80.1],
+        data: datosOEE ? datosOEE.map(item => Math.min(item.oee_total, 100)) : [72.1, 75.3, 76.8, 78.5, 79.2, 80.1],
         borderColor: 'rgba(52, 152, 219, 1)',
         backgroundColor: 'rgba(52, 152, 219, 0.1)',
         borderWidth: 3,
@@ -297,7 +419,7 @@ const Dashboard = () => {
       },
       {
         label: 'Objetivo OEE',
-        data: [80, 80, 80, 80, 80, 80],
+        data: datosOEE ? datosOEE.map(() => indicadores.objetivoOEE) : [80, 80, 80, 80, 80, 80],
         borderColor: 'rgba(231, 76, 60, 1)',
         backgroundColor: 'rgba(231, 76, 60, 0.1)',
         borderWidth: 2,
@@ -329,7 +451,7 @@ const Dashboard = () => {
     return styles.poor;
   };
 
-  // Función para formatear fecha
+  // Función para formatear fecha para mostrar
   const formatFecha = (fechaStr) => {
     const fecha = new Date(fechaStr);
     return fecha.toLocaleDateString('es-ES', {
@@ -339,17 +461,17 @@ const Dashboard = () => {
     });
   };
 
-  // Verificar si ambos datos están cargando
-  const ambosCargando = cargando.cumplimiento && cargando.desperdicio;
+  // Verificar si todos los datos están cargando
+  const todosCargando = cargando.cumplimiento && cargando.desperdicio && cargando.oee;
 
   return (
     <div className={styles.dashboard} ref={dashboardRef}>
       <header className={styles.header}>
         <h1>Dashboard Producción - Alimentos Congelados</h1>
-        <p>Indicadores de Eficiencia y Calidad</p>
+        <p>Indicadores de Eficiencia y Calidad - Últimos 30 días</p>
       </header>
 
-      {ambosCargando && (
+      {todosCargando && (
         <div className={styles.loadingOverlay}>
           <p>Cargando datos del dashboard...</p>
         </div>
@@ -361,12 +483,14 @@ const Dashboard = () => {
           <div className={`${styles.card} ${styles.oeeCard}`}>
             <div className={styles.cardHeader}>
               <h3>OEE (Overall Equipment Effectiveness)</h3>
+              {cargando.oee && <span className={styles.loadingBadge}>Cargando...</span>}
+              {error.oee && <span className={styles.errorBadge}>Error</span>}
             </div>
             
             {/* Valor principal del OEE */}
             <div className={styles.oeeMain}>
               <div className={styles.oeeValueContainer}>
-                <span className={styles.oeeValue}>{indicadores.oee}%</span>
+                <span className={styles.oeeValue}>{indicadores.oee.toFixed(1)}%</span>
                 <span className={styles.oeeLabel}>Eficiencia General</span>
               </div>
             </div>
@@ -380,7 +504,7 @@ const Dashboard = () => {
                     style={{ width: `${indicadores.disponibilidad}%` }}
                   ></div>
                 </div>
-                <span className={styles.componentValue}>{indicadores.disponibilidad}%</span>
+                <span className={styles.componentValue}>{indicadores.disponibilidad.toFixed(1)}%</span>
               </div>
               <div className={styles.oeeComponent}>
                 <span className={styles.componentLabel}>Rendimiento</span>
@@ -390,7 +514,7 @@ const Dashboard = () => {
                     style={{ width: `${indicadores.rendimiento}%` }}
                   ></div>
                 </div>
-                <span className={styles.componentValue}>{indicadores.rendimiento}%</span>
+                <span className={styles.componentValue}>{indicadores.rendimiento.toFixed(1)}%</span>
               </div>
               <div className={styles.oeeComponent}>
                 <span className={styles.componentLabel}>Calidad</span>
@@ -400,7 +524,7 @@ const Dashboard = () => {
                     style={{ width: `${indicadores.calidad}%` }}
                   ></div>
                 </div>
-                <span className={styles.componentValue}>{indicadores.calidad}%</span>
+                <span className={styles.componentValue}>{indicadores.calidad.toFixed(1)}%</span>
               </div>
             </div>
           </div>
@@ -477,7 +601,7 @@ const Dashboard = () => {
         
         {/* Gráfico Tendencias OEE */}
         <div className={`${styles.card} ${styles.chartCard}`}>
-          <h3>Tendencia OEE - Últimos 6 Meses</h3>
+          <h3>Tendencia OEE - Últimos {datosOEE ? datosOEE.length : 6} Meses</h3>
           <div className={styles.chartContainer}>
             <Line 
               data={oeeTrendData} 
