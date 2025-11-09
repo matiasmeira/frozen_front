@@ -14,12 +14,41 @@
   gap: 15px;
 }
 
+.headerButtons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .titulo {
 	color: #2c3e50;
 	margin-bottom: 30px;
 	text-align: center;
 	font-size: 2rem;
 	font-weight: 600;
+}
+
+.btnPlanificar {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btnPlanificar:hover {
+  background-color: #218838;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btnPlanificar:active {
+  background-color: #1e7e34;
+  transform: translateY(0);
 }
 
 .btnCrearOrden {
@@ -31,15 +60,18 @@
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .btnCrearOrden:hover {
   background-color: #0056b3;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .btnCrearOrden:active {
   background-color: #004085;
+  transform: translateY(0);
 }
 
 /* Para hacerlo responsive en pantallas pequeñas */
@@ -47,6 +79,16 @@
   .headerContainer {
     flex-direction: column;
     align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .headerButtons {
+    width: 100%;
+    flex-direction: column;
+  }
+  
+  .headerButtons button {
+    width: 100%;
   }
   
   .btnCrearOrden {

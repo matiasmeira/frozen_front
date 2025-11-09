@@ -425,6 +425,16 @@ const VerOrdenesProduccion = () => {
     return false;
   };
 
+const handlePlanificar = async () => {
+    try {
+      const response = await api.post('/planificacion/planificacion/'); 
+      toast.success('Planificación iniciada exitosamente');
+    } catch (error) {
+      console.error('Error al iniciar la planificación:', error);
+      toast.error('Error al iniciar la planificación');
+    }
+  };
+
   if (cargando && ordenes.length === 0) {
     return (
       <div className={styles.cargando}>Cargando órdenes de producción...</div>
@@ -455,12 +465,20 @@ const VerOrdenesProduccion = () => {
 
       <div className={styles.headerContainer}>
         <h2 className={styles.titulo}>Órdenes de Producción</h2>
-        <button
-          className={styles.btnCrearOrden}
-          onClick={redirigirACrearOrden}
-        >
-          Crear Nueva Orden
-        </button>
+        <div className={styles.headerButtons}>
+          <button
+            className={styles.btnPlanificar}
+            onClick={handlePlanificar}
+          >
+            Planificar
+          </button>
+          <button
+            className={styles.btnCrearOrden}
+            onClick={redirigirACrearOrden}
+          >
+            Crear Nueva Orden
+          </button>
+        </div>
       </div>
       {/* Controles de Filtrado */}
       <div className={styles.controles}>
