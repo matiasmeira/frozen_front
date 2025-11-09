@@ -76,11 +76,15 @@
 	font-size: 1rem;
 	background: white;
 	transition: border-color 0.3s ease;
+	box-sizing: border-box; /* Asegura que el padding/borde no alteren el tamaño */
+    width: 100%;          /* Asegura que ambos llenen el .filtroGrupo */
+    height: 44px;
 }
 
 .select:focus {
 	outline: none;
 	border-color: #3498db;
+	box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.25);
 }
 
 .btnLimpiar {
@@ -334,4 +338,15 @@
 	.filtroGrupo {
 		min-width: 100%;
 	}
+}
+
+input.select::-webkit-outer-spin-button,
+input.select::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Oculta las flechas en Firefox */
+input[type=number].select {
+  -moz-appearance: textfield;
 }
