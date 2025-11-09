@@ -426,12 +426,35 @@ const VerOrdenesProduccion = () => {
   };
 
 const handlePlanificar = async () => {
+    const toastId = toast.loading('Iniciando planificación, por favor espera...');
+
     try {
-      const response = await api.post('/planificacion/planificacion/'); 
-      toast.success('Planificación iniciada exitosamente');
+      await api.post('/planificacion/planificacion/'); 
+      
+      toast.update(toastId, { 
+        render: 'Planificación exitosa. Actualizando lista...', 
+        type: 'success', 
+        isLoading: true
+      });
+
+      // ESTA LÍNEA ES LA QUE ACTUALIZA LOS DATOS (EL "REFRESH" DE REACT)
+      await obtenerOrdenes(paginacion.currentPage);
+
+      toast.update(toastId, { 
+        render: '¡Órdenes actualizadas!', 
+        type: 'success', 
+        isLoading: false, 
+        autoClose: 3000 
+      });
+
     } catch (error) {
       console.error('Error al iniciar la planificación:', error);
-      toast.error('Error al iniciar la planificación');
+      toast.update(toastId, { 
+        render: 'Error al iniciar la planificación', 
+        type: 'error', 
+        isLoading: false, 
+        autoClose: 3000 
+      });
     }
   };
 
