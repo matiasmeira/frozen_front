@@ -236,7 +236,7 @@ const CrearOrdenProduccion = () => {
     const camposFaltantes = [];
     if (nuevosErrores.product) camposFaltantes.push("Producto");
     if (nuevosErrores.quantity) camposFaltantes.push("Cantidad");
-    if (nuevosErrores.productionLine) camposFaltantes.push("Línea de Producción"); // <--- ELIMINADO
+    //if (nuevosErrores.productionLine) camposFaltantes.push("Línea de Producción"); // <--- ELIMINADO
     if (nuevosErrores.startDate) camposFaltantes.push("Fecha de Inicio");
 
     if (camposFaltantes.length > 0) {
@@ -526,7 +526,7 @@ const CrearOrdenProduccion = () => {
                     </option>
                     {productOptions.map((option) => (
                       <option key={option.value} value={option.value}>
-                        {option.label} - {option.descripcion}
+                        {option.label}
                       </option>
                     ))}
         _         </select>
