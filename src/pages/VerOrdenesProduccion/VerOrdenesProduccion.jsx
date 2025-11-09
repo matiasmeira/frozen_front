@@ -589,6 +589,9 @@ const handlePlanificar = async () => {
                 </div>
 
 
+
+
+
               </div>
 
               <div className={styles.cardFooter}>
@@ -631,14 +634,18 @@ const handlePlanificar = async () => {
                   </button>
                 ) : null} */}
 
-                {/* Botón para ver órdenes de trabajo filtradas */}
-                <button
-                  className={styles.btnVerOrdenesTrabajo}
-                  onClick={() => navigate(`/verOrdenesDeTrabajo?ordenProduccion=${orden.id}`)}
-                >
-                  Ver Órdenes de Trabajo
-                </button>
-              </div>
+{/* Botón para ver órdenes de trabajo filtradas */}
+                {(orden.estado === "En proceso" || 
+                  orden.estado === "Finalizada" || 
+                  orden.estado === "Planificada") && (
+                    <button
+                      className={styles.btnVerOrdenesTrabajo}
+                      onClick={() => navigate(`/verOrdenesDeTrabajo?ordenProduccion=${orden.id}`)}
+                    >
+                      Ver Órdenes de Trabajo
+                    </button>
+                )}
+              </div>
 
               
             </div>

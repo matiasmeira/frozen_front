@@ -343,10 +343,13 @@
 input.select::-webkit-outer-spin-button,
 input.select::-webkit-inner-spin-button {
   -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
   margin: 0;
 }
 
 /* Oculta las flechas en Firefox */
 input[type=number].select {
   -moz-appearance: textfield;
+  appearance: textfield;
 }
