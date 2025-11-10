@@ -88,10 +88,40 @@ const VerOrdenesDeTrabajo = () => {
 		}
 	};
 
+	// Función para actualizar una orden específica
+	const actualizarOrden = async (ordenId) => {
+		try {
+			// Obtener solo la orden específica actualizada
+			const response = await api.get(`/produccion/ordenes-trabajo/${ordenId}/`);
+			const ordenActualizada = response.data;
+
+			if (ordenActualizada) {
+				// Actualizar solo la orden específica en ambos estados
+				setOrdenes((prevOrdenes) =>
+					prevOrdenes.map((orden) =>
+						orden.id_orden_trabajo === ordenId ? ordenActualizada : orden
+					)
+				);
+
+				setOrdenesFiltradas((prevFiltradas) =>
+					prevFiltradas.map((orden) =>
+						orden.id_orden_trabajo === ordenId ? ordenActualizada : orden
+					)
+				);
+
+				console.log(`Orden #${ordenId} actualizada correctamente`);
+			}
+		} catch (error) {
+			console.error(`Error al actualizar orden #${ordenId}:`, error);
+			// En caso de error, recargar todo como fallback
+			await cargarDatos();
+		}
+	};
+
 	// Cargar tipos de no conformidad
 	const cargarTiposNoConformidad = async () => {
 		try {
-			const response = await api.get("/produccion/tipos_no_conformidad/");
+			const response = await api.get("/produccion/noconformidades/");
 			const tiposData = response.data.results || [];
 			console.log("Tipos de no conformidad obtenidos:", tiposData);
 			setTiposNoConformidad(tiposData);
@@ -174,7 +204,6 @@ const VerOrdenesDeTrabajo = () => {
 	// Función para abrir modal de finalizar
 	const abrirModalFinalizar = (orden) => {
 		setOrdenParaFinalizar(orden);
-		setCantidadProducida(orden.cantidad_producida.toString());
 		setModalFinalizarAbierto(true);
 	};
 
@@ -228,7 +257,7 @@ const VerOrdenesDeTrabajo = () => {
 		return true;
 	};
 
-	// Función para pausar orden de trabajo
+	// Función optimizada para pausar orden de trabajo
 	const handlePausar = async () => {
 		if (!motivoPausa) {
 			toast.error("Por favor selecciona un motivo para la pausa");
@@ -258,7 +287,7 @@ const VerOrdenesDeTrabajo = () => {
 			});
 
 			cerrarModalPausa();
-			await cargarDatos();
+			await actualizarOrden(ordenSeleccionada); // Solo actualiza esta orden
 		} catch (error) {
 			console.error("Error al pausar la orden:", error);
 			const errorMessage =
@@ -274,7 +303,7 @@ const VerOrdenesDeTrabajo = () => {
 		}
 	};
 
-	// Función para finalizar orden de trabajo
+	// Función optimizada para finalizar orden de trabajo
 	const handleFinalizarConfirmado = async () => {
 		if (!validarCantidad(cantidadProducida)) {
 			toast.error(
@@ -307,7 +336,7 @@ const VerOrdenesDeTrabajo = () => {
 			});
 
 			cerrarModalFinalizar();
-			await cargarDatos();
+			await actualizarOrden(ordenId); // Solo actualiza esta orden
 		} catch (error) {
 			console.error("Error al finalizar la orden:", error);
 			const errorMessage =
@@ -326,7 +355,7 @@ const VerOrdenesDeTrabajo = () => {
 		}
 	};
 
-	// Función para registrar desperdicio
+	// Función optimizada para registrar desperdicio
 	const handleRegistrarDesperdicioConfirmado = async () => {
 		if (!tipoNoConformidadSeleccionado) {
 			toast.error("Por favor selecciona un tipo de no conformidad");
@@ -368,7 +397,7 @@ const VerOrdenesDeTrabajo = () => {
 			});
 
 			cerrarModalDesperdicio();
-			await cargarDatos();
+			await actualizarOrden(ordenId); // Solo actualiza esta orden
 		} catch (error) {
 			console.error("Error al registrar desperdicio:", error);
 			const errorMessage =
@@ -387,7 +416,7 @@ const VerOrdenesDeTrabajo = () => {
 		}
 	};
 
-	// Función para iniciar orden de trabajo
+	// Función optimizada para iniciar orden de trabajo
 	const handleIniciar = async (ordenId) => {
 		const toastId = toast.loading(`Iniciando orden #${ordenId}...`);
 		try {
@@ -400,7 +429,7 @@ const VerOrdenesDeTrabajo = () => {
 				isLoading: false,
 				autoClose: 3000,
 			});
-			await cargarDatos();
+			await actualizarOrden(ordenId); // Solo actualiza esta orden
 		} catch (error) {
 			console.error("Error al iniciar la orden:", error);
 			const errorMessage =
@@ -416,7 +445,7 @@ const VerOrdenesDeTrabajo = () => {
 		}
 	};
 
-	// Función para reanudar orden de trabajo
+	// Función optimizada para reanudar orden de trabajo
 	const handleReanudar = async (ordenId) => {
 		const toastId = toast.loading(`Reanudando orden #${ordenId}...`);
 		try {
@@ -435,7 +464,7 @@ const VerOrdenesDeTrabajo = () => {
 				isLoading: false,
 				autoClose: 3000,
 			});
-			await cargarDatos();
+			await actualizarOrden(ordenId); // Solo actualiza esta orden
 		} catch (error) {
 			console.error("Error al reanudar la orden:", error);
 			const errorMessage =
@@ -640,14 +669,14 @@ const VerOrdenesDeTrabajo = () => {
 								<div className={styles.radioGroup}>
 									{tiposNoConformidad.map((tipo) => (
 										<label
-											key={tipo.id_tipo_no_conformidad}
+											key={tipo.tipo_no_conformidad.id_tipo_no_conformidad}
 											className={styles.radioLabel}
 										>
 											<input
 												type="radio"
-												value={tipo.nombre}
+												value={tipo.tipo_no_conformidad.nombre}
 												checked={
-													tipoNoConformidadSeleccionado === tipo.nombre
+													tipoNoConformidadSeleccionado === tipo.tipo_no_conformidad.nombre
 												}
 												onChange={(e) =>
 													setTipoNoConformidadSeleccionado(e.target.value)
@@ -655,7 +684,7 @@ const VerOrdenesDeTrabajo = () => {
 												className={styles.radioInput}
 											/>
 											<span className={styles.radioCustom}></span>
-											{tipo.nombre}
+											{tipo.tipo_no_conformidad.nombre}
 										</label>
 									))}
 								</div>
