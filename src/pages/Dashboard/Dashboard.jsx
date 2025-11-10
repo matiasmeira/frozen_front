@@ -125,9 +125,6 @@ const Dashboard = () => {
   // Indicadores principales - ahora se cargan desde la API
   const [indicadores, setIndicadores] = useState({
     oee: 0,
-  // Indicadores principales - ahora se cargan desde la API
-  const [indicadores, setIndicadores] = useState({
-    oee: 0,
     objetivoOEE: 80.0,
     tasaNoConformidades: 1.4,
     disponibilidad: 0,
@@ -340,16 +337,6 @@ const Dashboard = () => {
         
         const response = await fetch(url);
         
-        // Obtener fechas ajustadas para cumplimiento
-        const fechas = getFechasParaAPI('cumplimiento');
-        
-        // Construir URL con query params
-        const params = new URLSearchParams(fechas);
-        
-        const url = `https://frozenback-test.up.railway.app/api/reportes/produccion/cumplimiento-plan/?${params}`;
-        
-        const response = await fetch(url);
-        
         if (!response.ok) {
           throw new Error(`Error en la petición: ${response.status}`);
         }
@@ -362,11 +349,7 @@ const Dashboard = () => {
         setError(prev => ({ ...prev, cumplimiento: 'No se pudieron cargar los datos de cumplimiento' }));
         // Datos de respaldo en caso de error
         const fechas = getFechasParaAPI('cumplimiento');
-        const fechas = getFechasParaAPI('cumplimiento');
         setDatosCumplimiento({
-          fecha_desde: fechas.fecha_desde,
-          fecha_hasta: fechas.fecha_hasta,
-          total_planificado: 0,
           fecha_desde: fechas.fecha_desde,
           fecha_hasta: fechas.fecha_hasta,
           total_planificado: 0,
@@ -382,21 +365,10 @@ const Dashboard = () => {
   }, []);
 
   // Efecto para cargar datos de desperdicio con fechas dinámicas
-  // Efecto para cargar datos de desperdicio con fechas dinámicas
   useEffect(() => {
     const fetchTasaDesperdicio = async () => {
       try {
         setCargando(prev => ({ ...prev, desperdicio: true }));
-        
-        // Obtener fechas para desperdicio
-        const fechas = getFechasParaAPI('desperdicio');
-        
-        // Construir URL con query params
-        const params = new URLSearchParams(fechas);
-        
-        const url = `https://frozenback-test.up.railway.app/api/reportes/desperdicio/tasa/?${params}`;
-        
-        const response = await fetch(url);
         
         // Obtener fechas para desperdicio
         const fechas = getFechasParaAPI('desperdicio');
@@ -420,10 +392,7 @@ const Dashboard = () => {
         setError(prev => ({ ...prev, desperdicio: 'No se pudieron cargar los datos de desperdicio' }));
         // Datos de respaldo en caso de error
         const fechas = getFechasParaAPI('desperdicio');
-        const fechas = getFechasParaAPI('desperdicio');
         setDatosDesperdicio({
-          fecha_desde: fechas.fecha_desde,
-          fecha_hasta: fechas.fecha_hasta,
           fecha_desde: fechas.fecha_desde,
           fecha_hasta: fechas.fecha_hasta,
           total_programado_completado: 0,
@@ -639,7 +608,6 @@ const Dashboard = () => {
   };
 
   // Función para formatear fecha para mostrar
-  // Función para formatear fecha para mostrar
   const formatFecha = (fechaStr) => {
     const fecha = new Date(fechaStr);
     return fecha.toLocaleDateString('es-ES', {
@@ -657,10 +625,8 @@ const Dashboard = () => {
       <header className={styles.header}>
         <h1>Dashboard Producción - Alimentos Congelados</h1>
         <p>Indicadores de Eficiencia y Calidad - Últimos 30 días</p>
-        <p>Indicadores de Eficiencia y Calidad - Últimos 30 días</p>
       </header>
 
-      {todosCargando && (
       {todosCargando && (
         <div className={styles.loadingOverlay}>
           <p>Cargando datos del dashboard...</p>
@@ -675,14 +641,11 @@ const Dashboard = () => {
               <h3>OEE (Overall Equipment Effectiveness)</h3>
               {cargando.oee && <span className={styles.loadingBadge}>Cargando...</span>}
               {error.oee && <span className={styles.errorBadge}>Error</span>}
-              {cargando.oee && <span className={styles.loadingBadge}>Cargando...</span>}
-              {error.oee && <span className={styles.errorBadge}>Error</span>}
             </div>
             
             {/* Valor principal del OEE */}
             <div className={styles.oeeMain}>
               <div className={styles.oeeValueContainer}>
-                <span className={styles.oeeValue}>{indicadores.oee.toFixed(1)}%</span>
                 <span className={styles.oeeValue}>{indicadores.oee.toFixed(1)}%</span>
                 <span className={styles.oeeLabel}>Eficiencia General</span>
               </div>
@@ -698,7 +661,6 @@ const Dashboard = () => {
                   ></div>
                 </div>
                 <span className={styles.componentValue}>{indicadores.disponibilidad.toFixed(1)}%</span>
-                <span className={styles.componentValue}>{indicadores.disponibilidad.toFixed(1)}%</span>
               </div>
               <div className={styles.oeeComponent}>
                 <span className={styles.componentLabel}>Rendimiento</span>
@@ -709,7 +671,6 @@ const Dashboard = () => {
                   ></div>
                 </div>
                 <span className={styles.componentValue}>{indicadores.rendimiento.toFixed(1)}%</span>
-                <span className={styles.componentValue}>{indicadores.rendimiento.toFixed(1)}%</span>
               </div>
               <div className={styles.oeeComponent}>
                 <span className={styles.componentLabel}>Calidad</span>
@@ -719,7 +680,6 @@ const Dashboard = () => {
                     style={{ width: `${indicadores.calidad}%` }}
                   ></div>
                 </div>
-                <span className={styles.componentValue}>{indicadores.calidad.toFixed(1)}%</span>
                 <span className={styles.componentValue}>{indicadores.calidad.toFixed(1)}%</span>
               </div>
             </div>
