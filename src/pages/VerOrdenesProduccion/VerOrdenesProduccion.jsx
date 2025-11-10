@@ -425,38 +425,75 @@ const VerOrdenesProduccion = () => {
     return false;
   };
 
-const handlePlanificar = async () => {
-    const toastId = toast.loading('Iniciando planificación, por favor espera...');
+  const handlePlanificar = async () => {
+    const toastId = toast.loading('Iniciando planificación, por favor espera...');
 
-    try {
-      await api.post('/planificacion/planificacion/'); 
-      
-      toast.update(toastId, { 
-        render: 'Planificación exitosa. Actualizando lista...', 
-        type: 'success', 
-        isLoading: true
-      });
+    try {
+      await api.post('/planificacion/planificacion/'); 
+      
+      toast.update(toastId, { 
+        render: 'Planificación exitosa. Actualizando lista...', 
+        type: 'success', 
+        isLoading: true
+      });
 
-      // ESTA LÍNEA ES LA QUE ACTUALIZA LOS DATOS (EL "REFRESH" DE REACT)
-      await obtenerOrdenes(paginacion.currentPage);
+      // ESTA LÍNEA ES LA QUE ACTUALIZA LOS DATOS (EL "REFRESH" DE REACT)
+      await obtenerOrdenes(paginacion.currentPage);
 
-      toast.update(toastId, { 
-        render: '¡Órdenes actualizadas!', 
-        type: 'success', 
-        isLoading: false, 
-        autoClose: 3000 
-      });
+      toast.update(toastId, { 
+        render: '¡Órdenes actualizadas!', 
+        type: 'success', 
+        isLoading: false, 
+        autoClose: 3000 
+      });
 
-    } catch (error) {
-      console.error('Error al iniciar la planificación:', error);
-      toast.update(toastId, { 
-        render: 'Error al iniciar la planificación', 
-        type: 'error', 
-        isLoading: false, 
-        autoClose: 3000 
-      });
-    }
-  };
+    } catch (error) {
+      console.error('Error al iniciar la planificación:', error);
+      toast.update(toastId, { 
+        render: 'Error al iniciar la planificación', 
+        type: 'error', 
+        isLoading: false, 
+        autoClose: 3000 
+      });
+    }
+  };
+
+  // --- ¡NUEVA FUNCIÓN! ---
+  const handleReplanificar = async () => {
+    const toastId = toast.loading('Iniciando replanificación, por favor espera...');
+
+    try {
+      // Apuntamos al nuevo endpoint
+      await api.post('/planificacion/replanificar/'); 
+      
+      toast.update(toastId, { 
+        render: 'Replanificación exitosa. Actualizando lista...', 
+        type: 'success', 
+        isLoading: true
+      });
+
+      // Actualizamos los datos
+      await obtenerOrdenes(paginacion.currentPage);
+
+      toast.update(toastId, { 
+        render: '¡Órdenes actualizadas!', 
+        type: 'success', 
+        isLoading: false, 
+        autoClose: 3000 
+      });
+
+    } catch (error) {
+      console.error('Error al iniciar la replanificación:', error);
+      toast.update(toastId, { 
+        // Mensaje de error personalizado
+        render: 'Error al iniciar la replanificación', 
+        type: 'error', 
+        isLoading: false, 
+        autoClose: 3000 
+      });
+    }
+  };
+  // --- FIN NUEVA FUNCIÓN ---
 
   if (cargando && ordenes.length === 0) {
     return (
@@ -488,6 +525,8 @@ const handlePlanificar = async () => {
 
       <div className={styles.headerContainer}>
         <h2 className={styles.titulo}>Órdenes de Producción</h2>
+        
+        {/* --- JSX MODIFICADO --- */}
         <div className={styles.headerButtons}>
           <button
             className={styles.btnPlanificar}
@@ -495,6 +534,16 @@ const handlePlanificar = async () => {
           >
             Planificar
           </button>
+
+          {/* ¡NUEVO BOTÓN AÑADIDO! */}
+          <button
+            className={styles.btnPlanificar} // Asumo que usa el mismo estilo
+            onClick={handleReplanificar}
+          >
+            Replanificar
+          </button>
+          {/* --- FIN NUEVO BOTÓN --- */}
+
           <button
             className={styles.btnCrearOrden}
             onClick={redirigirACrearOrden}
@@ -502,6 +551,8 @@ const handlePlanificar = async () => {
             Crear Nueva Orden
           </button>
         </div>
+        {/* --- FIN JSX MODIFICADO --- */}
+
       </div>
       {/* Controles de Filtrado */}
       <div className={styles.controles}>
@@ -606,14 +657,15 @@ const handlePlanificar = async () => {
                   <span>{formatearFecha(orden.fecha_creacion)}</span>
                 </div>
 
-<div className={styles.infoGrupo}>
-            <strong>Orden de Venta:</strong>
-            <span>{orden.id_orden_venta || "N/A"}</span>
-          </div>
+                <div className={styles.infoGrupo}>
+                  <strong>Iniciada:</strong>
+                  <span>{formatearFecha(orden.fecha_inicio)}</span>
+                </div>
 
-
-
-
+                <div className={styles.infoGrupo}>
+                  <strong>Orden de Venta:</strong>
+                  <span>{orden.id_orden_venta || "N/A"}</span>
+                </div>
               </div>
 
               <div className={styles.cardFooter}>
@@ -656,23 +708,19 @@ const handlePlanificar = async () => {
                   </button>
                 ) : null} */}
 
-{/* Botón para ver órdenes de trabajo filtradas */}
-                {(orden.estado === "En proceso" || 
-                  orden.estado === "Finalizada" || 
-                  orden.estado === "Planificada") && (
-                    <button
-                      className={styles.btnVerOrdenesTrabajo}
-                      onClick={() => navigate(`/verOrdenesDeTrabajo?ordenProduccion=${orden.id}`)}
-                    >
-                      Ver Órdenes de Trabajo
-                    </button>
-                )}
-              </div>
-
-              
+                {/* Botón para ver órdenes de trabajo filtradas */}
+                {(orden.estado === "En proceso" || 
+                  orden.estado === "Finalizada" || 
+                  orden.estado === "Planificada") && (
+                    <button
+                      className={styles.btnVerOrdenesTrabajo}
+                      onClick={() => navigate(`/verOrdenesDeTrabajo?ordenProduccion=${orden.id}`)}
+                    >
+                      Ver Órdenes de Trabajo
+                    </button>
+                )}
+              </div>
             </div>
-
-            
           ))
         ) : (
           <div className={styles.sinResultados}>
