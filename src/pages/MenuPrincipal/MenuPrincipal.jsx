@@ -16,7 +16,8 @@ import {
     FaSearch, // Nuevo ícono para Trazabilidad
     FaMapMarkedAlt, // Alternativa para Trazabilidad
     FaTruckLoading, // Nuevo ícono para Gestión de Órdenes de Despacho
-    FaCog // Ícono para Configuración/Gestión
+    FaCog, // Ícono para Configuración/Gestión
+    FaChartBar // Nuevo ícono para Gestión de Indicadores y Reportes
 } from 'react-icons/fa';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
@@ -36,8 +37,9 @@ const iconMap = {
   "Lotes Productos": <FaBarcode />,
   "Registrar Nuevo Empleado": <FaUserPlus />,
   "Trazabilidad de Orden de Venta": <FaSearch />,
-  "Gestión de Órdenes de Despacho": <FaTruckLoading />, // Nuevo ícono agregado
-  "Configuración": <FaCog />, // Ícono para Configuración/Gestión
+  "Gestión de Órdenes de Despacho": <FaTruckLoading />,
+  "Configuración": <FaCog />,
+  "Dashboard": <FaChartBar />, // Nuevo ícono agregado
 };
 
 const DefaultIcon = <FaQuestionCircle />;
