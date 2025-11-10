@@ -48,6 +48,30 @@ const getDateRange = (dias = 30) => {
   };
 };
 
+// Función para calcular fechas de cada mes (últimos 6 meses incluyendo actual)
+const getFechasPorMeses = (cantidadMeses = 6) => {
+  const meses = [];
+  const hoy = new Date();
+  
+  for (let i = cantidadMeses - 1; i >= 0; i--) {
+    const fecha = new Date();
+    fecha.setMonth(hoy.getMonth() - i);
+    
+    // Primer día del mes
+    const primerDia = new Date(fecha.getFullYear(), fecha.getMonth(), 1);
+    // Último día del mes
+    const ultimoDia = new Date(fecha.getFullYear(), fecha.getMonth() + 1, 0);
+    
+    meses.push({
+      mes: fecha.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' }),
+      fecha_desde: formatDateToAPI(primerDia),
+      fecha_hasta: formatDateToAPI(ultimoDia)
+    });
+  }
+  
+  return meses;
+};
+
 // Función helper para ajustar fechas según la API
 const getFechasParaAPI = (apiTipo) => {
   const { fechaDesde, fechaHasta } = getDateRange(30);
@@ -74,15 +98,21 @@ const Dashboard = () => {
   const [datosCumplimiento, setDatosCumplimiento] = useState(null);
   const [datosDesperdicio, setDatosDesperdicio] = useState(null);
   const [datosOEE, setDatosOEE] = useState(null);
+  const [datosTendenciaOEE, setDatosTendenciaOEE] = useState(null);
+  const [datosCumplimientoSemanal, setDatosCumplimientoSemanal] = useState(null);
   const [cargando, setCargando] = useState({
     cumplimiento: true,
     desperdicio: true,
-    oee: true
+    oee: true,
+    tendenciaOEE: true,
+    cumplimientoSemanal: true
   });
   const [error, setError] = useState({
     cumplimiento: null,
     desperdicio: null,
-    oee: null
+    oee: null,
+    tendenciaOEE: null,
+    cumplimientoSemanal: null
   });
   const dashboardRef = useRef(null);
   const chartRefs = useRef({
@@ -102,14 +132,6 @@ const Dashboard = () => {
     calidad: 0
   });
 
-  // Datos para producción real vs planificada - SOLO 4 SEMANAS
-  const datosProduccion = [
-    { semana: 'Sem 1', planificado: 12000, real: 11500 },
-    { semana: 'Sem 2', planificado: 12500, real: 12200 },
-    { semana: 'Sem 3', planificado: 13000, real: 12800 },
-    { semana: 'Sem 4', planificado: 12800, real: 12500 }
-  ];
-
   // Datos para desperdicio por producto
   const datosDesperdicioProductos = [
     { producto: 'Pizza Congelada', desperdicio: 450, porcentaje: 1.8 },
@@ -128,13 +150,62 @@ const Dashboard = () => {
     { tipo: 'Control Calidad', cantidad: 150, porcentaje: 12 }
   ];
 
-  // Efecto para cargar datos de OEE con fechas dinámicas
+  // Efecto para cargar datos de cumplimiento semanal
+  useEffect(() => {
+    const fetchCumplimientoSemanal = async () => {
+      try {
+        setCargando(prev => ({ ...prev, cumplimientoSemanal: true }));
+        
+        // Obtener fechas para cumplimiento semanal (últimos 30 días)
+        const fechas = getFechasParaAPI('cumplimiento');
+        
+        // Construir URL con query params
+        const params = new URLSearchParams(fechas);
+        
+        const url = `https://frozenback-test.up.railway.app/api/reportes/produccion/cumplimiento-semanal/?${params}`;
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+          throw new Error(`Error en la petición de cumplimiento semanal: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        setDatosCumplimientoSemanal(data);
+        setError(prev => ({ ...prev, cumplimientoSemanal: null }));
+      } catch (err) {
+        console.error('Error al cargar datos de cumplimiento semanal:', err);
+        setError(prev => ({ ...prev, cumplimientoSemanal: 'No se pudieron cargar los datos de cumplimiento semanal' }));
+        // Datos de respaldo en caso de error
+        setDatosCumplimientoSemanal([
+          {
+            semana_inicio: "2025-11-03",
+            total_planificado: 844,
+            total_cumplido_adherencia: 2147483852,
+            pca_semanal: 254441214.69
+          },
+          {
+            semana_inicio: "2025-11-10",
+            total_planificado: 254,
+            total_cumplido_adherencia: 0,
+            pca_semanal: 0
+          }
+        ]);
+      } finally {
+        setCargando(prev => ({ ...prev, cumplimientoSemanal: false }));
+      }
+    };
+
+    fetchCumplimientoSemanal();
+  }, []);
+
+  // Efecto para cargar datos de OEE con fechas dinámicas (últimos 30 días)
   useEffect(() => {
     const fetchOEE = async () => {
       try {
         setCargando(prev => ({ ...prev, oee: true }));
         
-        // Obtener fechas para OEE
+        // Obtener fechas para OEE (últimos 30 días)
         const fechas = getFechasParaAPI('oee');
         
         // Construir URL con query params
@@ -184,6 +255,70 @@ const Dashboard = () => {
     };
 
     fetchOEE();
+  }, []);
+
+  // Efecto para cargar datos de tendencia OEE (últimos 6 meses)
+  useEffect(() => {
+    const fetchTendenciaOEE = async () => {
+      try {
+        setCargando(prev => ({ ...prev, tendenciaOEE: true }));
+        
+        // Obtener fechas de los últimos 6 meses
+        const meses = getFechasPorMeses(6);
+        
+        // Array para almacenar todas las promesas
+        const promesas = meses.map(async (mes) => {
+          const params = new URLSearchParams({
+            fecha_desde: mes.fecha_desde,
+            fecha_hasta: mes.fecha_hasta
+          });
+          
+          const url = `https://frozenback-test.up.railway.app/api/reportes/oee/?${params}`;
+          
+          const response = await fetch(url);
+          if (!response.ok) {
+            throw new Error(`Error en la petición OEE para ${mes.mes}: ${response.status}`);
+          }
+          
+          const data = await response.json();
+          
+          // Tomar el primer resultado (o promedio si hay múltiples)
+          if (data && data.length > 0) {
+            const promedioOEE = data.reduce((sum, item) => sum + Math.min(item.oee_total, 100), 0) / data.length;
+            return {
+              mes: mes.mes,
+              oee: promedioOEE
+            };
+          }
+          
+          return {
+            mes: mes.mes,
+            oee: 0
+          };
+        });
+        
+        // Esperar a que todas las peticiones se completen
+        const resultados = await Promise.all(promesas);
+        setDatosTendenciaOEE(resultados);
+        setError(prev => ({ ...prev, tendenciaOEE: null }));
+        
+      } catch (err) {
+        console.error('Error al cargar datos de tendencia OEE:', err);
+        setError(prev => ({ ...prev, tendenciaOEE: 'No se pudieron cargar los datos de tendencia OEE' }));
+        
+        // Datos de respaldo en caso de error
+        const meses = getFechasPorMeses(6);
+        const datosRespaldo = meses.map((mes, index) => ({
+          mes: mes.mes,
+          oee: 75 + Math.random() * 10 // Datos aleatorios de respaldo
+        }));
+        setDatosTendenciaOEE(datosRespaldo);
+      } finally {
+        setCargando(prev => ({ ...prev, tendenciaOEE: false }));
+      }
+    };
+
+    fetchTendenciaOEE();
   }, []);
 
   // Efecto para cargar datos de cumplimiento con fechas dinámicas AJUSTADAS
@@ -327,13 +462,37 @@ const Dashboard = () => {
     }
   };
 
-  // Datos para gráfico de producción en porcentaje - SOLO 4 SEMANAS
+  // Función para formatear fecha de semana
+  const formatSemana = (fechaStr) => {
+    const fecha = new Date(fechaStr);
+    const numeroSemana = getNumeroSemana(fecha);
+    return `Sem ${numeroSemana}`;
+  };
+
+  // Función para obtener número de semana
+  const getNumeroSemana = (date) => {
+    const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+    const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+    return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+  };
+
+  // Datos para gráfico de producción en porcentaje - desde API
   const productionChartData = {
-    labels: datosProduccion.map(item => item.semana),
+    labels: datosCumplimientoSemanal ? 
+      datosCumplimientoSemanal.map(item => formatSemana(item.semana_inicio)) : 
+      ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4'],
     datasets: [
       {
         label: 'Cumplimiento (%)',
-        data: datosProduccion.map(item => (item.real / item.planificado) * 100),
+        data: datosCumplimientoSemanal ? 
+          datosCumplimientoSemanal.map(item => {
+            // Calcular porcentaje de cumplimiento
+            if (item.total_planificado > 0) {
+              return Math.min((item.total_cumplido_adherencia / item.total_planificado) * 100, 100);
+            }
+            return 0;
+          }) : 
+          [0, 0, 0, 0],
         backgroundColor: 'rgba(46, 204, 113, 0.7)',
         borderColor: 'rgba(46, 204, 113, 1)',
         borderWidth: 2,
@@ -396,16 +555,13 @@ const Dashboard = () => {
     ]
   };
 
-  // Datos para gráfico de tendencia OEE - basado en datos históricos de la API
+  // Datos para gráfico de tendencia OEE - basado en datos reales de la API
   const oeeTrendData = {
-    labels: datosOEE ? datosOEE.map(item => {
-      const fecha = new Date(item.mes + '-01');
-      return fecha.toLocaleDateString('es-ES', { month: 'short' });
-    }) : ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+    labels: datosTendenciaOEE ? datosTendenciaOEE.map(item => item.mes) : ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
     datasets: [
       {
         label: 'OEE (%)',
-        data: datosOEE ? datosOEE.map(item => Math.min(item.oee_total, 100)) : [72.1, 75.3, 76.8, 78.5, 79.2, 80.1],
+        data: datosTendenciaOEE ? datosTendenciaOEE.map(item => item.oee) : [72.1, 75.3, 76.8, 78.5, 79.2, 80.1],
         borderColor: 'rgba(52, 152, 219, 1)',
         backgroundColor: 'rgba(52, 152, 219, 0.1)',
         borderWidth: 3,
@@ -419,7 +575,7 @@ const Dashboard = () => {
       },
       {
         label: 'Objetivo OEE',
-        data: datosOEE ? datosOEE.map(() => indicadores.objetivoOEE) : [80, 80, 80, 80, 80, 80],
+        data: datosTendenciaOEE ? datosTendenciaOEE.map(() => indicadores.objetivoOEE) : [80, 80, 80, 80, 80, 80],
         borderColor: 'rgba(231, 76, 60, 1)',
         backgroundColor: 'rgba(231, 76, 60, 0.1)',
         borderWidth: 2,
@@ -462,7 +618,7 @@ const Dashboard = () => {
   };
 
   // Verificar si todos los datos están cargando
-  const todosCargando = cargando.cumplimiento && cargando.desperdicio && cargando.oee;
+  const todosCargando = cargando.cumplimiento && cargando.desperdicio && cargando.oee && cargando.tendenciaOEE && cargando.cumplimientoSemanal;
 
   return (
     <div className={styles.dashboard} ref={dashboardRef}>
@@ -601,7 +757,11 @@ const Dashboard = () => {
         
         {/* Gráfico Tendencias OEE */}
         <div className={`${styles.card} ${styles.chartCard}`}>
-          <h3>Tendencia OEE - Últimos {datosOEE ? datosOEE.length : 6} Meses</h3>
+          <div className={styles.cardHeader}>
+            <h3>Tendencia OEE - Últimos 6 Meses</h3>
+            {cargando.tendenciaOEE && <span className={styles.loadingBadge}>Cargando...</span>}
+            {error.tendenciaOEE && <span className={styles.errorBadge}>Error</span>}
+          </div>
           <div className={styles.chartContainer}>
             <Line 
               data={oeeTrendData} 
@@ -618,8 +778,13 @@ const Dashboard = () => {
           </div>
         </div>
 
+        {/* Gráfico de Cumplimiento Semanal */}
         <div className={`${styles.card} ${styles.chartCard}`}>
-          <h3>Cumplimiento de Producción por Semana (%) - Últimas 4 Semanas</h3>
+          <div className={styles.cardHeader}>
+            <h3>Cumplimiento de Producción por Semana (%)</h3>
+            {cargando.cumplimientoSemanal && <span className={styles.loadingBadge}>Cargando...</span>}
+            {error.cumplimientoSemanal && <span className={styles.errorBadge}>Error</span>}
+          </div>
           <div className={styles.chartContainer}>
             <Bar 
               data={productionChartData} 
@@ -633,8 +798,7 @@ const Dashboard = () => {
                 },
                 scales: {
                   y: {
-                    beginAtZero: false,
-                    min: Math.floor(Math.min(...productionChartData.datasets[0].data) - 2),
+                    beginAtZero: true,
                     max: 100,
                     grid: {
                       color: 'rgba(0, 0, 0, 0.05)'
