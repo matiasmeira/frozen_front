@@ -28,12 +28,7 @@ const VerOrdenesDeTrabajo = () => {
     // El filtro "lento" o "retrasado"
     const [debouncedFiltroProduccion, setDebouncedFiltroProduccion] = useState(ordenProduccionParam);
 
-    const [procesando, setProcesando] = useState(null);
-
-    // ELIMINAMOS los estados de infinite scroll
-    // const [nextPageUrl, setNextPageUrl] = useState(null);
-    // const [cargandoMas, setCargandoMas] = useState(false);
-    // const [totalResultadosAPI, setTotalResultadosAPI] = useState(0);
+    const [procesando, setProcesando] = useState(null);	
 
     // ... (estados de modales) ...
     const [modalPausaAbierto, setModalPausaAbierto] = useState(false);
@@ -54,7 +49,7 @@ const VerOrdenesDeTrabajo = () => {
         1: { texto: "Pendiente", color: "#f39c12" },
         2: { texto: "En Proceso", color: "#3498db" },
         3: { texto: "Completada", color: "#27ae60" },
-        4: { texto: "En Pausa", color: "red" },
+        4: { texto: "En Pausa", color: "red" },	
     };
     const opcionesMotivoPausa = [
         { valor: "Por mantenimiento", label: "Por mantenimiento" },
@@ -65,13 +60,11 @@ const VerOrdenesDeTrabajo = () => {
     // --- useEffect para el DEBOUNCE ---
     useEffect(() => {
         const handler = setTimeout(() => {
-            console.log(`Debounce: Actualizando filtro a "${filtroOrdenProduccion}"`);
-            setDebouncedFiltroProduccion(filtroOrdenProduccion);
+            setDebouncedFiltroProduccion(filtroOrdenProduccion);	
         }, 500); // 500ms de espera
 
         return () => {
-            console.log("Debounce: Limpiando timer...");
-            clearTimeout(handler);
+            clearTimeout(handler);	
         };
     }, [filtroOrdenProduccion]); 
 
@@ -89,8 +82,7 @@ const VerOrdenesDeTrabajo = () => {
             }
             if (filtroLinea !== "todas") {
                 params.append('id_linea_produccion', filtroLinea);
-            }
-            // Usamos el valor "retrasado" (debounced) para la API
+            }	
             if (debouncedFiltroProduccion !== "") {
                 params.append('search', debouncedFiltroProduccion);
             }
@@ -141,8 +133,7 @@ const VerOrdenesDeTrabajo = () => {
             if (!signal.aborted) {
                 setCargando(false);
             }
-        }
-    // Ahora depende del filtro "retrasado"
+ 	       }
     }, [filtroEstado, filtroLinea, debouncedFiltroProduccion]); 
 
     // Cargar datos iniciales (manejando cancelación)
@@ -154,10 +145,9 @@ const VerOrdenesDeTrabajo = () => {
             console.log("Cancelando petición por cambio de filtro...");
             controller.abort();
         };
-    }, [cargarDatos]); // Se activa cuando los filtros "retrasados" cambian
+    }, [cargarDatos]); 
 
-    // ELIMINAMOS cargarSiguientePagina y el useEffect de [ordenesFiltradas]
-
+	// --- FUNCIONES ---
     // Función para actualizar una orden específica
     const actualizarOrden = async (ordenId) => {
         try {
@@ -224,6 +214,7 @@ const VerOrdenesDeTrabajo = () => {
     };
     const abrirModalFinalizar = (orden) => {
         setOrdenParaFinalizar(orden);
+        setCantidadProducida(""); // Limpiamos el input al abrir
         setModalFinalizarAbierto(true);
     };
     const cerrarModalFinalizar = () => {
@@ -445,9 +436,7 @@ const VerOrdenesDeTrabajo = () => {
         } finally {
             setProcesando(null);
         }
-    };
-
-    // ELIMINAMOS el 'useCallback' de 'ultimoElementoRef'
+    };	
 
     // Limpiar filtros
     const limpiarFiltros = () => {
@@ -461,8 +450,7 @@ const VerOrdenesDeTrabajo = () => {
         ...new Set(ordenes.map((orden) => orden.id_linea_produccion)),
     ].sort();
 
-    // **CALCULAR ESTADÍSTICAS**
-    // ¡Ahora estos números son 100% correctos desde el inicio!
+    // **CALCULAR ESTADÍSTICAS**	
     const totalOrdenes = ordenes.length;
     const ordenesPendientes = ordenes.filter(
         (o) => o.id_estado_orden_trabajo === 1
@@ -502,26 +490,218 @@ const VerOrdenesDeTrabajo = () => {
 
     return (
         <div className={styles.ordenesTrabajo}>
-            {/* --- JSX DE MODALES (COMPLETO) --- */}
+            {/* --- JSX DE MODALES (RESTAURADO) --- */}
             {modalPausaAbierto && (
                 <div className={styles.modalOverlay}>
-                    {/* ... (contenido del modal de pausa) ... */}
+                    <div className={styles.modal}>
+                        <div className={styles.modalHeader}>
+                            <h3>Pausar Orden #{ordenSeleccionada}</h3>
+                            <button className={styles.modalCerrar} onClick={cerrarModalPausa}>
+                                ×
+                            </button>
+                        </div>
+                        <div className={styles.modalBody}>
+                            <p>Selecciona el motivo de la pausa:</p>
+                            <div className={styles.radioGroup}>
+                                {opcionesMotivoPausa.map((opcion) => (
+                                    <label key={opcion.valor} className={styles.radioLabel}>
+                                        <input
+                                            type="radio"
+                                            value={opcion.valor}
+                                            checked={motivoPausa === opcion.valor}
+                                            onChange={(e) => setMotivoPausa(e.target.value)}
+                                            className={styles.radioInput}
+                                        />
+                                        <span className={styles.radioCustom}></span>
+                                        {opcion.label}
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                        <div className={styles.modalFooter}>
+                            <button
+                                className={`${styles.btnModal} ${styles.btnCancelar}`}
+                                onClick={cerrarModalPausa}
+                                disabled={procesando}
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                className={`${styles.btnModal} ${styles.btnConfirmar}`}
+                                onClick={handlePausar}
+                                disabled={procesando || !motivoPausa}
+                            >
+                                {procesando ? "Procesando..." : "Pausar"}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
             {modalFinalizarAbierto && ordenParaFinalizar && (
                 <div className={styles.modalOverlay}>
                      <div className={styles.modal}>
-                        {/* ... (contenido del modal de finalizar) ... */}
+                        <div className={styles.modalHeader}>
+                            <h3>Finalizar Orden #{ordenParaFinalizar.id_orden_trabajo}</h3>
+                            <button
+                                className={styles.modalCerrar}
+                                onClick={cerrarModalFinalizar}
+                            >
+                                ×
+                            </button>
+                        </div>
+                        <div className={styles.modalBody}>
+                            <div className={styles.formGroup}>
+                                <label htmlFor="cantidadProducida" className={styles.label}>
+                                    Cantidad Producida:
+                                </label>
+                                <input
+                                    id="cantidadProducida"
+                                    type="number"
+                                    value={cantidadProducida}
+                                    onChange={(e) => setCantidadProducida(e.target.value)}
+                                    className={`${styles.input} ${
+                                        !validarCantidad(cantidadProducida) &&
+                                        cantidadProducida !== ""
+                                            ? styles.inputError
+                                            : ""
+                                    }`}
+                                    placeholder="Ingrese la cantidad producida"
+                                    min="0"
+                                    max={ordenParaFinalizar.cantidad_programada}
+                                />
+                                <div className={styles.helpText}>
+                                    Cantidad programada: {ordenParaFinalizar.cantidad_programada}{" "}
+                                    unidades
+                                </div>
+                                {!validarCantidad(cantidadProducida) &&
+                                    cantidadProducida !== "" && (
+                                        <div className={styles.errorText}>
+                                            {parseInt(cantidadProducida) >
+                                            ordenParaFinalizar.cantidad_programada
+                                                ? `La cantidad no puede ser mayor a ${ordenParaFinalizar.cantidad_programada}`
+                                                : "La cantidad debe ser un número válido"}
+                                        </div>
+                                    )}
+                            </div>
+                        </div>
+                        <div className={styles.modalFooter}>
+                            <button
+                                className={`${styles.btnModal} ${styles.btnCancelar}`}
+                                onClick={cerrarModalFinalizar}
+                                disabled={procesando}
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                className={`${styles.btnModal} ${styles.btnConfirmarFinalizar}`}
+                                onClick={handleFinalizarConfirmado}
+                                disabled={procesando || !validarCantidad(cantidadProducida)}
+                            >
+                                {procesando ? "Procesando..." : "Confirmar Finalización"}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
             {modalDesperdicioAbierto && ordenParaDesperdicio && (
                 <div className={styles.modalOverlay}>
                      <div className={styles.modal}>
-                        {/* ... (contenido del modal de desperdicio) ... */}
+                        <div className={styles.modalHeader}>
+                            <h3>
+                                Registrar Desperdicio - Orden #
+                                {ordenParaDesperdicio.id_orden_trabajo}
+                            </h3>
+                            <button
+                                className={styles.modalCerrar}
+                                onClick={cerrarModalDesperdicio}
+                            >
+                                ×
+                            </button>
+                        </div>
+                        <div className={styles.modalBody}>
+                            <div className={styles.formGroup}>
+                                <label className={styles.label}>Tipo de No Conformidad:</label>
+                                <div className={styles.radioGroup}>
+                                    {tiposNoConformidad.map((tipo) => (
+                                        <label
+                                            key={tipo.tipo_no_conformidad.id_tipo_no_conformidad}
+                                            className={styles.radioLabel}
+                                        >
+                                            <input
+                                                type="radio"
+                                                value={tipo.tipo_no_conformidad.nombre}
+                                                checked={
+                                                    tipoNoConformidadSeleccionado === tipo.tipo_no_conformidad.nombre
+                                                }
+                                                onChange={(e) =>
+                                                    setTipoNoConformidadSeleccionado(e.target.value)
+                                                }
+                                                className={styles.radioInput}
+                                            />
+                                            <span className={styles.radioCustom}></span>
+                                            {tipo.tipo_no_conformidad.nombre}
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label htmlFor="cantidadDesperdicio" className={styles.label}>
+                                    Cantidad Desperdiciada:
+                                </label>
+                                <input
+                                    id="cantidadDesperdicio"
+                                    type="number"
+                                    value={cantidadDesperdicio}
+                                    onChange={(e) => setCantidadDesperdicio(e.target.value)}
+                                    className={`${styles.input} ${
+                                        !validarCantidadDesperdicio(cantidadDesperdicio) &&
+                                        cantidadDesperdicio !== ""
+                                            ? styles.inputError
+                                            : ""
+                                    }`}
+                                    placeholder="Ingrese la cantidad desperdiciada"
+                                    min="1"
+                                    max={ordenParaDesperdicio.cantidad_programada}
+                                />
+                                <div className={styles.helpText}>
+                                    Cantidad programada:{" "}
+                                    {ordenParaDesperdicio.cantidad_programada} unidades
+                                </div>
+                                {!validarCantidadDesperdicio(cantidadDesperdicio) &&
+                                    cantidadDesperdicio !== "" && (
+                                        <div className={styles.errorText}>
+                                            {parseInt(cantidadDesperdicio) >
+                                            ordenParaDesperdicio.cantidad_programada
+                                                ? `La cantidad no puede ser mayor a ${ordenParaDesperdicio.cantidad_programada}`
+                                                : "La cantidad debe ser entre 1 y la cantidad programada"}
+                                        </div>
+                                    )}
+                            </div>
+                        </div>
+                        <div className={styles.modalFooter}>
+                            <button
+                                className={`${styles.btnModal} ${styles.btnCancelar}`}
+                                onClick={cerrarModalDesperdicio}
+                                disabled={procesando}
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                className={`${styles.btnModal} ${styles.btnConfirmarDesperdicio}`}
+                                onClick={handleRegistrarDesperdicioConfirmado}
+                                disabled={
+                                    procesando ||
+                                    !tipoNoConformidadSeleccionado ||
+                                    !validarCantidadDesperdicio(cantidadDesperdicio)
+                                }
+                            >
+                                {procesando ? "Procesando..." : "Registrar Desperdicio"}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
+            {/* --- FIN JSX MODALES --- */}
 
 
             <ToastContainer
@@ -537,8 +717,7 @@ const VerOrdenesDeTrabajo = () => {
 
             {/* === JSX DE ESTADÍSTICAS (100% Correcto) === */}
             <div className={styles.estadisticas}>
-                <div className={styles.estadisticaItem}>
-                    {/* Usamos el totalOrdenes calculado de la lista completa */}
+                <div className={styles.estadisticaItem}>	
                     <span className={styles.estadisticaNumero}>{totalOrdenes}</span>
                     <span className={styles.estadisticaLabel}>Total Órdenes</span>
                 </div>
@@ -618,18 +797,17 @@ const VerOrdenesDeTrabajo = () => {
                 </button>
             </div>
 
-            {/* LISTA DE ÓRDENES (Renderiza desde 'ordenes') */}
+            {/* LISTA DE ÓRDENES (Sin Infinite Scroll) */}
             <div className={styles.listaOrdenes}>
                 {ordenes.length > 0 ? (
-                    ordenes.map((orden) => { // Ya no necesitamos 'index'
+                    ordenes.map((orden) => { 
                         const progreso = calcularProgreso(orden);
                         const estado = estados[orden.id_estado_orden_trabajo];
                         const estaProcesando = procesando === orden.id_orden_trabajo;
                         const esCompletada = orden.id_estado_orden_trabajo === 3;
                         
-                        // Ya no necesitamos la ref de infinite scroll
-                        return (
-                            <div 
+                        return (	
+                            <div 	
                                 key={orden.id_orden_trabajo} 
                                 className={styles.cardOrden}
                             >
