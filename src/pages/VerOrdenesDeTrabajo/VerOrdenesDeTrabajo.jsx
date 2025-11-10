@@ -686,7 +686,7 @@ const VerOrdenesDeTrabajo = () => {
                                         <strong>Estado</strong>
                                         <span>{orden.estado_descripcion}</span>
                                     </div>
-CSS
+
                                 </div>
                                 <div className={styles.progresoContainer}>
                                     <div className={styles.barraProgreso}>
