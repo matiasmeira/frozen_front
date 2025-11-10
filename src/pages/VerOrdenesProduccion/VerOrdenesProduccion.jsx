@@ -425,6 +425,39 @@ const VerOrdenesProduccion = () => {
     return false;
   };
 
+const handlePlanificar = async () => {
+    const toastId = toast.loading('Iniciando planificación, por favor espera...');
+
+    try {
+      await api.post('/planificacion/planificacion/'); 
+      
+      toast.update(toastId, { 
+        render: 'Planificación exitosa. Actualizando lista...', 
+        type: 'success', 
+        isLoading: true
+      });
+
+      // ESTA LÍNEA ES LA QUE ACTUALIZA LOS DATOS (EL "REFRESH" DE REACT)
+      await obtenerOrdenes(paginacion.currentPage);
+
+      toast.update(toastId, { 
+        render: '¡Órdenes actualizadas!', 
+        type: 'success', 
+        isLoading: false, 
+        autoClose: 3000 
+      });
+
+    } catch (error) {
+      console.error('Error al iniciar la planificación:', error);
+      toast.update(toastId, { 
+        render: 'Error al iniciar la planificación', 
+        type: 'error', 
+        isLoading: false, 
+        autoClose: 3000 
+      });
+    }
+  };
+
   if (cargando && ordenes.length === 0) {
     return (
       <div className={styles.cargando}>Cargando órdenes de producción...</div>
@@ -455,12 +488,20 @@ const VerOrdenesProduccion = () => {
 
       <div className={styles.headerContainer}>
         <h2 className={styles.titulo}>Órdenes de Producción</h2>
-        <button
-          className={styles.btnCrearOrden}
-          onClick={redirigirACrearOrden}
-        >
-          Crear Nueva Orden
-        </button>
+        <div className={styles.headerButtons}>
+          <button
+            className={styles.btnPlanificar}
+            onClick={handlePlanificar}
+          >
+            Planificar
+          </button>
+          <button
+            className={styles.btnCrearOrden}
+            onClick={redirigirACrearOrden}
+          >
+            Crear Nueva Orden
+          </button>
+        </div>
       </div>
       {/* Controles de Filtrado */}
       <div className={styles.controles}>
@@ -561,17 +602,6 @@ const VerOrdenesProduccion = () => {
                 </div>
 
                 <div className={styles.infoGrupo}>
-                  <strong>Línea:</strong>
-                  
-                  <span>#{orden.id_linea}</span>
-                </div>
-
-                <div className={styles.infoGrupo}>
-                  <strong>Operario:</strong>
-                  <span>{orden.operario}</span>
-                </div>
-
-                <div className={styles.infoGrupo}>
                   <strong>Creada:</strong>
                   <span>{formatearFecha(orden.fecha_creacion)}</span>
                 </div>
@@ -580,6 +610,11 @@ const VerOrdenesProduccion = () => {
                   <strong>Iniciada:</strong>
                   <span>{formatearFecha(orden.fecha_inicio)}</span>
                 </div>
+
+
+
+
+
               </div>
 
               <div className={styles.cardFooter}>
@@ -621,8 +656,24 @@ const VerOrdenesProduccion = () => {
                     Agregar No Conformidad
                   </button>
                 ) : null} */}
-              </div>
+
+{/* Botón para ver órdenes de trabajo filtradas */}
+                {(orden.estado === "En proceso" || 
+                  orden.estado === "Finalizada" || 
+                  orden.estado === "Planificada") && (
+                    <button
+                      className={styles.btnVerOrdenesTrabajo}
+                      onClick={() => navigate(`/verOrdenesDeTrabajo?ordenProduccion=${orden.id}`)}
+                    >
+                      Ver Órdenes de Trabajo
+                    </button>
+                )}
+              </div>
+
+              
             </div>
+
+            
           ))
         ) : (
           <div className={styles.sinResultados}>

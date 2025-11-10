@@ -3,7 +3,6 @@ import axios from 'axios';
 import CrearOrdenDespacho from '../CrearOrdenDespacho/CrearOrdenDespacho.jsx';
 import styles from './OrdenesDespacho.module.css';
 
-
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 const api = axios.create({
   baseURL: baseURL,
@@ -11,6 +10,10 @@ const api = axios.create({
 
 const OrdenesDespacho = () => {
   const [ordenes, setOrdenes] = useState([]);
+  const [repartidores, setRepartidores] = useState([]);
+  const [estados, setEstados] = useState([]);
+  const [repartidorFiltro, setRepartidorFiltro] = useState('');
+  const [estadoFiltro, setEstadoFiltro] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [finalizando, setFinalizando] = useState({});
@@ -18,12 +21,58 @@ const OrdenesDespacho = () => {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
 
   useEffect(() => {
+    fetchRepartidores();
+    fetchEstados();
     fetchOrdenes();
   }, []);
 
+  useEffect(() => {
+    fetchOrdenes();
+  }, [repartidorFiltro, estadoFiltro]);
+
+  const fetchRepartidores = async () => {
+    try {
+      const response = await api.get('despachos/repartidores/');
+      setRepartidores(response.data.results);
+    } catch (err) {
+      console.error('Error fetching repartidores:', err);
+    }
+  };
+
+  const fetchEstados = async () => {
+    try {
+      const response = await api.get('despachos/estado-despacho/');
+      setEstados(response.data.results);
+    } catch (err) {
+      console.error('Error fetching estados:', err);
+    }
+  };
+
   const fetchOrdenes = async () => {
     try {
-      const response = await api.get('despachos/ordenes-despacho/');
+      setLoading(true);
+      let url = 'despachos/ordenes-despacho/';
+      const params = new URLSearchParams();
+      
+      // Agregar filtro por repartidor si está seleccionado
+      if (repartidorFiltro) {
+        const repartidorSeleccionado = repartidores.find(r => r.id_repartidor === parseInt(repartidorFiltro));
+        if (repartidorSeleccionado) {
+          params.append('repartidor', repartidorSeleccionado.nombre);
+        }
+      }
+      
+      // Agregar filtro por estado si está seleccionado
+      if (estadoFiltro) {
+        params.append('estado', estadoFiltro);
+      }
+      
+      // Si hay parámetros, agregarlos a la URL
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
+      
+      const response = await api.get(url);
       setOrdenes(response.data);
       setLoading(false);
     } catch (err) {
@@ -89,6 +138,19 @@ const OrdenesDespacho = () => {
     fetchOrdenes(); // Recargar la lista
   };
 
+  const handleRepartidorFiltroChange = (event) => {
+    setRepartidorFiltro(event.target.value);
+  };
+
+  const handleEstadoFiltroChange = (event) => {
+    setEstadoFiltro(event.target.value);
+  };
+
+  const limpiarFiltros = () => {
+    setRepartidorFiltro('');
+    setEstadoFiltro('');
+  };
+
   const formatFecha = (fechaString) => {
     if (!fechaString) return 'No especificada';
     const fecha = new Date(fechaString);
@@ -107,6 +169,10 @@ const OrdenesDespacho = () => {
         return styles.estadoFinalizada;
       case 'En Reparto':
         return styles.estadoEnReparto;
+      case 'Despachado':
+        return styles.estadoDespachado;
+      case 'Devuelto':
+        return styles.estadoDevuelto;
       default:
         return styles.estadoDefault;
     }
@@ -120,7 +186,7 @@ const OrdenesDespacho = () => {
     return selectedOrdenes[ordenId] ? selectedOrdenes[ordenId].length : 0;
   };
 
-  if (loading) {
+  if (loading && ordenes.length === 0) {
     return <div className={styles.loading}>Cargando órdenes de despacho...</div>;
   }
 
@@ -140,6 +206,53 @@ const OrdenesDespacho = () => {
         </button>
       </div>
 
+      {/* Filtros */}
+      <div className={styles.filtrosContainer}>
+        <div className={styles.filtroGroup}>
+          <label htmlFor="repartidor-filtro" className={styles.filtroLabel}>
+            Filtrar por repartidor:
+          </label>
+          <select
+            id="repartidor-filtro"
+            value={repartidorFiltro}
+            onChange={handleRepartidorFiltroChange}
+            className={styles.filtroSelect}
+          >
+            <option value="">Todos los repartidores</option>
+            {repartidores.map((repartidor) => (
+              <option key={repartidor.id_repartidor} value={repartidor.id_repartidor}>
+                {repartidor.nombre} {repartidor.patente ? `(${repartidor.patente})` : ''}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className={styles.filtroGroup}>
+          <label htmlFor="estado-filtro" className={styles.filtroLabel}>
+            Filtrar por estado:
+          </label>
+          <select
+            id="estado-filtro"
+            value={estadoFiltro}
+            onChange={handleEstadoFiltroChange}
+            className={styles.filtroSelect}
+          >
+            <option value="">Todos los estados</option>
+            {estados.map((estado) => (
+              <option key={estado.id_estado_despacho} value={estado.id_estado_despacho}>
+                {estado.descripcion}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {(repartidorFiltro || estadoFiltro) && (
+          <button onClick={limpiarFiltros} className={styles.limpiarFiltros}>
+            Limpiar filtros
+          </button>
+        )}
+      </div>
+
       {mostrarFormulario && (
         <CrearOrdenDespacho 
           onCancel={() => setMostrarFormulario(false)}
@@ -148,7 +261,12 @@ const OrdenesDespacho = () => {
       )}
       
       {ordenes.length === 0 ? (
-        <div className={styles.empty}>No hay órdenes de despacho disponibles</div>
+        <div className={styles.empty}>
+          {repartidorFiltro || estadoFiltro 
+            ? 'No hay órdenes de despacho que coincidan con los filtros seleccionados' 
+            : 'No hay órdenes de despacho disponibles'
+          }
+        </div>
       ) : (
         <div className={styles.ordenesGrid}>
           {ordenes.map((orden) => (

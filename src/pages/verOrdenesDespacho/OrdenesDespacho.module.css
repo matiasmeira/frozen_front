@@ -418,3 +418,95 @@
     gap: 8px;
   }
 }
+
+/* Agrega estos estilos al archivo CSS existente */
+
+.filtrosContainer {
+  display: flex;
+  align-items: flex-end;
+  gap: 20px;
+  margin-bottom: 20px;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  flex-wrap: wrap;
+}
+
+.filtroGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 200px;
+}
+
+.filtroLabel {
+  font-weight: 600;
+  color: #495057;
+  white-space: nowrap;
+  font-size: 14px;
+}
+
+.filtroSelect {
+  padding: 10px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  background-color: white;
+  font-size: 14px;
+  min-width: 200px;
+}
+
+.limpiarFiltros {
+  padding: 10px 16px;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+  height: fit-content;
+  margin-bottom: 8px;
+}
+
+.limpiarFiltros:hover {
+  background-color: #5a6268;
+}
+
+/* Estilos para los nuevos estados */
+.estadoDespachado {
+  background-color: #17a2b8;
+  color: white;
+}
+
+.estadoDevuelto {
+  background-color: #dc3545;
+  color: white;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  font-size: 16px;
+  color: #666;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .filtrosContainer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .filtroGroup {
+    min-width: auto;
+  }
+  
+  .filtroSelect {
+    min-width: auto;
+  }
+  
+  .limpiarFiltros {
+    align-self: flex-start;
+  }
+}

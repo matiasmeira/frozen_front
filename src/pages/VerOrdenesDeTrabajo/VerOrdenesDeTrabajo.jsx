@@ -1,29 +1,67 @@
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import axios from "axios";
 import styles from "./VerOrdenesDeTrabajo.module.css";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 const api = axios.create({
-  baseURL: baseURL,
+	baseURL: baseURL,
 });
 
 const VerOrdenesDeTrabajo = () => {
+	const [searchParams] = useSearchParams();
 	const [ordenes, setOrdenes] = useState([]);
 	const [ordenesFiltradas, setOrdenesFiltradas] = useState([]);
 	const [cargando, setCargando] = useState(true);
 	const [error, setError] = useState(null);
 	const [filtroEstado, setFiltroEstado] = useState("todos");
 	const [filtroLinea, setFiltroLinea] = useState("todas");
-	const [procesando, setProcesando] = useState(null); // Para controlar botones en proceso
+	const [filtroOrdenProduccion, setFiltroOrdenProduccion] = useState("");
+	const [procesando, setProcesando] = useState(null);
 
-	// Estados para órdenes - actualizado con todos los estados posibles
+	// Estados para el modal de pausa
+	const [modalPausaAbierto, setModalPausaAbierto] = useState(false);
+	const [ordenSeleccionada, setOrdenSeleccionada] = useState(null);
+	const [motivoPausa, setMotivoPausa] = useState("");
+
+	// Estados para el modal de finalizar
+	const [modalFinalizarAbierto, setModalFinalizarAbierto] = useState(false);
+	const [ordenParaFinalizar, setOrdenParaFinalizar] = useState(null);
+	const [cantidadProducida, setCantidadProducida] = useState("");
+
+	// Estados para el modal de registrar desperdicio
+	const [modalDesperdicioAbierto, setModalDesperdicioAbierto] = useState(false);
+	const [ordenParaDesperdicio, setOrdenParaDesperdicio] = useState(null);
+	const [tiposNoConformidad, setTiposNoConformidad] = useState([]);
+	const [tipoNoConformidadSeleccionado, setTipoNoConformidadSeleccionado] =
+		useState("");
+	const [cantidadDesperdicio, setCantidadDesperdicio] = useState("");
+
+	// Estados para órdenes
 	const estados = {
 		1: { texto: "Pendiente", color: "#f39c12" },
 		2: { texto: "En Proceso", color: "#3498db" },
 		3: { texto: "Completada", color: "#27ae60" },
 		4: { texto: "En Pausa", color: "red" },
 	};
+
+	// Opciones para el motivo de pausa
+	const opcionesMotivoPausa = [
+		{ valor: "Por mantenimiento", label: "Por mantenimiento" },
+		{ valor: "Por Limpieza", label: "Por Limpieza" },
+		{ valor: "Por cambio de turno", label: "Por cambio de turno" },
+	];
+
+	// Leer parámetro de URL
+	useEffect(() => {
+		const ordenProduccionParam = searchParams.get("ordenProduccion");
+		if (ordenProduccionParam) {
+			setFiltroOrdenProduccion(ordenProduccionParam);
+		}
+	}, [searchParams]);
 
 	// Cargar datos desde la API
 	useEffect(() => {
@@ -34,19 +72,62 @@ const VerOrdenesDeTrabajo = () => {
 		try {
 			setCargando(true);
 			setError(null);
-			
-			const response = await api.get('/produccion/ordenes-trabajo/');
+			const response = await api.get("/produccion/ordenes-trabajo/");
 			const ordenesData = response.data.results || [];
 			console.log("Órdenes de trabajo obtenidas:", ordenesData);
-			
 			setOrdenes(ordenesData);
 			setOrdenesFiltradas(ordenesData);
 		} catch (err) {
-			const errorMessage = err.response?.data?.message || "Error al cargar las órdenes de trabajo";
+			const errorMessage =
+				err.response?.data?.message || "Error al cargar las órdenes de trabajo";
 			setError(errorMessage);
 			console.error("Error fetching órdenes de trabajo:", err);
+			toast.error(errorMessage);
 		} finally {
 			setCargando(false);
+		}
+	};
+
+	// Función para actualizar una orden específica
+	const actualizarOrden = async (ordenId) => {
+		try {
+			// Obtener solo la orden específica actualizada
+			const response = await api.get(`/produccion/ordenes-trabajo/${ordenId}/`);
+			const ordenActualizada = response.data;
+
+			if (ordenActualizada) {
+				// Actualizar solo la orden específica en ambos estados
+				setOrdenes((prevOrdenes) =>
+					prevOrdenes.map((orden) =>
+						orden.id_orden_trabajo === ordenId ? ordenActualizada : orden
+					)
+				);
+
+				setOrdenesFiltradas((prevFiltradas) =>
+					prevFiltradas.map((orden) =>
+						orden.id_orden_trabajo === ordenId ? ordenActualizada : orden
+					)
+				);
+
+				console.log(`Orden #${ordenId} actualizada correctamente`);
+			}
+		} catch (error) {
+			console.error(`Error al actualizar orden #${ordenId}:`, error);
+			// En caso de error, recargar todo como fallback
+			await cargarDatos();
+		}
+	};
+
+	// Cargar tipos de no conformidad
+	const cargarTiposNoConformidad = async () => {
+		try {
+			const response = await api.get("/produccion/noconformidades/");
+			const tiposData = response.data.results || [];
+			console.log("Tipos de no conformidad obtenidos:", tiposData);
+			setTiposNoConformidad(tiposData);
+		} catch (error) {
+			console.error("Error al cargar tipos de no conformidad:", error);
+			toast.error("Error al cargar los tipos de no conformidad");
 		}
 	};
 
@@ -56,7 +137,7 @@ const VerOrdenesDeTrabajo = () => {
 
 		if (filtroEstado !== "todos") {
 			resultado = resultado.filter(
-				(orden) => orden.id_orden_trabajo === parseInt(filtroEstado)
+				(orden) => orden.id_estado_orden_trabajo === parseInt(filtroEstado)
 			);
 		}
 
@@ -66,8 +147,17 @@ const VerOrdenesDeTrabajo = () => {
 			);
 		}
 
+		if (filtroOrdenProduccion !== "") {
+			const idBuscado = parseInt(filtroOrdenProduccion);
+			if (!isNaN(idBuscado)) {
+				resultado = resultado.filter(
+					(orden) => orden.id_orden_produccion === idBuscado
+				);
+			}
+		}
+
 		setOrdenesFiltradas(resultado);
-	}, [filtroEstado, filtroLinea, ordenes]);
+	}, [filtroEstado, filtroLinea, filtroOrdenProduccion, ordenes]);
 
 	// Función para formatear fecha
 	const formatearFecha = (fechaISO) => {
@@ -97,104 +187,311 @@ const VerOrdenesDeTrabajo = () => {
 		return "#e74c3c";
 	};
 
-	// Función para iniciar orden de trabajo
+	// Función para abrir modal de pausa
+	const abrirModalPausa = (ordenId) => {
+		setOrdenSeleccionada(ordenId);
+		setMotivoPausa("");
+		setModalPausaAbierto(true);
+	};
+
+	// Función para cerrar modal de pausa
+	const cerrarModalPausa = () => {
+		setModalPausaAbierto(false);
+		setOrdenSeleccionada(null);
+		setMotivoPausa("");
+	};
+
+	// Función para abrir modal de finalizar
+	const abrirModalFinalizar = (orden) => {
+		setOrdenParaFinalizar(orden);
+		setModalFinalizarAbierto(true);
+	};
+
+	// Función para cerrar modal de finalizar
+	const cerrarModalFinalizar = () => {
+		setModalFinalizarAbierto(false);
+		setOrdenParaFinalizar(null);
+		setCantidadProducida("");
+	};
+
+	// Función para abrir modal de registrar desperdicio
+	const abrirModalDesperdicio = async (orden) => {
+		setOrdenParaDesperdicio(orden);
+		setTipoNoConformidadSeleccionado("");
+		setCantidadDesperdicio("");
+		setModalDesperdicioAbierto(true);
+
+		// Cargar tipos de no conformidad cuando se abre el modal
+		await cargarTiposNoConformidad();
+	};
+
+	// Función para cerrar modal de registrar desperdicio
+	const cerrarModalDesperdicio = () => {
+		setModalDesperdicioAbierto(false);
+		setOrdenParaDesperdicio(null);
+		setTipoNoConformidadSeleccionado("");
+		setCantidadDesperdicio("");
+	};
+
+	// Validar cantidad producida
+	const validarCantidad = (cantidad) => {
+		if (!ordenParaFinalizar) return false;
+		const cantidadNum = parseInt(cantidad);
+		const cantidadProgramada = ordenParaFinalizar.cantidad_programada;
+
+		if (isNaN(cantidadNum) || cantidadNum < 0) return false;
+		if (cantidadNum > cantidadProgramada) return false;
+
+		return true;
+	};
+
+	// Validar cantidad de desperdicio
+	const validarCantidadDesperdicio = (cantidad) => {
+		if (!ordenParaDesperdicio) return false;
+		const cantidadNum = parseInt(cantidad);
+		const cantidadProgramada = ordenParaDesperdicio.cantidad_programada;
+
+		if (isNaN(cantidadNum) || cantidadNum < 1) return false;
+		if (cantidadNum > cantidadProgramada) return false;
+
+		return true;
+	};
+
+	// Función optimizada para pausar orden de trabajo
+	const handlePausar = async () => {
+		if (!motivoPausa) {
+			toast.error("Por favor selecciona un motivo para la pausa");
+			return;
+		}
+
+		const toastId = toast.loading(`Pausando orden #${ordenSeleccionada}...`);
+
+		try {
+			setProcesando(ordenSeleccionada);
+			console.log("Pausando orden:", ordenSeleccionada, "Motivo:", motivoPausa);
+
+			const datosPausa = {
+				motivo: motivoPausa,
+			};
+
+			await api.post(
+				`/produccion/ordenes-trabajo/${ordenSeleccionada}/pausar_ot/`,
+				datosPausa
+			);
+
+			toast.update(toastId, {
+				render: `¡Orden #${ordenSeleccionada} pausada correctamente!`,
+				type: "success",
+				isLoading: false,
+				autoClose: 3000,
+			});
+
+			cerrarModalPausa();
+			await actualizarOrden(ordenSeleccionada); // Solo actualiza esta orden
+		} catch (error) {
+			console.error("Error al pausar la orden:", error);
+			const errorMessage =
+				error.response?.data?.message || "Error al pausar la orden de trabajo";
+			toast.update(toastId, {
+				render: `Error: ${errorMessage}`,
+				type: "error",
+				isLoading: false,
+				autoClose: 3000,
+			});
+		} finally {
+			setProcesando(null);
+		}
+	};
+
+	// Función optimizada para finalizar orden de trabajo
+	const handleFinalizarConfirmado = async () => {
+		if (!validarCantidad(cantidadProducida)) {
+			toast.error(
+				"La cantidad producida no es válida. Verifica que no sea mayor a la cantidad programada."
+			);
+			return;
+		}
+
+		const ordenId = ordenParaFinalizar.id_orden_trabajo;
+		const toastId = toast.loading(`Finalizando orden #${ordenId}...`);
+
+		const payload = {
+			produccion_bruta: parseInt(cantidadProducida),
+		};
+
+		try {
+			setProcesando(ordenId);
+			console.log("Finalizando orden:", ordenId, "con payload:", payload);
+
+			await api.patch(
+				`/produccion/ordenes-trabajo/${ordenId}/finalizar_ot/`,
+				payload
+			);
+
+			toast.update(toastId, {
+				render: `¡Orden #${ordenId} finalizada correctamente!`,
+				type: "success",
+				isLoading: false,
+				autoClose: 3000,
+			});
+
+			cerrarModalFinalizar();
+			await actualizarOrden(ordenId); // Solo actualiza esta orden
+		} catch (error) {
+			console.error("Error al finalizar la orden:", error);
+			const errorMessage =
+				error.response?.data?.error ||
+				error.response?.data?.message ||
+				"Error al finalizar la orden de trabajo";
+
+			toast.update(toastId, {
+				render: `Error: ${errorMessage}`,
+				type: "error",
+				isLoading: false,
+				autoClose: 3000,
+			});
+		} finally {
+			setProcesando(null);
+		}
+	};
+
+	// Función optimizada para registrar desperdicio
+	const handleRegistrarDesperdicioConfirmado = async () => {
+		if (!tipoNoConformidadSeleccionado) {
+			toast.error("Por favor selecciona un tipo de no conformidad");
+			return;
+		}
+
+		if (!validarCantidadDesperdicio(cantidadDesperdicio)) {
+			toast.error(
+				"La cantidad de desperdicio no es válida. Debe ser entre 1 y la cantidad programada."
+			);
+			return;
+		}
+
+		const ordenId = ordenParaDesperdicio.id_orden_trabajo;
+		const toastId = toast.loading(
+			`Registrando desperdicio para orden #${ordenId}...`
+		);
+
+		const payload = {
+			id_orden_trabajo: ordenId,
+			cantidad_desperdiciada: parseInt(cantidadDesperdicio),
+			razon_desperdicio: tipoNoConformidadSeleccionado,
+		};
+
+		try {
+			setProcesando(ordenId);
+			console.log("Registrando desperdicio:", payload);
+
+			await api.post(
+				`/produccion/ordenes-trabajo/${ordenId}/registrar_no_conformidad/`,
+				payload
+			);
+
+			toast.update(toastId, {
+				render: `¡Desperdicio registrado correctamente para orden #${ordenId}!`,
+				type: "success",
+				isLoading: false,
+				autoClose: 3000,
+			});
+
+			cerrarModalDesperdicio();
+			await actualizarOrden(ordenId); // Solo actualiza esta orden
+		} catch (error) {
+			console.error("Error al registrar desperdicio:", error);
+			const errorMessage =
+				error.response?.data?.error ||
+				error.response?.data?.message ||
+				"Error al registrar el desperdicio";
+
+			toast.update(toastId, {
+				render: `Error: ${errorMessage}`,
+				type: "error",
+				isLoading: false,
+				autoClose: 3000,
+			});
+		} finally {
+			setProcesando(null);
+		}
+	};
+
+	// Función optimizada para iniciar orden de trabajo
 	const handleIniciar = async (ordenId) => {
+		const toastId = toast.loading(`Iniciando orden #${ordenId}...`);
 		try {
 			setProcesando(ordenId);
 			console.log("Iniciando orden:", ordenId);
-			
-			await api.patch(`/produccion/ordenes-trabajo/${ordenId}/iniciar_ot/`);
-			
-			alert(`Orden ${ordenId} iniciada correctamente`);
-			// Recargar los datos para reflejar el cambio de estado
-			await cargarDatos();
+			await api.patch(`/produccion/ordenes-trabajo/${ordenId}/iniciar_ot/`, {});
+			toast.update(toastId, {
+				render: `¡Orden #${ordenId} iniciada!`,
+				type: "success",
+				isLoading: false,
+				autoClose: 3000,
+			});
+			await actualizarOrden(ordenId); // Solo actualiza esta orden
 		} catch (error) {
 			console.error("Error al iniciar la orden:", error);
-			const errorMessage = error.response?.data?.message || "Error al iniciar la orden de trabajo";
-			alert(`Error: ${errorMessage}`);
+			const errorMessage =
+				error.response?.data?.message || "Error al iniciar la orden de trabajo";
+			toast.update(toastId, {
+				render: `Error: ${errorMessage}`,
+				type: "error",
+				isLoading: false,
+				autoClose: 3000,
+			});
 		} finally {
 			setProcesando(null);
 		}
 	};
 
-	// Función para pausar orden de trabajo
-	const handlePausar = async (ordenId) => {
-		try {
-			setProcesando(ordenId);
-			console.log("Pausando orden:", ordenId);
-			
-			// Nota: El endpoint de pausa no está especificado, lo dejo como placeholder
-			// await api.patch(`/produccion/ordenes-trabajo/${ordenId}/pausar_ot/`);
-			
-			alert(`La funcionalidad de pausa estará disponible próximamente`);
-		} catch (error) {
-			console.error("Error al pausar la orden:", error);
-			const errorMessage = error.response?.data?.message || "Error al pausar la orden de trabajo";
-			alert(`Error: ${errorMessage}`);
-		} finally {
-			setProcesando(null);
-		}
-	};
-
-	// Función para reanudar orden de trabajo
+	// Función optimizada para reanudar orden de trabajo
 	const handleReanudar = async (ordenId) => {
+		const toastId = toast.loading(`Reanudando orden #${ordenId}...`);
 		try {
 			setProcesando(ordenId);
 			console.log("Reanudando orden:", ordenId);
-			
 			const datosReanudar = {
-				duracion_minutos: 15
+				duracion_minutos: 15,
 			};
-			
-			await api.patch(`/produccion/ordenes-trabajo/${ordenId}/reanudar_ot/`, datosReanudar);
-			
-			alert(`Orden ${ordenId} reanudada correctamente`);
-			// Recargar los datos para reflejar el cambio de estado
-			await cargarDatos();
+			await api.patch(
+				`/produccion/ordenes-trabajo/${ordenId}/reanudar_ot/`,
+				datosReanudar
+			);
+			toast.update(toastId, {
+				render: `¡Orden #${ordenId} reanudada!`,
+				type: "success",
+				isLoading: false,
+				autoClose: 3000,
+			});
+			await actualizarOrden(ordenId); // Solo actualiza esta orden
 		} catch (error) {
 			console.error("Error al reanudar la orden:", error);
-			const errorMessage = error.response?.data?.message || "Error al reanudar la orden de trabajo";
-			alert(`Error: ${errorMessage}`);
+			const errorMessage =
+				error.response?.data?.message ||
+				"Error al reanudar la orden de trabajo";
+			toast.update(toastId, {
+				render: `Error: ${errorMessage}`,
+				type: "error",
+				isLoading: false,
+				autoClose: 3000,
+			});
 		} finally {
 			setProcesando(null);
 		}
 	};
-
-	// Función para finalizar orden de trabajo
-	const handleFinalizar = async (ordenId) => {
-		try {
-			setProcesando(ordenId);
-			console.log("Finalizando orden:", ordenId);
-			
-			await api.patch(`/produccion/ordenes-trabajo/${ordenId}/finalizar_ot/`);
-			
-			alert(`Orden ${ordenId} finalizada correctamente`);
-			// Recargar los datos para reflejar el cambio de estado
-			await cargarDatos();
-		} catch (error) {
-			console.error("Error al finalizar la orden:", error);
-			const errorMessage = error.response?.data?.message || "Error al finalizar la orden de trabajo";
-			alert(`Error: ${errorMessage}`);
-		} finally {
-			setProcesando(null);
-		}
-	};
-
-	const handleRegistrarDesperdicio = (ordenId) => {
-		console.log("Registrar desperdicio para orden:", ordenId);
-		alert(`Registrando desperdicio para orden ${ordenId}`);
-		// Aquí iría la lógica para abrir modal/formulario de registro de desperdicio
-	};
-
 
 	// Limpiar filtros
 	const limpiarFiltros = () => {
 		setFiltroEstado("todos");
 		setFiltroLinea("todas");
+		setFiltroOrdenProduccion("");
 	};
 
 	// Obtener líneas únicas para el filtro
-	const lineasUnicas = [...new Set(ordenes.map(orden => orden.id_linea_produccion))].sort();
+	const lineasUnicas = [
+		...new Set(ordenes.map((orden) => orden.id_linea_produccion)),
+	].sort();
 
 	// Calcular estadísticas
 	const totalOrdenes = ordenes.length;
@@ -234,12 +531,239 @@ const VerOrdenesDeTrabajo = () => {
 
 	return (
 		<div className={styles.ordenesTrabajo}>
-			{/* Header */}
+			{/* Modal de Pausa */}
+			{modalPausaAbierto && (
+				<div className={styles.modalOverlay}>
+					<div className={styles.modal}>
+						<div className={styles.modalHeader}>
+							<h3>Pausar Orden #{ordenSeleccionada}</h3>
+							<button className={styles.modalCerrar} onClick={cerrarModalPausa}>
+								×
+							</button>
+						</div>
+						<div className={styles.modalBody}>
+							<p>Selecciona el motivo de la pausa:</p>
+							<div className={styles.radioGroup}>
+								{opcionesMotivoPausa.map((opcion) => (
+									<label key={opcion.valor} className={styles.radioLabel}>
+										<input
+											type="radio"
+											value={opcion.valor}
+											checked={motivoPausa === opcion.valor}
+											onChange={(e) => setMotivoPausa(e.target.value)}
+											className={styles.radioInput}
+										/>
+										<span className={styles.radioCustom}></span>
+										{opcion.label}
+									</label>
+								))}
+							</div>
+						</div>
+						<div className={styles.modalFooter}>
+							<button
+								className={`${styles.btnModal} ${styles.btnCancelar}`}
+								onClick={cerrarModalPausa}
+								disabled={procesando}
+							>
+								Cancelar
+							</button>
+							<button
+								className={`${styles.btnModal} ${styles.btnConfirmar}`}
+								onClick={handlePausar}
+								disabled={procesando || !motivoPausa}
+							>
+								{procesando ? "Procesando..." : "Pausar"}
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
+
+			{/* Modal de Finalizar */}
+			{modalFinalizarAbierto && ordenParaFinalizar && (
+				<div className={styles.modalOverlay}>
+					<div className={styles.modal}>
+						<div className={styles.modalHeader}>
+							<h3>Finalizar Orden #{ordenParaFinalizar.id_orden_trabajo}</h3>
+							<button
+								className={styles.modalCerrar}
+								onClick={cerrarModalFinalizar}
+							>
+								×
+							</button>
+						</div>
+						<div className={styles.modalBody}>
+							<div className={styles.formGroup}>
+								<label htmlFor="cantidadProducida" className={styles.label}>
+									Cantidad Producida:
+								</label>
+								<input
+									id="cantidadProducida"
+									type="number"
+									value={cantidadProducida}
+									onChange={(e) => setCantidadProducida(e.target.value)}
+									className={`${styles.input} ${
+										!validarCantidad(cantidadProducida) &&
+										cantidadProducida !== ""
+											? styles.inputError
+											: ""
+									}`}
+									placeholder="Ingrese la cantidad producida"
+									min="0"
+									max={ordenParaFinalizar.cantidad_programada}
+								/>
+								<div className={styles.helpText}>
+									Cantidad programada: {ordenParaFinalizar.cantidad_programada}{" "}
+									unidades
+								</div>
+								{!validarCantidad(cantidadProducida) &&
+									cantidadProducida !== "" && (
+										<div className={styles.errorText}>
+											{parseInt(cantidadProducida) >
+											ordenParaFinalizar.cantidad_programada
+												? `La cantidad no puede ser mayor a ${ordenParaFinalizar.cantidad_programada}`
+												: "La cantidad debe ser un número válido"}
+										</div>
+									)}
+							</div>
+						</div>
+						<div className={styles.modalFooter}>
+							<button
+								className={`${styles.btnModal} ${styles.btnCancelar}`}
+								onClick={cerrarModalFinalizar}
+								disabled={procesando}
+							>
+								Cancelar
+							</button>
+							<button
+								className={`${styles.btnModal} ${styles.btnConfirmarFinalizar}`}
+								onClick={handleFinalizarConfirmado}
+								disabled={procesando || !validarCantidad(cantidadProducida)}
+							>
+								{procesando ? "Procesando..." : "Confirmar Finalización"}
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
+
+			{/* Modal de Registrar Desperdicio */}
+			{modalDesperdicioAbierto && ordenParaDesperdicio && (
+				<div className={styles.modalOverlay}>
+					<div className={styles.modal}>
+						<div className={styles.modalHeader}>
+							<h3>
+								Registrar Desperdicio - Orden #
+								{ordenParaDesperdicio.id_orden_trabajo}
+							</h3>
+							<button
+								className={styles.modalCerrar}
+								onClick={cerrarModalDesperdicio}
+							>
+								×
+							</button>
+						</div>
+						<div className={styles.modalBody}>
+							<div className={styles.formGroup}>
+								<label className={styles.label}>Tipo de No Conformidad:</label>
+								<div className={styles.radioGroup}>
+									{tiposNoConformidad.map((tipo) => (
+										<label
+											key={tipo.tipo_no_conformidad.id_tipo_no_conformidad}
+											className={styles.radioLabel}
+										>
+											<input
+												type="radio"
+												value={tipo.tipo_no_conformidad.nombre}
+												checked={
+													tipoNoConformidadSeleccionado === tipo.tipo_no_conformidad.nombre
+												}
+												onChange={(e) =>
+													setTipoNoConformidadSeleccionado(e.target.value)
+												}
+												className={styles.radioInput}
+											/>
+											<span className={styles.radioCustom}></span>
+											{tipo.tipo_no_conformidad.nombre}
+										</label>
+									))}
+								</div>
+							</div>
+							<div className={styles.formGroup}>
+								<label htmlFor="cantidadDesperdicio" className={styles.label}>
+									Cantidad Desperdiciada:
+								</label>
+								<input
+									id="cantidadDesperdicio"
+									type="number"
+									value={cantidadDesperdicio}
+									onChange={(e) => setCantidadDesperdicio(e.target.value)}
+									className={`${styles.input} ${
+										!validarCantidadDesperdicio(cantidadDesperdicio) &&
+										cantidadDesperdicio !== ""
+											? styles.inputError
+											: ""
+									}`}
+									placeholder="Ingrese la cantidad desperdiciada"
+									min="1"
+									max={ordenParaDesperdicio.cantidad_programada}
+								/>
+								<div className={styles.helpText}>
+									Cantidad programada:{" "}
+									{ordenParaDesperdicio.cantidad_programada} unidades
+								</div>
+								{!validarCantidadDesperdicio(cantidadDesperdicio) &&
+									cantidadDesperdicio !== "" && (
+										<div className={styles.errorText}>
+											{parseInt(cantidadDesperdicio) >
+											ordenParaDesperdicio.cantidad_programada
+												? `La cantidad no puede ser mayor a ${ordenParaDesperdicio.cantidad_programada}`
+												: "La cantidad debe ser entre 1 y la cantidad programada"}
+										</div>
+									)}
+							</div>
+						</div>
+						<div className={styles.modalFooter}>
+							<button
+								className={`${styles.btnModal} ${styles.btnCancelar}`}
+								onClick={cerrarModalDesperdicio}
+								disabled={procesando}
+							>
+								Cancelar
+							</button>
+							<button
+								className={`${styles.btnModal} ${styles.btnConfirmarDesperdicio}`}
+								onClick={handleRegistrarDesperdicioConfirmado}
+								disabled={
+									procesando ||
+									!tipoNoConformidadSeleccionado ||
+									!validarCantidadDesperdicio(cantidadDesperdicio)
+								}
+							>
+								{procesando ? "Procesando..." : "Registrar Desperdicio"}
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
+
+			<ToastContainer
+				position="top-right"
+				autoClose={3000}
+				hideProgressBar={false}
+				newestOnTop={false}
+				closeOnClick
+				rtl={false}
+				pauseOnFocusLoss
+				draggable
+				pauseOnHover
+				theme="colored"
+			/>
+
 			<div className={styles.header}>
 				<h1 className={styles.titulo}>Órdenes de Trabajo</h1>
 			</div>
 
-			{/* Estadísticas */}
 			<div className={styles.estadisticas}>
 				<div className={styles.estadisticaItem}>
 					<span className={styles.estadisticaNumero}>{totalOrdenes}</span>
@@ -263,7 +787,6 @@ const VerOrdenesDeTrabajo = () => {
 				</div>
 			</div>
 
-			{/* Controles de Filtrado */}
 			<div className={styles.controles}>
 				<div className={styles.filtroGrupo}>
 					<label htmlFor="filtroEstado" className={styles.label}>
@@ -294,10 +817,26 @@ const VerOrdenesDeTrabajo = () => {
 						className={styles.select}
 					>
 						<option value="todas">Todas las líneas</option>
-						{lineasUnicas.map(linea => (
-							<option key={linea} value={linea}>Línea {linea}</option>
+						{lineasUnicas.map((linea) => (
+							<option key={linea} value={linea}>
+								Línea {linea}
+							</option>
 						))}
 					</select>
+				</div>
+
+				<div className={styles.filtroGrupo}>
+					<label htmlFor="filtroOrdenProduccion" className={styles.label}>
+						Filtrar por Orden de Producción:
+					</label>
+					<input
+						id="filtroOrdenProduccion"
+						type="number"
+						value={filtroOrdenProduccion}
+						onChange={(e) => setFiltroOrdenProduccion(e.target.value)}
+						placeholder="Ingrese ID de orden"
+						className={styles.select}
+					/>
 				</div>
 
 				<button onClick={limpiarFiltros} className={styles.btnLimpiar}>
@@ -305,13 +844,13 @@ const VerOrdenesDeTrabajo = () => {
 				</button>
 			</div>
 
-			{/* Lista de Órdenes */}
 			<div className={styles.listaOrdenes}>
 				{ordenesFiltradas.length > 0 ? (
 					ordenesFiltradas.map((orden) => {
 						const progreso = calcularProgreso(orden);
 						const estado = estados[orden.id_estado_orden_trabajo];
 						const estaProcesando = procesando === orden.id_orden_trabajo;
+						const esCompletada = orden.id_estado_orden_trabajo === 3;
 
 						return (
 							<div key={orden.id_orden_trabajo} className={styles.cardOrden}>
@@ -319,7 +858,8 @@ const VerOrdenesDeTrabajo = () => {
 									<div className={styles.headerInfo}>
 										<h3>Orden #{orden.id_orden_trabajo}</h3>
 										<span className={styles.productoNombre}>
-											{orden.producto_nombre}
+											{orden.producto_nombre} (Orden de Producción:{" "}
+											{orden.id_orden_produccion})
 										</span>
 									</div>
 									<span
@@ -336,45 +876,42 @@ const VerOrdenesDeTrabajo = () => {
 										<span>{orden.cantidad_programada} unidades</span>
 									</div>
 
-									<div className={styles.infoGrupo}>
-										<strong>Cantidad Producida</strong>
-										<span className={styles.cantidad}>
-											{orden.cantidad_producida} unidades
-										</span>
-									</div>
+									{/* Solo mostrar Cantidad Producida si la orden está Completada */}
+									{esCompletada && (
+										<div className={styles.infoGrupo}>
+											<strong>Cantidad Producida</strong>
+											<span className={styles.cantidad}>
+												{orden.cantidad_producida} unidades
+											</span>
+										</div>
+									)}
 
 									<div className={styles.infoGrupo}>
 										<strong>Inicio Programado</strong>
 										<span>{formatearFecha(orden.hora_inicio_programada)}</span>
 									</div>
-
 									<div className={styles.infoGrupo}>
 										<strong>Fin Programado</strong>
 										<span>{formatearFecha(orden.hora_fin_programada)}</span>
 									</div>
-
 									<div className={styles.infoGrupo}>
 										<strong>Inicio Real</strong>
 										<span>{formatearFecha(orden.hora_inicio_real)}</span>
 									</div>
-
 									<div className={styles.infoGrupo}>
 										<strong>Fin Real</strong>
 										<span>{formatearFecha(orden.hora_fin_real)}</span>
 									</div>
-
 									<div className={styles.infoGrupo}>
 										<strong>Línea de Producción</strong>
 										<span>Línea {orden.id_linea_produccion}</span>
 									</div>
-
 									<div className={styles.infoGrupo}>
 										<strong>Estado</strong>
 										<span>{orden.estado_descripcion}</span>
 									</div>
 								</div>
 
-								{/* Barra de Progreso */}
 								<div className={styles.progresoContainer}>
 									<div className={styles.barraProgreso}>
 										<div
@@ -391,9 +928,7 @@ const VerOrdenesDeTrabajo = () => {
 									</div>
 								</div>
 
-								{/* Botones de Acción - Lógica actualizada */}
 								<div className={styles.cardFooter}>
-									{/* Estado: Pendiente - Solo botón Iniciar */}
 									{orden.id_estado_orden_trabajo === 1 && (
 										<button
 											className={`${styles.btnAccion} ${styles.btnIniciar} ${
@@ -406,32 +941,31 @@ const VerOrdenesDeTrabajo = () => {
 										</button>
 									)}
 
-									{/* Estado: En Proceso - Botones Pausar, Finalizar y Registrar Desperdicio */}
 									{orden.id_estado_orden_trabajo === 2 && (
 										<>
 											<button
 												className={`${styles.btnAccion} ${styles.btnPausar} ${
 													estaProcesando ? styles.btnDeshabilitado : ""
 												}`}
-												onClick={() => handlePausar(orden.id_orden_trabajo)}
+												onClick={() => abrirModalPausa(orden.id_orden_trabajo)}
 												disabled={estaProcesando}
 											>
-												{estaProcesando ? "Procesando..." : "Pausar"}
+												Pausar
 											</button>
 											<button
-												className={`${styles.btnAccion} ${styles.btnFinalizar} ${
-													estaProcesando ? styles.btnDeshabilitado : ""
-												}`}
-												onClick={() => handleFinalizar(orden.id_orden_trabajo)}
+												className={`${styles.btnAccion} ${
+													styles.btnFinalizar
+												} ${estaProcesando ? styles.btnDeshabilitado : ""}`}
+												onClick={() => abrirModalFinalizar(orden)}
 												disabled={estaProcesando}
 											>
-												{estaProcesando ? "Procesando..." : "Finalizar"}
+												Finalizar
 											</button>
 											<button
-												className={`${styles.btnAccion} ${styles.btnDesperdicio} ${
-													estaProcesando ? styles.btnDeshabilitado : ""
-												}`}
-												onClick={() => handleRegistrarDesperdicio(orden.id_orden_trabajo)}
+												className={`${styles.btnAccion} ${
+													styles.btnDesperdicio
+												} ${estaProcesando ? styles.btnDeshabilitado : ""}`}
+												onClick={() => abrirModalDesperdicio(orden)}
 												disabled={estaProcesando}
 											>
 												Registrar Desperdicio
@@ -439,7 +973,6 @@ const VerOrdenesDeTrabajo = () => {
 										</>
 									)}
 
-									{/* Estado: En Pausa - Solo botón Reanudar */}
 									{orden.id_estado_orden_trabajo === 4 && (
 										<button
 											className={`${styles.btnAccion} ${styles.btnReanudar} ${
@@ -451,8 +984,6 @@ const VerOrdenesDeTrabajo = () => {
 											{estaProcesando ? "Procesando..." : "Reanudar"}
 										</button>
 									)}
-
-									{/* Estado: Completada - No mostrar botones de acción */}
 								</div>
 							</div>
 						);

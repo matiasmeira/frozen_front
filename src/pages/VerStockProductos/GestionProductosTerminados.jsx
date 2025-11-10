@@ -247,7 +247,7 @@ const GestionProductosTerminados = () => {
 								<div className={styles.thresholdInfo}>
 									<span className={styles.thresholdLabel}>Umbral mínimo:</span>
 									<span className={styles.thresholdValue}>
-										{umbral != null ? `${umbral} ${producto.unidad_medida}` : "N/A"}
+										{umbral != null ? `${umbral} ${producto.unidad?.descripcion}` : "N/A"}
 									</span>
 								</div>
 							</div>
