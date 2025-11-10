@@ -606,11 +606,10 @@ const handlePlanificar = async () => {
                   <span>{formatearFecha(orden.fecha_creacion)}</span>
                 </div>
 
-                <div className={styles.infoGrupo}>
-                  <strong>Iniciada:</strong>
-                  <span>{formatearFecha(orden.fecha_inicio)}</span>
-                </div>
-
+<div className={styles.infoGrupo}>
+            <strong>Orden de Venta:</strong>
+            <span>{orden.id_orden_venta || "N/A"}</span>
+          </div>
 
 
 
