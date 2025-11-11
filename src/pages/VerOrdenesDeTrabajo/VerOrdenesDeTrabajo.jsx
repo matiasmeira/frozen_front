@@ -529,11 +529,6 @@ const VerOrdenesDeTrabajo = () => {
 		setFiltroOrdenProduccion("");
 	};
 
-	// Obtener líneas únicas para el filtro
-	const lineasUnicas = [
-		...new Set(ordenes.map((orden) => orden.id_linea_produccion)),
-	].sort();
-
 	// Calcular estadísticas
 	const totalOrdenes = ordenes.length;
 	const ordenesPendientes = ordenes.filter(
@@ -866,11 +861,15 @@ const VerOrdenesDeTrabajo = () => {
 						className={styles.select}
 					>
 						<option value="todas">Todas las líneas</option>
-						{lineasUnicas.map((linea) => (
-							<option key={linea} value={linea}>
-								Línea {linea}
+							<option value={1}>
+								Línea 1
 							</option>
-						))}
+							<option value={2}>
+								Línea 2
+							</option>
+							<option value={3}>
+								Línea 3
+							</option>
 					</select>
 				</div>
 				<div className={styles.filtroGrupo}>
