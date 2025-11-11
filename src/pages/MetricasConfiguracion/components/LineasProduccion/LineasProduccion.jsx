@@ -173,15 +173,7 @@ const LineasProduccion = () => {
       key: 'descripcion',
       width: '30%',
     },
-    {
-      title: 'Capacidad por Hora',
-      dataIndex: 'capacidad_por_hora',
-      key: 'capacidad_por_hora',
-      width: '15%',
-      render: (capacidad) => (
-        <span>{capacidad ? `${capacidad} u/h` : 'No especificada'}</span>
-      )
-    },
+
     {
       title: 'Estado',
       dataIndex: 'estado',
