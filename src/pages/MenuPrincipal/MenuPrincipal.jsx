@@ -22,6 +22,8 @@ import {
 
 import { BiCalendarCheck } from "react-icons/bi";
 
+import { HiAdjustments } from "react-icons/hi";
+
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 const api = axios.create({
@@ -42,7 +44,8 @@ const iconMap = {
   "Gestión de Órdenes de Despacho": <FaTruckLoading />,
   "Configuración": <FaCog />,
   "Dashboard": <FaChartBar />, // Nuevo ícono agregado
-  "Ordenes de Trabajo": <BiCalendarCheck /> // Nuevo ícono agregado
+  "Ordenes de Trabajo": <BiCalendarCheck />, // Nuevo ícono agregado
+  "Lineas de Producción": <HiAdjustments />,
 };
 
 const DefaultIcon = <FaQuestionCircle />;
@@ -65,7 +68,7 @@ function MenuPrincipal() {
         const response = await api.get(`/empleados/permisos-rol/${encodeURIComponent(rolUsuario)}`);
 
         const opcionesMenu = response.data.permisos;
-
+        console.log(opcionesMenu)
         setData(opcionesMenu)
       } catch (err) {
         setError('Error al cargar los datos. Por favor, intenta nuevamente.')
