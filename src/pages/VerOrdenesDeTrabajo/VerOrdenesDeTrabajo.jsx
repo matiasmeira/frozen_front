@@ -720,7 +720,7 @@ const VerOrdenesDeTrabajo = () => {
 								{tipoNoConformidadFinalizar && cantidadDesperdicioFinalizar && (
 									<p>
 										Desperdicio registrado: {cantidadDesperdicioFinalizar}{" "}
-										unidades ({tipoNoConformidadFinalizar})
+										unidades
 									</p>
 								)}
 								<p>
