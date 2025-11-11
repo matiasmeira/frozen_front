@@ -120,6 +120,8 @@ const Dashboard = () => {
 	const [datosCumplimientoSemanal, setDatosCumplimientoSemanal] =
 		useState(null);
 	const [datosVentasPorTipo, setDatosVentasPorTipo] = useState(null);
+	const [datosDesperdicioPorCausa, setDatosDesperdicioPorCausa] = useState(null);
+	const [datosDesperdicioPorProducto, setDatosDesperdicioPorProducto] = useState(null);
 	const [cargando, setCargando] = useState({
 		cumplimiento: true,
 		desperdicio: true,
@@ -127,6 +129,8 @@ const Dashboard = () => {
 		tendenciaOEE: true,
 		cumplimientoSemanal: true,
 		ventasPorTipo: true,
+		desperdicioPorCausa: true,
+		desperdicioPorProducto: true,
 	});
 	const [error, setError] = useState({
 		cumplimiento: null,
@@ -135,6 +139,8 @@ const Dashboard = () => {
 		tendenciaOEE: null,
 		cumplimientoSemanal: null,
 		ventasPorTipo: null,
+		desperdicioPorCausa: null,
+		desperdicioPorProducto: null,
 	});
 	const dashboardRef = useRef(null);
 	const chartRefs = useRef({
@@ -154,24 +160,6 @@ const Dashboard = () => {
 		calidad: 0,
 	});
 
-	// Datos para desperdicio por producto
-	const datosDesperdicioProductos = [
-		{ producto: "Pizza Congelada", desperdicio: 450, porcentaje: 1.8 },
-		{ producto: "Hamburguesas", desperdicio: 320, porcentaje: 2.3 },
-		{ producto: "Papas Fritas", desperdicio: 280, porcentaje: 1.5 },
-		{ producto: "Empanadas", desperdicio: 190, porcentaje: 2.8 },
-		{ producto: "Verduras", desperdicio: 150, porcentaje: 1.2 },
-	];
-
-	// Datos para desperdicios por tipo
-	const datosDesperdiciosPorTipo = [
-		{ tipo: "Corte y Preparación", cantidad: 380, porcentaje: 32 },
-		{ tipo: "Sobrante Cocción", cantidad: 280, porcentaje: 23 },
-		{ tipo: "Caducidad", cantidad: 220, porcentaje: 18 },
-		{ tipo: "Envase Dañado", cantidad: 180, porcentaje: 15 },
-		{ tipo: "Control Calidad", cantidad: 150, porcentaje: 12 },
-	];
-
 	// Efecto para DEBUG - mostrar fechas que se están usando
 	useEffect(() => {
 		const { fechaDesde, fechaHasta } = getDateRange(30);
@@ -182,6 +170,115 @@ const Dashboard = () => {
 			fechaDesdeLocal: new Date(fechaDesde).toLocaleDateString("es-ES"),
 			fechaHastaLocal: new Date(fechaHasta).toLocaleDateString("es-ES"),
 		});
+	}, []);
+
+	// Efecto para cargar datos de desperdicio por PRODUCTO (para gráfico de barras)
+	useEffect(() => {
+		const fetchDesperdicioPorProducto = async () => {
+			try {
+				setCargando((prev) => ({ ...prev, desperdicioPorProducto: true }));
+
+				// Obtener fechas para desperdicio por producto
+				const fechas = getFechasParaAPI("desperdicio");
+
+				console.log("📊 Desperdicio por Producto - Fechas:", fechas);
+
+				// Construir URL con query params
+				const params = new URLSearchParams(fechas);
+
+				const url = `https://frozenback-test.up.railway.app/api/reportes/desperdicio/por_producto/?${params}`;
+
+				const response = await fetch(url);
+
+				if (!response.ok) {
+					throw new Error(`Error en la petición: ${response.status}`);
+				}
+
+				const data = await response.json();
+				setDatosDesperdicioPorProducto(data);
+				setError((prev) => ({ ...prev, desperdicioPorProducto: null }));
+			} catch (err) {
+				console.error("Error al cargar datos de desperdicio por producto:", err);
+				setError((prev) => ({
+					...prev,
+					desperdicioPorProducto: "No se pudieron cargar los datos de desperdicio por producto",
+				}));
+				// Datos de respaldo en caso de error
+				setDatosDesperdicioPorProducto([
+					{
+						producto_nombre: "Paquete de pan de miga para sandwiches",
+						total_desperdiciado: 30
+					},
+					{
+						producto_nombre: "Pizza de muzzarella grande (Congelada)",
+						total_desperdiciado: 10
+					},
+					{
+						producto_nombre: "Hamburguesas de carne",
+						total_desperdiciado: 15
+					},
+					{
+						producto_nombre: "Papas fritas congeladas",
+						total_desperdiciado: 8
+					},
+					{
+						producto_nombre: "Empanadas de jamón y queso",
+						total_desperdiciado: 12
+					}
+				]);
+			} finally {
+				setCargando((prev) => ({ ...prev, desperdicioPorProducto: false }));
+			}
+		};
+
+		fetchDesperdicioPorProducto();
+	}, []);
+
+	// Efecto para cargar datos de desperdicio por CAUSA (para gráfico de doughnut)
+	useEffect(() => {
+		const fetchDesperdicioPorCausa = async () => {
+			try {
+				setCargando((prev) => ({ ...prev, desperdicioPorCausa: true }));
+
+				// Obtener fechas para desperdicio por causa
+				const fechas = getFechasParaAPI("desperdicio");
+
+				console.log("📊 Desperdicio por Causa - Fechas:", fechas);
+
+				// Construir URL con query params
+				const params = new URLSearchParams(fechas);
+
+				const url = `https://frozenback-test.up.railway.app/api/reportes/desperdicio/por_causa/?${params}`;
+
+				const response = await fetch(url);
+
+				if (!response.ok) {
+					throw new Error(`Error en la petición: ${response.status}`);
+				}
+
+				const data = await response.json();
+				setDatosDesperdicioPorCausa(data);
+				setError((prev) => ({ ...prev, desperdicioPorCausa: null }));
+			} catch (err) {
+				console.error("Error al cargar datos de desperdicio por causa:", err);
+				setError((prev) => ({
+					...prev,
+					desperdicioPorCausa: "No se pudieron cargar los datos de desperdicio por causa",
+				}));
+				// Datos de respaldo en caso de error
+				setDatosDesperdicioPorCausa([
+					{ causa: "Quemado", total_desperdiciado: 40 },
+					{ causa: "Corte Incorrecto", total_desperdiciado: 35 },
+					{ causa: "Caducado", total_desperdiciado: 25 },
+					{ causa: "Envase Dañado", total_desperdiciado: 20 },
+					{ causa: "Sobrecocción", total_desperdiciado: 15 },
+				]);
+			} finally {
+				setCargando((prev) => ({ ...prev, desperdicioPorCausa: false }));
+			}
+		};
+
+		fetchDesperdicioPorCausa();
 	}, []);
 
 	// Efecto para cargar datos de ventas por tipo (Ecommerce vs WebApp)
@@ -618,19 +715,25 @@ const Dashboard = () => {
 		],
 	};
 
-	// Datos para gráfico de desperdicio en porcentaje
-	const wasteChartData = {
-		labels: datosDesperdicioProductos.map((item) => item.producto),
+	// Datos para gráfico de TASA DE DESPERDICIO POR PRODUCTO - desde API de productos
+	const wasteByProductChartData = {
+		labels: datosDesperdicioPorProducto
+			? datosDesperdicioPorProducto.map((item) => item.producto_nombre)
+			: ["Producto 1", "Producto 2", "Producto 3"],
 		datasets: [
 			{
-				label: "Tasa de Desperdicio (%)",
-				data: datosDesperdicioProductos.map((item) => item.porcentaje),
+				label: "Cantidad Desperdiciada (Unidades)",
+				data: datosDesperdicioPorProducto
+					? datosDesperdicioPorProducto.map((item) => item.total_desperdiciado)
+					: [0, 0, 0],
 				backgroundColor: [
 					"rgba(231, 76, 60, 0.8)",
 					"rgba(230, 126, 34, 0.8)",
 					"rgba(241, 196, 15, 0.8)",
 					"rgba(39, 174, 96, 0.8)",
 					"rgba(52, 152, 219, 0.8)",
+					"rgba(155, 89, 182, 0.8)",
+					"rgba(26, 188, 156, 0.8)",
 				],
 				borderColor: [
 					"rgba(231, 76, 60, 1)",
@@ -638,6 +741,8 @@ const Dashboard = () => {
 					"rgba(241, 196, 15, 1)",
 					"rgba(39, 174, 96, 1)",
 					"rgba(52, 152, 219, 1)",
+					"rgba(155, 89, 182, 1)",
+					"rgba(26, 188, 156, 1)",
 				],
 				borderWidth: 1,
 				borderRadius: 4,
@@ -645,18 +750,25 @@ const Dashboard = () => {
 		],
 	};
 
-	// Datos para gráfico de desperdicios por tipo en porcentaje
+	// Datos para gráfico de DISTRIBUCIÓN DE DESPERDICIOS POR TIPO (CAUSA) - desde API de causas
 	const wasteByTypeChartData = {
-		labels: datosDesperdiciosPorTipo.map((item) => item.tipo),
+		labels: datosDesperdicioPorCausa
+			? datosDesperdicioPorCausa.map((item) => item.causa)
+			: ["Causa 1", "Causa 2", "Causa 3"],
 		datasets: [
 			{
-				data: datosDesperdiciosPorTipo.map((item) => item.porcentaje),
+				label: "Distribución por Causa",
+				data: datosDesperdicioPorCausa
+					? datosDesperdicioPorCausa.map((item) => item.total_desperdiciado)
+					: [0, 0, 0],
 				backgroundColor: [
 					"rgba(231, 76, 60, 0.8)",
 					"rgba(230, 126, 34, 0.8)",
 					"rgba(241, 196, 15, 0.8)",
 					"rgba(39, 174, 96, 0.8)",
 					"rgba(52, 152, 219, 0.8)",
+					"rgba(155, 89, 182, 0.8)",
+					"rgba(26, 188, 156, 0.8)",
 				],
 				borderColor: [
 					"rgba(231, 76, 60, 1)",
@@ -664,6 +776,8 @@ const Dashboard = () => {
 					"rgba(241, 196, 15, 1)",
 					"rgba(39, 174, 96, 1)",
 					"rgba(52, 152, 219, 1)",
+					"rgba(155, 89, 182, 1)",
+					"rgba(26, 188, 156, 1)",
 				],
 				borderWidth: 2,
 				hoverOffset: 15,
@@ -769,6 +883,151 @@ const Dashboard = () => {
 		});
 	};
 
+	// Función para generar reporte PDF
+	const generarReportePDF = async () => {
+		setGenerandoReporte(true);
+		
+		try {
+			// Crear nuevo documento PDF
+			const pdf = new jsPDF('p', 'mm', 'a4');
+			const pageWidth = pdf.internal.pageSize.getWidth();
+			const pageHeight = pdf.internal.pageSize.getHeight();
+			
+			// Configuración de estilos
+			const margin = 15;
+			let yPosition = margin;
+			
+			// Título del reporte
+			pdf.setFontSize(20);
+			pdf.setFont('helvetica', 'bold');
+			pdf.text('Reporte de Auditoría - Dashboard Producción', pageWidth / 2, yPosition, { align: 'center' });
+			yPosition += 10;
+			
+			// Fecha de generación
+			pdf.setFontSize(10);
+			pdf.setFont('helvetica', 'normal');
+			const fechaGeneracion = new Date().toLocaleDateString('es-ES', {
+				year: 'numeric',
+				month: 'long',
+				day: 'numeric',
+				hour: '2-digit',
+				minute: '2-digit'
+			});
+			pdf.text(`Generado el: ${fechaGeneracion}`, pageWidth / 2, yPosition, { align: 'center' });
+			yPosition += 15;
+			
+			// Resumen ejecutivo
+			pdf.setFontSize(14);
+			pdf.setFont('helvetica', 'bold');
+			pdf.text('RESUMEN EJECUTIVO', margin, yPosition);
+			yPosition += 8;
+			
+			pdf.setFontSize(10);
+			pdf.setFont('helvetica', 'normal');
+			
+			// Indicadores principales
+			const indicadoresData = [
+				{ label: 'OEE (Eficiencia General)', value: `${indicadores.oee.toFixed(1)}%` },
+				{ label: 'Cumplimiento del Plan', value: `${datosCumplimiento?.porcentaje_cumplimiento_adherencia || 0}%` },
+				{ label: 'Tasa de Desperdicio', value: `${datosDesperdicio?.tasa_desperdicio_porcentaje || 0}%` },
+				{ label: 'Disponibilidad', value: `${indicadores.disponibilidad.toFixed(1)}%` },
+				{ label: 'Rendimiento', value: `${indicadores.rendimiento.toFixed(1)}%` },
+				{ label: 'Calidad', value: `${indicadores.calidad.toFixed(1)}%` }
+			];
+			
+			indicadoresData.forEach((item, index) => {
+				const x = margin + (index % 2) * (pageWidth / 2 - margin);
+				const y = yPosition + Math.floor(index / 2) * 6;
+				
+				pdf.setFont('helvetica', 'bold');
+				pdf.text(`${item.label}:`, x, y);
+				pdf.setFont('helvetica', 'normal');
+				pdf.text(item.value, x + 45, y);
+			});
+			
+			yPosition += 20;
+			
+			// Capturar el dashboard como imagen
+			if (dashboardRef.current) {
+				const canvas = await html2canvas(dashboardRef.current, {
+					scale: 1,
+					useCORS: true,
+					allowTaint: true,
+					backgroundColor: '#ffffff'
+				});
+				
+				const imgData = canvas.toDataURL('image/png');
+				const imgWidth = pageWidth - 2 * margin;
+				const imgHeight = (canvas.height * imgWidth) / canvas.width;
+				
+				// Verificar si necesitamos una nueva página
+				if (yPosition + imgHeight > pageHeight - margin) {
+					pdf.addPage();
+					yPosition = margin;
+				}
+				
+				pdf.addImage(imgData, 'PNG', margin, yPosition, imgWidth, imgHeight);
+				yPosition += imgHeight + 10;
+			}
+			
+			// Detalles adicionales para auditoría
+			if (yPosition > pageHeight - 50) {
+				pdf.addPage();
+				yPosition = margin;
+			}
+			
+			pdf.setFontSize(12);
+			pdf.setFont('helvetica', 'bold');
+			pdf.text('DETALLES ADICIONALES PARA AUDITORÍA', margin, yPosition);
+			yPosition += 8;
+			
+			pdf.setFontSize(9);
+			pdf.setFont('helvetica', 'normal');
+			
+			// Información de fuentes de datos
+			const detalles = [
+				`• Período de análisis: ${formatFecha(getDateRange(30).fechaDesde)} - ${formatFecha(getDateRange(30).fechaHasta)}`,
+				`• Total planificado: ${datosCumplimiento?.total_planificado || 0} unidades`,
+				`• Total cumplido: ${datosCumplimiento?.total_cantidad_cumplida_a_tiempo || 0} unidades`,
+				`• Total desperdiciado: ${datosDesperdicio?.total_desperdiciado || 0} unidades`,
+				`• Fuente de datos: Sistema de Producción FrozenBack`,
+				`• Método de cálculo: Estándares OEE internacionales`
+			];
+			
+			detalles.forEach(detalle => {
+				if (yPosition > pageHeight - 15) {
+					pdf.addPage();
+					yPosition = margin;
+				}
+				pdf.text(detalle, margin + 5, yPosition);
+				yPosition += 5;
+			});
+			
+			// Pie de página
+			const totalPages = pdf.internal.getNumberOfPages();
+			for (let i = 1; i <= totalPages; i++) {
+				pdf.setPage(i);
+				pdf.setFontSize(8);
+				pdf.setFont('helvetica', 'italic');
+				pdf.text(
+					`Página ${i} de ${totalPages} - Reporte generado automáticamente desde el sistema`,
+					pageWidth / 2,
+					pageHeight - 10,
+					{ align: 'center' }
+				);
+			}
+			
+			// Guardar el PDF
+			pdf.save(`reporte-auditoria-produccion-${new Date().toISOString().split('T')[0]}.pdf`);
+			
+		} catch (error) {
+			console.error('Error al generar el reporte PDF:', error);
+			alert('Error al generar el reporte. Por favor, intente nuevamente.');
+		} finally {
+			setGenerandoReporte(false);
+		}
+	};
+
 	// Verificar si todos los datos están cargando
 	const todosCargando =
 		cargando.cumplimiento &&
@@ -776,13 +1035,35 @@ const Dashboard = () => {
 		cargando.oee &&
 		cargando.tendenciaOEE &&
 		cargando.cumplimientoSemanal &&
-		cargando.ventasPorTipo;
+		cargando.ventasPorTipo &&
+		cargando.desperdicioPorCausa &&
+		cargando.desperdicioPorProducto;
 
 	return (
 		<div className={styles.dashboard} ref={dashboardRef}>
 			<header className={styles.header}>
-				<h1>Dashboard Producción</h1>
-				<p>Indicadores de Eficiencia y Calidad</p>
+				<div className={styles.headerContent}>
+					<div>
+						<h1>Dashboard Producción</h1>
+						<p>Indicadores de Eficiencia y Calidad</p>
+					</div>
+					<button 
+						className={`${styles.reporteButton} ${generandoReporte ? styles.generando : ''}`}
+						onClick={generarReportePDF}
+						disabled={generandoReporte || todosCargando}
+					>
+						{generandoReporte ? (
+							<>
+								<span className={styles.spinner}></span>
+								Generando Reporte...
+							</>
+						) : (
+							<>
+								📊 Generar Reporte PDF
+							</>
+						)}
+					</button>
+				</div>
 			</header>
 
 			{todosCargando && (
@@ -1060,23 +1341,26 @@ const Dashboard = () => {
 						<div className={styles.ventasResumen}>
 							{datosVentasPorTipo.map((item) => (
 								<div key={item.tipo_venta} className={styles.ventaItem}>
-									<span className={styles.ventaLabel}>
-										{item.tipo_venta === "EMP" ? "WebApp" : "Ecommerce"}:
-									</span>
-									<span className={styles.ventaValue}>
-										{item.ordenes_contadas} órdenes ({item.porcentaje}%)
-									</span>
 								</div>
 							))}
 						</div>
 					)}
 				</div>
 
+				{/* Gráfico de TASA DE DESPERDICIO POR PRODUCTO - API de productos */}
 				<div className={`${styles.card} ${styles.chartCard}`}>
-					<h3>Tasa de Desperdicio por Producto (%)</h3>
+					<div className={styles.cardHeader}>
+						<h3>Tasa de Desperdicio por Producto (Unidades)</h3>
+						{cargando.desperdicioPorProducto && (
+							<span className={styles.loadingBadge}>Cargando...</span>
+						)}
+						{error.desperdicioPorProducto && (
+							<span className={styles.errorBadge}>Error</span>
+						)}
+					</div>
 					<div className={styles.chartContainer}>
 						<Bar
-							data={wasteChartData}
+							data={wasteByProductChartData}
 							options={{
 								...chartOptions,
 								plugins: {
@@ -1095,9 +1379,6 @@ const Dashboard = () => {
 											font: {
 												size: 10,
 											},
-											callback: function (value) {
-												return value + "%";
-											},
 										},
 									},
 									x: {
@@ -1114,11 +1395,27 @@ const Dashboard = () => {
 							}}
 						/>
 					</div>
+					{datosDesperdicioPorProducto && (
+						<div className={styles.desperdicioResumen}>
+							{datosDesperdicioPorProducto.map((item, index) => (
+								<div key={index} className={styles.desperdicioItem}>
+								</div>
+							))}
+						</div>
+					)}
 				</div>
 
-				{/* Gráfico de distribución de desperdicios por tipo */}
+				{/* Gráfico de DISTRIBUCIÓN DE DESPERDICIOS POR TIPO (CAUSA) - API de causas */}
 				<div className={`${styles.card} ${styles.chartCard}`}>
-					<h3>Distribución de Desperdicios por Tipo (%)</h3>
+					<div className={styles.cardHeader}>
+						<h3>Distribución de Desperdicios por Causa (Unidades)</h3>
+						{cargando.desperdicioPorCausa && (
+							<span className={styles.loadingBadge}>Cargando...</span>
+						)}
+						{error.desperdicioPorCausa && (
+							<span className={styles.errorBadge}>Error</span>
+						)}
+					</div>
 					<div className={styles.chartContainer}>
 						<Doughnut
 							data={wasteByTypeChartData}
@@ -1140,7 +1437,12 @@ const Dashboard = () => {
 											label: function (context) {
 												const label = context.label || "";
 												const value = context.parsed;
-												return `${label}: ${value}%`;
+												const total = context.dataset.data.reduce(
+													(a, b) => a + b,
+													0
+												);
+												const percentage = ((value / total) * 100).toFixed(1);
+												return `${label}: ${value} unidades (${percentage}%)`;
 											},
 										},
 									},
@@ -1149,6 +1451,14 @@ const Dashboard = () => {
 							}}
 						/>
 					</div>
+					{datosDesperdicioPorCausa && (
+						<div className={styles.desperdicioResumen}>
+							{datosDesperdicioPorCausa.map((item, index) => (
+								<div key={index} className={styles.desperdicioItem}>
+								</div>
+							))} 
+						</div>
+					)}
 				</div>
 			</div>
 		</div>
