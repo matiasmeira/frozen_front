@@ -709,28 +709,61 @@ const VerOrdenesDeTrabajo = () => {
 										</div>
 									)}
 							</div>
-							<div className={styles.infoFinalizacion}>
-								<p>
-									<strong>Resumen de finalización:</strong>
-								</p>
-								<p>
-									Cantidad programada: {ordenParaFinalizar.cantidad_programada}{" "}
-									unidades
-								</p>
-								{tipoNoConformidadFinalizar && cantidadDesperdicioFinalizar && (
-									<p>
-										Desperdicio registrado: {cantidadDesperdicioFinalizar}{" "}
-										unidades
-									</p>
-								)}
-								<p>
-									<strong>
-										Producción final:{" "}
-										{ordenParaFinalizar.cantidad_programada -
-											(parseInt(cantidadDesperdicioFinalizar) || 0)}{" "}
-										unidades
-									</strong>
-								</p>
+
+							{/* RESUMEN MEJORADO ESTÉTICAMENTE */}
+							<div className={styles.resumenFinalizacion}>
+								<div className={styles.resumenHeader}>
+									<h4>📊 Resumen de Finalización</h4>
+								</div>
+								<div className={styles.resumenContent}>
+									<div className={styles.resumenItem}>
+										<span className={styles.resumenLabel}>
+											Cantidad Programada:
+										</span>
+										<span className={styles.resumenValor}>
+											{ordenParaFinalizar.cantidad_programada} unidades
+										</span>
+									</div>
+
+									{tipoNoConformidadFinalizar &&
+										cantidadDesperdicioFinalizar && (
+											<>
+												<div className={styles.resumenItem}>
+													<span className={styles.resumenLabel}>
+														Desperdicio Registrado:
+													</span>
+													<span className={styles.resumenValorDesperdicio}>
+														{cantidadDesperdicioFinalizar} unidades
+													</span>
+												</div>
+												<div className={styles.resumenItem}>
+													<span className={styles.resumenLabel}>Motivo:</span>
+													<span className={styles.resumenValor}>
+														{
+															tiposNoConformidad.find(
+																(t) =>
+																	t.id_tipo_no_conformidad.toString() ===
+																	tipoNoConformidadFinalizar
+															)?.nombre
+														}
+													</span>
+												</div>
+											</>
+										)}
+
+									<div className={styles.resumenSeparator}></div>
+
+									<div className={styles.resumenItemFinal}>
+										<span className={styles.resumenLabelFinal}>
+											Producción Final:
+										</span>
+										<span className={styles.resumenValorFinal}>
+											{ordenParaFinalizar.cantidad_programada -
+												(parseInt(cantidadDesperdicioFinalizar) || 0)}{" "}
+											unidades
+										</span>
+									</div>
+								</div>
 							</div>
 						</div>
 						<div className={styles.modalFooter}>

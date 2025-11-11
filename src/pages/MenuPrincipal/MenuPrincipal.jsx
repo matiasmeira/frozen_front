@@ -17,8 +17,10 @@ import {
     FaMapMarkedAlt, // Alternativa para Trazabilidad
     FaTruckLoading, // Nuevo ícono para Gestión de Órdenes de Despacho
     FaCog, // Ícono para Configuración/Gestión
-    FaChartBar // Nuevo ícono para Gestión de Indicadores y Reportes
+    FaChartBar, // Nuevo ícono para Gestión de Indicadores y Reportes
 } from 'react-icons/fa';
+
+import { BiCalendarCheck } from "react-icons/bi";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -40,6 +42,7 @@ const iconMap = {
   "Gestión de Órdenes de Despacho": <FaTruckLoading />,
   "Configuración": <FaCog />,
   "Dashboard": <FaChartBar />, // Nuevo ícono agregado
+  "Ordenes de Trabajo": <BiCalendarCheck /> // Nuevo ícono agregado
 };
 
 const DefaultIcon = <FaQuestionCircle />;
