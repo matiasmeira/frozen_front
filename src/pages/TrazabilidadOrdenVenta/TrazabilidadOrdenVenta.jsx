@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import styles from './TrazabilidadOrdenVenta.module.css';
-import { useSearchParams } from 'react-router-dom'; // <--- CAMBIO 1: Importar hook
+import { useSearchParams } from 'react-router-dom';
 
 // Configuración de Axios con la variable de entorno
 const baseURL = import.meta.env.VITE_API_BASE_URL;
@@ -10,7 +10,7 @@ const api = axios.create({
 });
 
 const TrazabilidadOrdenVenta = () => {
-  const [searchParams] = useSearchParams(); // <--- CAMBIO 2: Inicializar hook
+  const [searchParams] = useSearchParams();
   const [idOrdenVenta, setIdOrdenVenta] = useState('');
   const [idInput, setIdInput] = useState('');
   const [datos, setDatos] = useState(null);
@@ -24,16 +24,14 @@ const TrazabilidadOrdenVenta = () => {
     }
   };
 
-  // <--- CAMBIO 3: useEffect para leer la URL al cargar ---
   useEffect(() => {
-    const idFromUrl = searchParams.get('id_ov'); // Busca ?id_ov=...
+    const idFromUrl = searchParams.get('id_ov');
     if (idFromUrl) {
-      setIdInput(idFromUrl);       // Rellena el campo de búsqueda
-      setIdOrdenVenta(idFromUrl); // Dispara la búsqueda automáticamente
+      setIdInput(idFromUrl);
+      setIdOrdenVenta(idFromUrl);
     }
-  }, [searchParams]); // Se ejecuta cuando los parámetros de la URL cambian
+  }, [searchParams]);
 
-  // Este useEffect existente reacciona al cambio de idOrdenVenta
   useEffect(() => {
     if (idOrdenVenta) {
       cargarTrazabilidad(idOrdenVenta);
@@ -77,8 +75,6 @@ const TrazabilidadOrdenVenta = () => {
     setIdOrdenVenta('');
     setDatos(null);
     setError(null);
-    // Opcional: navegar a la misma ruta sin query params
-    // navigate('/trazabilidadordenventa'); 
   };
 
   return (
@@ -131,14 +127,13 @@ const TrazabilidadOrdenVenta = () => {
         </div>
       )}
 
-{error && (
+      {error && (
         <div className={styles.estado}>
           <div className={styles.error}>
             <div className={styles.iconoError}>⚠️</div>
             <div>
               <strong>Error:</strong> {error}
             </div>
-            {/* Botón Reintentar eliminado */}
           </div>
         </div>
       )}
@@ -166,7 +161,7 @@ const TrazabilidadOrdenVenta = () => {
           <div className={styles.productos}>
             {datos.productos_trazados.map((producto, index) => (
               <ProductoTrazado 
-                key={index} 
+                key={producto.id_orden_venta_producto || index} 
                 producto={producto} 
               />
             ))}
@@ -189,9 +184,24 @@ const TrazabilidadOrdenVenta = () => {
   );
 };
 
-// Subcomponentes
+// Subcomponentes actualizados para la nueva estructura
 const ProductoTrazado = ({ producto }) => {
   const [expandido, setExpandido] = useState(false);
+
+  // Verificar si hay órdenes de producción válidas
+  const tieneOrdenesProduccion = () => {
+    return producto.ordenes_produccion && 
+           !producto.ordenes_produccion.error && 
+           Array.isArray(producto.ordenes_produccion) && 
+           producto.ordenes_produccion.length > 0;
+  };
+
+  // Verificar si hay materias primas válidas
+  const tieneMateriasPrimas = () => {
+    return producto.materias_primas_usadas && 
+           Array.isArray(producto.materias_primas_usadas) && 
+           producto.materias_primas_usadas.length > 0;
+  };
 
   return (
     <div className={styles.producto}>
@@ -201,12 +211,24 @@ const ProductoTrazado = ({ producto }) => {
       >
         <div className={styles.productoInfo}>
           <h3 className={styles.productoNombre}>
-            {producto.producto_reclamado.nombre}
+            {producto.producto}
           </h3>
           <div className={styles.productoDetalles}>
-            <span>ID: {producto.producto_reclamado.id_producto}</span>
-            <span>Cantidad: {producto.producto_reclamado.cantidad} unidades</span>
-            <span>Lotes: {producto.lotes_entregados.length}</span>
+            <span>Cantidad vendida: {producto.cantidad_vendida} unidades</span>
+            <span>
+              Órdenes de producción: {
+                tieneOrdenesProduccion() 
+                  ? producto.ordenes_produccion.length 
+                  : 'No disponibles'
+              }
+            </span>
+            <span>
+              Materias primas: {
+                tieneMateriasPrimas()
+                  ? producto.materias_primas_usadas.length
+                  : 'No disponibles'
+              }
+            </span>
           </div>
         </div>
         <div className={styles.flecha}>
@@ -215,36 +237,101 @@ const ProductoTrazado = ({ producto }) => {
       </div>
 
       {expandido && (
-        <div className={styles.lotes}>
-          {producto.lotes_entregados.map((lote, index) => (
-            <LoteEntregado 
-              key={lote.id_lote_produccion || index} 
-              lote={lote} 
-            />
-          ))}
+        <div className={styles.detallesProducto}>
+          {/* Sección de Órdenes de Producción */}
+          <div className={styles.seccion}>
+            <h4 className={styles.seccionTitulo}>Órdenes de Producción</h4>
+            {!tieneOrdenesProduccion() ? (
+              <div className={styles.sinDatos}>
+                <div className={styles.iconoInfo}>ℹ️</div>
+                <div>
+                  {producto.ordenes_produccion?.error || 'No se encontraron órdenes de producción para este producto.'}
+                </div>
+              </div>
+            ) : (
+              <div className={styles.ordenesProduccion}>
+                {producto.ordenes_produccion.map((ordenProd, index) => (
+                  <OrdenProduccion 
+                    key={ordenProd.id_orden_produccion || index} 
+                    ordenProd={ordenProd} 
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Sección de Materias Primas */}
+          <div className={styles.seccion}>
+            <h4 className={styles.seccionTitulo}>Materias Primas Utilizadas</h4>
+            {!tieneMateriasPrimas() ? (
+              <div className={styles.sinDatos}>
+                <div className={styles.iconoInfo}>ℹ️</div>
+                <div>
+                  No se encontraron materias primas registradas para este producto.
+                </div>
+              </div>
+            ) : (
+              <div className={styles.materiasPrimas}>
+                {producto.materias_primas_usadas.map((mp, index) => (
+                  <MateriaPrima 
+                    key={mp.id_lote_materia_prima || index} 
+                    materiaPrima={mp} 
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
   );
 };
 
-const LoteEntregado = ({ lote }) => {
+const OrdenProduccion = ({ ordenProd }) => {
   const [expandido, setExpandido] = useState(false);
 
+  // Verificar si la orden de producción tiene error
+  const tieneError = ordenProd.error;
+
+  // Verificar si tiene órdenes de trabajo válidas
+  const tieneOrdenesTrabajo = () => {
+    return ordenProd.ordenes_de_trabajo && 
+           Array.isArray(ordenProd.ordenes_de_trabajo) && 
+           ordenProd.ordenes_de_trabajo.length > 0;
+  };
+
+  if (tieneError) {
+    return (
+      <div className={styles.ordenProduccion}>
+        <div className={styles.ordenProdHeader}>
+          <div className={styles.ordenProdInfo}>
+            <h5 className={styles.ordenProdTitulo}>
+              Información no disponible
+            </h5>
+            <div className={styles.ordenProdDetalles}>
+              <span>Error: {ordenProd.error}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className={styles.lote}>
+    <div className={styles.ordenProduccion}>
       <div 
-        className={styles.loteHeader}
+        className={styles.ordenProdHeader}
         onClick={() => setExpandido(!expandido)}
       >
-        <div className={styles.loteInfo}>
-          <h4 className={styles.loteTitulo}>
-            Lote #{lote.id_lote_produccion}
-          </h4>
-          <div className={styles.loteDetalles}>
-            <span>Entregado: {lote.cantidad_entregada_de_lote} unidades</span>
-            <span>Prod: {lote.fecha_produccion}</span>
-            <span>Venc: {lote.fecha_vencimiento}</span>
+        <div className={styles.ordenProdInfo}>
+          <h5 className={styles.ordenProdTitulo}>
+            Orden Producción #{ordenProd.id_orden_produccion}
+          </h5>
+          <div className={styles.ordenProdDetalles}>
+            <span>Lote: #{ordenProd.lote_asociado}</span>
+            <span>Planificado: {ordenProd.cantidad_planificada} unidades</span>
+            <span>Supervisor: {ordenProd.supervisor}</span>
+            <span>Fecha: {new Date(ordenProd.fecha_creacion).toLocaleDateString()}</span>
           </div>
         </div>
         <div className={styles.flecha}>
@@ -253,45 +340,146 @@ const LoteEntregado = ({ lote }) => {
       </div>
 
       {expandido && (
-        <div className={styles.loteDetallesCompletos}>
-          <div className={styles.seccion}>
-            <h5 className={styles.seccionTitulo}>Orden de Producción</h5>
-            {lote.orden_produccion.error ? (
-              <div className={styles.error}>
-                {lote.orden_produccion.error}
+        <div className={styles.detallesOrdenProd}>
+          {/* Órdenes de Trabajo */}
+          <div className={styles.subseccion}>
+            <h6 className={styles.subseccionTitulo}>Órdenes de Trabajo</h6>
+            {!tieneOrdenesTrabajo() ? (
+              <div className={styles.sinDatos}>
+                <div className={styles.iconoInfo}>ℹ️</div>
+                <div>
+                  No se encontraron órdenes de trabajo para esta orden de producción.
+                </div>
               </div>
             ) : (
-              <div className={styles.ordenProduccion}>
-                <div className={styles.gridInfo}>
-                  <div className={styles.gridItem}><span className={styles.gridLabel}>ID:</span><span>{lote.orden_produccion.id_orden_produccion}</span></div>
-                  <div className={styles.gridItem}><span className={styles.gridLabel}>Inicio:</span><span>{new Date(lote.orden_produccion.fecha_inicio).toLocaleDateString()}</span></div>
-                  <div className={styles.gridItem}><span className={styles.gridLabel}>Planificado:</span><span>{lote.orden_produccion.cantidad_planificada} unidades</span></div>
-                  <div className={styles.gridItem}><span className={styles.gridLabel}>Supervisor:</span><span>{lote.orden_produccion.supervisor}</span></div>
-                  <div className={styles.gridItem}><span className={styles.gridLabel}>Operario:</span><span>{lote.orden_produccion.operario}</span></div>
-                  <div className={styles.gridItem}><span className={styles.gridLabel}>Línea:</span><span>{lote.orden_produccion.linea}</span></div>
-                </div>
+              <div className={styles.ordenesTrabajo}>
+                {ordenProd.ordenes_de_trabajo.map((ordenTrabajo, index) => (
+                  <OrdenTrabajo 
+                    key={ordenTrabajo.id_orden_trabajo || index} 
+                    ordenTrabajo={ordenTrabajo} 
+                  />
+                ))}
               </div>
             )}
           </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
-          {lote.materias_primas_usadas && lote.materias_primas_usadas.length > 0 && (
-            <div className={styles.seccion}>
-              <h5 className={styles.seccionTitulo}>Materias Primas Usadas</h5>
-              <div className={styles.materiasPrimas}>
-                {lote.materias_primas_usadas.map((mp, index) => (
-                  <div key={index} className={styles.materiaPrima}>
-                    <div className={styles.gridInfo}>
-                      <div className={styles.gridItem}><span className={styles.gridLabel}>Material:</span><span>{mp.nombre_materia_prima}</span></div>
-                      <div className={styles.gridItem}><span className={styles.gridLabel}>Lote MP:</span><span>#{mp.id_lote_materia_prima}</span></div>
-                      <div className={styles.gridItem}><span className={styles.gridLabel}>Cantidad:</span><span>{mp.cantidad_usada}</span></div>
-                      <div className={styles.gridItem}><span className={styles.gridLabel}>Vencimiento:</span><span>{mp.fecha_vencimiento_mp}</span></div>
-                      <div className={styles.gridItem}><span className={styles.gridLabel}>Proveedor:</span><span>{mp.proveedor.nombre} (ID: {mp.proveedor.id_proveedor})</span></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+const OrdenTrabajo = ({ ordenTrabajo }) => {
+  const [expandido, setExpandido] = useState(false);
+
+  const calcularEficiencia = () => {
+    if (!ordenTrabajo.desperdicios_reportados || ordenTrabajo.desperdicios_reportados.length === 0) return 100;
+    
+    const totalDesperdiciado = ordenTrabajo.desperdicios_reportados.reduce(
+      (sum, desp) => sum + desp.cantidad_desperdiciada, 0
+    );
+    const totalProducido = ordenTrabajo.cantidad_producida_neta + totalDesperdiciado;
+    
+    return totalProducido > 0 
+      ? Math.round((ordenTrabajo.cantidad_producida_neta / totalProducido) * 100)
+      : 0;
+  };
+
+  const tieneDesperdicios = () => {
+    return ordenTrabajo.desperdicios_reportados && 
+           Array.isArray(ordenTrabajo.desperdicios_reportados) && 
+           ordenTrabajo.desperdicios_reportados.length > 0;
+  };
+
+  return (
+    <div className={styles.ordenTrabajo}>
+      <div 
+        className={styles.ordenTrabajoHeader}
+        onClick={() => setExpandido(!expandido)}
+      >
+        <div className={styles.ordenTrabajoInfo}>
+          <h6 className={styles.ordenTrabajoTitulo}>
+            Orden Trabajo #{ordenTrabajo.id_orden_trabajo}
+          </h6>
+          <div className={styles.ordenTrabajoDetalles}>
+            <span>Línea: {ordenTrabajo.linea_produccion}</span>
+            <span>Producción neta: {ordenTrabajo.cantidad_producida_neta} unidades</span>
+            <span>Estado: {ordenTrabajo.estado}</span>
+            <span>Eficiencia: {calcularEficiencia()}%</span>
+          </div>
+        </div>
+        <div className={styles.flecha}>
+          {expandido ? '▼' : '►'}
+        </div>
+      </div>
+
+      {expandido && (
+        <div className={styles.detallesOrdenTrabajo}>
+          <div className={styles.gridInfo}>
+            <div className={styles.gridItem}>
+              <span className={styles.gridLabel}>Inicio:</span>
+              <span>{new Date(ordenTrabajo.inicio_real).toLocaleString()}</span>
+            </div>
+            <div className={styles.gridItem}>
+              <span className={styles.gridLabel}>Fin:</span>
+              <span>{new Date(ordenTrabajo.fin_real).toLocaleString()}</span>
+            </div>
+            <div className={styles.gridItem}>
+              <span className={styles.gridLabel}>Duración:</span>
+              <span>
+                {Math.round((new Date(ordenTrabajo.fin_real) - new Date(ordenTrabajo.inicio_real)) / (1000 * 60))} min
+              </span>
+            </div>
+          </div>
+
+          {/* Desperdicios */}
+          {tieneDesperdicios() && (
+            <div className={styles.desperdicios}>
+              <h6 className={styles.desperdiciosTitulo}>Desperdicios Reportados</h6>
+              {ordenTrabajo.desperdicios_reportados.map((desperdicio, index) => (
+                <div key={index} className={styles.desperdicio}>
+                  <span className={styles.desperdicioTipo}>{desperdicio.tipo}:</span>
+                  <span className={styles.desperdicioCantidad}>{desperdicio.cantidad_desperdiciada} unidades</span>
+                </div>
+              ))}
             </div>
           )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const MateriaPrima = ({ materiaPrima }) => {
+  const [expandido, setExpandido] = useState(false);
+
+  return (
+    <div className={styles.materiaPrima}>
+      <div 
+        className={styles.materiaPrimaHeader}
+        onClick={() => setExpandido(!expandido)}
+      >
+        <div className={styles.materiaPrimaInfo}>
+          <h5 className={styles.materiaPrimaTitulo}>
+            {materiaPrima.nombre_materia_prima}
+          </h5>
+          <div className={styles.materiaPrimaDetalles}>
+            <span>Lote MP: #{materiaPrima.id_lote_materia_prima}</span>
+            <span>Cantidad usada: {materiaPrima.cantidad_usada}</span>
+          </div>
+        </div>
+        <div className={styles.flecha}>
+          {expandido ? '▼' : '►'}
+        </div>
+      </div>
+
+      {expandido && (
+        <div className={styles.detallesMateriaPrima}>
+          <div className={styles.gridInfo}>
+            <div className={styles.gridItem}>
+              <span className={styles.gridLabel}>Proveedor:</span>
+              <span>{materiaPrima.proveedor.nombre} (ID: {materiaPrima.proveedor.id_proveedor})</span>
+            </div>
+          </div>
         </div>
       )}
     </div>
