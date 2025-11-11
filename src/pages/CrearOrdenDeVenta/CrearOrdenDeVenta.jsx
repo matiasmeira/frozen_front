@@ -583,7 +583,7 @@ function CrearOrdenDeVenta() {
                         />
                       </div>
                       <div className={styles.productField}>
-                        <label className={styles.fieldLabel}>Unidad de Medida</label>
+                        <label className={styles.fieldLabel}>Unidad</label>
                         <div className={`${styles.measurementDisplay} ${styles.displayField} ${creatingOrder ? styles.disabledInput : ""}`}>
                           {field.unidad_medida || "-"}
                         </div>
