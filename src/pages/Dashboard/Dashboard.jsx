@@ -31,16 +31,31 @@ ChartJS.register(
   Filler
 );
 
-// Función helper para formatear fechas
+// Función helper MEJORADA para formatear fechas (sin problemas de zona horaria)
 const formatDateToAPI = (date) => {
-  return date.toISOString().split('T')[0];
+  // Usar métodos locales para evitar problemas de UTC
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  
+  return `${year}-${month}-${day}`;
 };
 
-// Función para calcular fechas del período
+// Función para calcular fechas del período (MEJORADA)
 const getDateRange = (dias = 30) => {
   const hoy = new Date();
-  const fechaInicio = new Date();
+  
+  // Crear una copia para la fecha de inicio
+  const fechaInicio = new Date(hoy);
   fechaInicio.setDate(hoy.getDate() - dias);
+  
+  // Asegurarnos de que estamos usando la fecha local correcta
+  console.log('📅 Fechas calculadas:', {
+    hoyLocal: hoy.toLocaleDateString('es-ES'),
+    inicioLocal: fechaInicio.toLocaleDateString('es-ES'),
+    hoyAPI: formatDateToAPI(hoy),
+    inicioAPI: formatDateToAPI(fechaInicio)
+  });
   
   return {
     fechaDesde: formatDateToAPI(fechaInicio),
@@ -150,6 +165,18 @@ const Dashboard = () => {
     { tipo: 'Control Calidad', cantidad: 150, porcentaje: 12 }
   ];
 
+  // Efecto para DEBUG - mostrar fechas que se están usando
+  useEffect(() => {
+    const { fechaDesde, fechaHasta } = getDateRange(30);
+    console.log('🔍 DEBUG - Fechas en uso:', {
+      fechaDesde,
+      fechaHasta,
+      hoy: new Date().toLocaleDateString('es-ES'),
+      fechaDesdeLocal: new Date(fechaDesde).toLocaleDateString('es-ES'),
+      fechaHastaLocal: new Date(fechaHasta).toLocaleDateString('es-ES')
+    });
+  }, []);
+
   // Efecto para cargar datos de cumplimiento semanal
   useEffect(() => {
     const fetchCumplimientoSemanal = async () => {
@@ -158,6 +185,8 @@ const Dashboard = () => {
         
         // Obtener fechas para cumplimiento semanal (últimos 30 días)
         const fechas = getFechasParaAPI('cumplimiento');
+        
+        console.log('📊 Cumplimiento Semanal - Fechas:', fechas);
         
         // Construir URL con query params
         const params = new URLSearchParams(fechas);
@@ -207,6 +236,8 @@ const Dashboard = () => {
         
         // Obtener fechas para OEE (últimos 30 días)
         const fechas = getFechasParaAPI('oee');
+        
+        console.log('📊 OEE - Fechas:', fechas);
         
         // Construir URL con query params
         const params = new URLSearchParams(fechas);
@@ -265,6 +296,8 @@ const Dashboard = () => {
         
         // Obtener fechas de los últimos 6 meses
         const meses = getFechasPorMeses(6);
+        
+        console.log('📊 Tendencia OEE - Meses:', meses);
         
         // Array para almacenar todas las promesas
         const promesas = meses.map(async (mes) => {
@@ -330,6 +363,8 @@ const Dashboard = () => {
         // Obtener fechas ajustadas para cumplimiento
         const fechas = getFechasParaAPI('cumplimiento');
         
+        console.log('📊 Cumplimiento Plan - Fechas:', fechas);
+        
         // Construir URL con query params
         const params = new URLSearchParams(fechas);
         
@@ -372,6 +407,8 @@ const Dashboard = () => {
         
         // Obtener fechas para desperdicio
         const fechas = getFechasParaAPI('desperdicio');
+        
+        console.log('📊 Desperdicio - Fechas:', fechas);
         
         // Construir URL con query params
         const params = new URLSearchParams(fechas);
@@ -462,24 +499,15 @@ const Dashboard = () => {
     }
   };
 
-  // Función para formatear fecha de semana
-  const formatSemana = (fechaStr) => {
-    const fecha = new Date(fechaStr);
-    const numeroSemana = getNumeroSemana(fecha);
-    return `Sem ${numeroSemana}`;
-  };
-
-  // Función para obtener número de semana
-  const getNumeroSemana = (date) => {
-    const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
-    const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
-    return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+  // Función SIMPLIFICADA para enumerar semanas secuencialmente
+  const formatSemana = (index) => {
+    return `Sem ${index + 1}`;
   };
 
   // Datos para gráfico de producción en porcentaje - desde API
   const productionChartData = {
     labels: datosCumplimientoSemanal ? 
-      datosCumplimientoSemanal.map(item => formatSemana(item.semana_inicio)) : 
+      datosCumplimientoSemanal.map((item, index) => formatSemana(index)) : 
       ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4'],
     datasets: [
       {
@@ -607,9 +635,12 @@ const Dashboard = () => {
     return styles.poor;
   };
 
-  // Función para formatear fecha para mostrar
+  // Función MEJORADA para formatear fecha para mostrar
   const formatFecha = (fechaStr) => {
-    const fecha = new Date(fechaStr);
+    // Asegurar que la fecha se interprete correctamente en zona local
+    const [year, month, day] = fechaStr.split('-');
+    const fecha = new Date(year, month - 1, day);
+    
     return fecha.toLocaleDateString('es-ES', {
       day: '2-digit',
       month: '2-digit',
@@ -623,8 +654,8 @@ const Dashboard = () => {
   return (
     <div className={styles.dashboard} ref={dashboardRef}>
       <header className={styles.header}>
-        <h1>Dashboard Producción - Alimentos Congelados</h1>
-        <p>Indicadores de Eficiencia y Calidad - Últimos 30 días</p>
+        <h1>Dashboard Producción</h1>
+        <p>Indicadores de Eficiencia y Calidad</p>
       </header>
 
       {todosCargando && (
@@ -692,11 +723,6 @@ const Dashboard = () => {
           <div className={`${styles.card} ${styles.indicadorCard}`}>
             <div className={styles.cardHeader}>
               <h3>Cumplimiento del Plan</h3>
-              {datosCumplimiento && (
-                <span className={styles.periodo}>
-                  {formatFecha(datosCumplimiento.fecha_desde)} - {formatFecha(datosCumplimiento.fecha_hasta)}
-                </span>
-              )}
             </div>
             <div className={styles.cardContent}>
               {cargando.cumplimiento ? (
@@ -725,11 +751,6 @@ const Dashboard = () => {
           <div className={`${styles.card} ${styles.indicadorCard}`}>
             <div className={styles.cardHeader}>
               <h3>Tasa de Desperdicio</h3>
-              {datosDesperdicio && (
-                <span className={styles.periodo}>
-                  {formatFecha(datosDesperdicio.fecha_desde)} - {formatFecha(datosDesperdicio.fecha_hasta)}
-                </span>
-              )}
             </div>
             <div className={styles.cardContent}>
               {cargando.desperdicio ? (
