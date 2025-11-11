@@ -657,10 +657,10 @@ const VerOrdenesProduccion = () => {
                   <span>{formatearFecha(orden.fecha_creacion)}</span>
                 </div>
 
-                <div className={styles.infoGrupo}>
+                {/* <div className={styles.infoGrupo}>
                   <strong>Iniciada:</strong>
                   <span>{formatearFecha(orden.fecha_inicio)}</span>
-                </div>
+                </div> */}
 
                 <div className={styles.infoGrupo}>
                   <strong>Orden de Venta:</strong>
