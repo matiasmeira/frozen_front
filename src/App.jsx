@@ -37,6 +37,7 @@ import ProtectedLogin from "./utils/ProtectedLogin";
 import GestionMateriasPrimas from "./pages/GestionMateriaPrima/GestionMateriaPrima";
 import VerLotesMateriaPrima from "./pages/VerLotesMateriaPrima/VerLotesMateriaPrima";
 import OrdenesDespacho from "./pages/verOrdenesDespacho/OrdenesDespacho";
+import Calendario from "./pages/Calendario/Calendario";
 
 
 function App() {
@@ -83,6 +84,7 @@ function App() {
 							<Route path="/trazar_lote_produccion/:id_Lote_Produccion" element={<TrazarLoteProduccion />} />
 							<Route path="/trazabilidadLote/:id_lote" element={<TrazarLoteProducto/>}/>
 							<Route path="/dashboard" element={<Dashboard/>}/>
+							<Route path="/calendario" element={<Calendario/>}/>
 							<Route path="/lotesMateriasPrimas" element={<VerLotesMateriaPrimaGeneral/>}/>
 							<Route path="/metricas-configuracion" element={<MetricasConfiguracion/>}/>
 						{/*</Route>*/}
