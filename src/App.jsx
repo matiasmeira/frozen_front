@@ -27,6 +27,7 @@ import MetricasConfiguracion from "./pages/MetricasConfiguracion/MetricasConfigu
 import VerOrdenesDeTrabajo from "./pages/VerOrdenesDeTrabajo/VerOrdenesDeTrabajo";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import VerLineasDeProduccion from "./pages/VerLineasDeProduccion/VerLineasDeProduccion";
+import EjecutarPlanificacion from "./pages/EjecutarPlanificacion/EjecutarPlanificacion";
 //Pages
 
 import "./App.css";
@@ -85,6 +86,7 @@ function App() {
 							<Route path="/dashboard" element={<Dashboard/>}/>
 							<Route path="/lotesMateriasPrimas" element={<VerLotesMateriaPrimaGeneral/>}/>
 							<Route path="/metricas-configuracion" element={<MetricasConfiguracion/>}/>
+							<Route path="/ejecutarPlanificacion" element={<EjecutarPlanificacion/>}/>
 						{/*</Route>*/}
 					</Routes>
 				</main>
