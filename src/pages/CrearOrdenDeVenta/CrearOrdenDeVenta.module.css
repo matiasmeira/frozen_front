@@ -63,7 +63,6 @@
   justify-content: space-between;
 }
 
-
 .disabledInput {
   background-color: var(--disabled-bg) !important;
   color: var(--text-muted) !important;
@@ -197,60 +196,8 @@
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-/* TEXTAREA para dirección de entrega */
-.textarea {
-  min-height: 80px !important;
-  height: auto !important;
-  resize: vertical;
-  padding: 0.75rem;
-  line-height: 1.5;
-}
-
-/* REACT-SELECT (Cliente) - ESTILOS ESPECÍFICOS PARA ALTURA */
-.formGroup :global(.react-select__control) {
-  min-height: var(--input-height) !important;
-  height: var(--input-height) !important;
-  border: 1px solid var(--border-color) !important;
-  border-radius: var(--border-radius) !important;
-  font-size: 0.875rem !important;
-  box-shadow: none !important;
-  transition: all 0.2s ease !important;
-}
-
-.formGroup :global(.react-select__control--is-focused) {
-  border-color: var(--focus-color) !important;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
-}
-
-.formGroup :global(.react-select__value-container) {
-  height: 100% !important;
-  padding: 0 12px !important;
-  align-items: center !important;
-}
-
-.formGroup :global(.react-select__placeholder) {
-  margin: 0 !important;
-  color: var(--text-muted) !important;
-}
-
-.formGroup :global(.react-select__single-value) {
-  margin: 0 !important;
-}
-
-.formGroup :global(.react-select__input-container) {
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-.formGroup :global(.react-select__indicators) {
-  height: 100% !important;
-}
-
-.formGroup :global(.react-select__dropdown-indicator) {
-  padding: 8px !important;
-}
-
-/* ESTILOS ESPECÍFICOS PARA LOS SELECTS DE PRODUCTO - MÁS LARGOS */
+/* REACT-SELECT - ESTILOS UNIFICADOS */
+.formGroup :global(.react-select__control),
 .productField :global(.react-select__control) {
   min-height: var(--input-height) !important;
   height: var(--input-height) !important;
@@ -259,60 +206,42 @@
   font-size: 0.875rem !important;
   box-shadow: none !important;
   transition: all 0.2s ease !important;
-  min-width: 300px !important;
   width: 100% !important;
 }
 
+.formGroup :global(.react-select__control--is-focused),
 .productField :global(.react-select__control--is-focused) {
   border-color: var(--focus-color) !important;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
 }
 
+.formGroup :global(.react-select__value-container),
 .productField :global(.react-select__value-container) {
   height: 100% !important;
   padding: 0 12px !important;
   align-items: center !important;
-  min-width: 250px !important;
 }
 
+.formGroup :global(.react-select__placeholder),
 .productField :global(.react-select__placeholder) {
   margin: 0 !important;
   color: var(--text-muted) !important;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
+.formGroup :global(.react-select__single-value),
 .productField :global(.react-select__single-value) {
   margin: 0 !important;
-  max-width: 280px !important;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.productField :global(.react-select__input-container) {
-  margin: 0 !important;
-  padding: 0 !important;
-  min-width: 200px !important;
+/* SOLUCIÓN DEFINITIVA PARA MENÚ CORTADO */
+/* El menú ahora se renderiza en el body gracias a menuPortalTarget */
+:global(.react-select__menu-portal) {
+  z-index: 9999 !important;
 }
 
-.productField :global(.react-select__menu) {
-  min-width: 350px !important;
-  z-index: 1000 !important;
-}
-
-.productField :global(.react-select__option) {
-  padding: 10px 12px !important;
-  font-size: 0.875rem !important;
-  white-space: normal !important;
-  word-wrap: break-word !important;
-}
-
-.productField :global(.react-select__option--is-disabled) {
-  opacity: 0.5 !important;
-  cursor: not-allowed !important;
-  background-color: #f3f4f6 !important;
+:global(.react-select__menu) {
+  z-index: 9999 !important;
+  position: absolute !important;
 }
 
 /* Estados de error unificados */
@@ -535,91 +464,18 @@
   background-color: #1d4ed8;
 }
 
-/* Responsividad */
-@media (max-width: 1024px) {
-  .formGrid {
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-  }
-  
-  .productGrid {
-    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
-  }
-  
-  .productField :global(.react-select__control) {
-    min-width: 250px !important;
-  }
-}
-
-@media (max-width: 768px) {
-  .formGrid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-  
-  .productGrid {
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-  }
-  
-  .divFormulario {
-    padding: 1.5rem;
-  }
-  
-  .productCard {
-    padding: 1rem;
-  }
-  
-  .productField :global(.react-select__control) {
-    min-width: 200px !important;
-  }
-  
-  .productField :global(.react-select__menu) {
-    min-width: 280px !important;
-  }
-}
-
-@media (max-width: 640px) {
-  .productGrid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-  
-  .actionsContainer {
-    flex-direction: column;
-  }
-  
-  .productField :global(.react-select__control) {
-    min-width: 100% !important;
-  }
-  
-  .productField :global(.react-select__menu) {
-    min-width: 250px !important;
-  }
-}
-
-@media (min-width: 641px) {
-  .actionsContainer {
-    flex-direction: row;
-    align-items: center;
-  }
-
-
 /* Clase para el DIV que mostrará la prioridad de forma estilizada */
-/* --- Reemplaza esta sección en CrearOrdenDeVenta.module.css --- */
-
-/* Clase base para el DIV (mantiene el tamaño ajustado) */
 .prioridadDisplayDiv {
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0.5rem 0.75rem;
-  height: var(--input-height); /* Misma altura que otros inputs */
+  height: var(--input-height);
   min-height: var(--input-height);
   border: 1px solid var(--border-color, #ccc);
   border-radius: var(--border-radius, 0.5rem);
-  background-color: var(--disabled-bg-color, #e9ecef); /* Fondo por defecto */
-  color: var(--text-color, #495057); /* Texto por defecto */
+  background-color: var(--disabled-bg-color, #e9ecef);
+  color: var(--text-color, #495057);
   font-weight: 500;
   font-size: 0.875rem;
   cursor: not-allowed;
@@ -628,33 +484,30 @@
   box-sizing: border-box;
 }
 
-/* --- COLORES USANDO VARIABLES DE Ventas.module.css --- */
-/* (Asegúrate que estas variables --prioridad-X estén definidas en tu CSS global) */
-
-.prioridadBaja { /* ID 1 = Baja */
-  --disabled-bg-color: var(--prioridad-baja, #cff4fc); /* Usa tu variable, fallback a celeste */
-  --text-color: var(--bg-white, #ffffff); /* Texto blanco como en Ventas */
-  --border-color: var(--prioridad-baja, #b6effb); /* Borde igual al fondo o un poco más oscuro */
+/* Colores de prioridad */
+.prioridadBaja {
+  --disabled-bg-color: var(--prioridad-baja, #cff4fc);
+  --text-color: var(--bg-white, #ffffff);
+  --border-color: var(--prioridad-baja, #b6effb);
 }
 
-.prioridadMedia { /* ID 2 = Media */
-  --disabled-bg-color: var(--prioridad-media, #d1e7dd); /* Usa tu variable, fallback a verde */
-  --text-color: var(--text-primary, #374151); /* Texto primario como en Ventas */
+.prioridadMedia {
+  --disabled-bg-color: var(--prioridad-media, #d1e7dd);
+  --text-color: var(--text-primary, #374151);
   --border-color: var(--prioridad-media, #badbcc);
 }
 
-.prioridadAlta { /* ID 3 = Alta */
-  --disabled-bg-color: var(--prioridad-alta, #fed7aa); /* Usa tu variable, fallback a naranja */
-  --text-color: var(--bg-white, #ffffff); /* Texto blanco como en Ventas */
+.prioridadAlta {
+  --disabled-bg-color: var(--prioridad-alta, #fed7aa);
+  --text-color: var(--bg-white, #ffffff);
   --border-color: var(--prioridad-alta, #fcd34d);
 }
 
-.prioridadUrgente { /* ID 4 = Urgente */
-  --disabled-bg-color: var(--prioridad-urgente, #f8d7da); /* Usa tu variable, fallback a rojo */
-  --text-color: var(--bg-white, #ffffff); /* Texto blanco como en Ventas */
+.prioridadUrgente {
+  --disabled-bg-color: var(--prioridad-urgente, #f8d7da);
+  --text-color: var(--bg-white, #ffffff);
   --border-color: var(--prioridad-urgente, #f5c2c7);
   font-weight: bold;
-}
 }
 
 /* Estilos para la sección de dirección normalizada y mapa */
@@ -728,4 +581,54 @@
 
 .mapaContainer a:hover {
   text-decoration: underline;
+}
+
+/* Responsividad */
+@media (max-width: 1024px) {
+  .formGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  
+  .productGrid {
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .productGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  
+  .divFormulario {
+    padding: 1.5rem;
+  }
+  
+  .productCard {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .productGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .actionsContainer {
+    flex-direction: column;
+  }
+}
+
+@media (min-width: 641px) {
+  .actionsContainer {
+    flex-direction: row;
+    align-items: center;
+  }
 }

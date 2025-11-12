@@ -1012,40 +1012,34 @@ const Ventas = () => {
 											</select>
 										</div>
 									</div>
-
-									{/* Sección para editar fecha de entrega - SOLO FECHA */}
-									<div className={styles.fechaEntregaEdicion}>
-										<h4>Fecha de Entrega Estimada:</h4>
-										<div className={styles.inputGrupo}>
-											<label htmlFor={`fecha-entrega-${orden.id_orden_venta}`}>
-												Fecha de Entrega: *
-											</label>
-											<input
-												id={`fecha-entrega-${orden.id_orden_venta}`}
-												type="date"
-												value={fechaEntregaEdit.split('T')[0]}
-												onChange={(e) => setFechaEntregaEdit(e.target.value + 'T00:00')}
-												className={styles.inputFecha}
-												required
-												min={fechaOriginal.split('T')[0]}
-											/>
-										</div>
-										<div className={styles.fechaInfoContainer}>
-											{fechaOriginal && (
-												<small className={styles.fechaOriginalInfo}>
-													Fecha original: {formatFecha(fechaOriginal)}
-												</small>
-											)}
-											{fechaEntregaEdit &&
-												fechaEntregaEdit !== fechaOriginal &&
-												fechaOriginal &&
-												new Date(fechaEntregaEdit) <= new Date(fechaOriginal) && (
-												<small className={styles.fechaError}>
-													⚠️ La nueva fecha debe ser mayor a la fecha original
-												</small>
-											)}
-										</div>
-									</div>
+{/* Sección para editar fecha de entrega - SOLO FECHA */}
+<div className={styles.fechaEntregaEdicion}>
+	<h4>Fecha de Entrega Estimada:</h4>
+	<div className={styles.inputGrupo}>
+		<label htmlFor={`fecha-entrega-${orden.id_orden_venta}`}>
+			Fecha de Entrega:
+		</label>
+		<input
+			id={`fecha-entrega-${orden.id_orden_venta}`}
+			type="date"
+			value={fechaEntregaEdit.split('T')[0]}
+			onChange={(e) => setFechaEntregaEdit(e.target.value + 'T00:00')}
+			className={styles.inputFecha}
+			required
+			min={fechaOriginal.split('T')[0]}
+		/>
+	</div>
+	<div className={styles.fechaInfoContainer}>
+		{fechaEntregaEdit &&
+			fechaEntregaEdit !== fechaOriginal &&
+			fechaOriginal &&
+			new Date(fechaEntregaEdit) <= new Date(fechaOriginal) && (
+			<small className={styles.fechaError}>
+				⚠️ La nueva fecha debe ser mayor a la fecha original
+			</small>
+		)}
+	</div>
+</div>
 
 									<h3>Productos:</h3>
 
