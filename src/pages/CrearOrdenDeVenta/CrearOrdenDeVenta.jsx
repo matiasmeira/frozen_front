@@ -9,6 +9,7 @@ import 'react-toastify/dist/ReactToastify.css';
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 const api = axios.create({
+  // baseURL: baseURL,
   baseURL: baseURL,
 });
 
@@ -197,36 +198,54 @@ function CrearOrdenDeVenta() {
     if (errors.altura) { setErrors(prev => ({ ...prev, altura: "", })); }
   };
 
-  // --- LÓGICA DE PRIORIDAD AUTOMÁTICA ---
-  const handleCliente = (selectedOption) => {
-    const clienteId = selectedOption?.value || "";
-    let clientePrioridadId = "";
+// --- LÓGICA DE PRIORIDAD AUTOMÁTICA Y DIRECCIÓN ---
+const handleCliente = (selectedOption) => {
+  const clienteId = selectedOption?.value || "";
+  let clientePrioridadId = "";
+  let direccionCliente = { calle: "", altura: "", localidad: "" };
 
-    if (clienteId) {
-      // Buscar el cliente en la lista completa
-      const clienteSeleccionado = clientes.find(c => c.id_cliente === parseInt(clienteId));
-      if (clienteSeleccionado && clienteSeleccionado.id_prioridad != null) {
-        // Asignar la prioridad del cliente
+  if (clienteId) {
+    // Buscar el cliente en la lista completa
+    const clienteSeleccionado = clientes.find(c => c.id_cliente === parseInt(clienteId));
+    console.log(clienteSeleccionado)
+    if (clienteSeleccionado) {
+      // Asignar la prioridad del cliente
+      if (clienteSeleccionado.id_prioridad != null) {
         clientePrioridadId = clienteSeleccionado.id_prioridad.toString();
-      } else if (clienteSeleccionado) {
+      } else {
         toast.warn(`El cliente seleccionado no tiene una prioridad predefinida.`);
       }
+      
+      // Autocompletar los campos de dirección con los datos del cliente
+      direccionCliente = {
+        calle: clienteSeleccionado.calle || "",
+        altura: clienteSeleccionado.altura || "",
+        localidad: clienteSeleccionado.localidad || ""
+      };
     }
+  }
 
-    setOrden(prev => ({
+  setOrden(prev => ({
+    ...prev,
+    id_cliente: clienteId,
+    id_prioridad: clientePrioridadId, // Setea la prioridad automáticamente
+    calle: direccionCliente.calle,
+    altura: direccionCliente.altura,
+    localidad: direccionCliente.localidad
+  }));
+
+  if (errors.cliente || errors.prioridad || errors.calle || errors.altura || errors.localidad) {
+    setErrors(prev => ({
       ...prev,
-      id_cliente: clienteId,
-      id_prioridad: clientePrioridadId, // Setea la prioridad automáticamente
+      cliente: clienteId ? "" : prev.cliente,
+      prioridad: clientePrioridadId ? "" : (clienteId ? prev.prioridad : ""),
+      calle: direccionCliente.calle ? "" : prev.calle,
+      altura: direccionCliente.altura ? "" : prev.altura,
+      localidad: direccionCliente.localidad ? "" : prev.localidad
     }));
-
-    if (errors.cliente || errors.prioridad) {
-      setErrors(prev => ({
-        ...prev,
-        cliente: clienteId ? "" : prev.cliente,
-        prioridad: clientePrioridadId ? "" : (clienteId ? prev.prioridad : ""),
-      }));
-    }
-  };
+  }
+};
+// --- FIN LÓGICA PRIORIDAD Y DIRECCIÓN ---
   // --- FIN LÓGICA PRIORIDAD ---
 
   const obtenerClientesNombres = useCallback(() => {
