@@ -9,7 +9,6 @@ import 'react-toastify/dist/ReactToastify.css';
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 const api = axios.create({
-  // baseURL: baseURL,
   baseURL: baseURL,
 });
 
@@ -245,8 +244,6 @@ const handleCliente = (selectedOption) => {
     }));
   }
 };
-// --- FIN LÓGICA PRIORIDAD Y DIRECCIÓN ---
-  // --- FIN LÓGICA PRIORIDAD ---
 
   const obtenerClientesNombres = useCallback(() => {
     return clientes.sort((a,b) => (a.nombre || '').localeCompare(b.nombre || ''))
@@ -469,14 +466,24 @@ const handleCliente = (selectedOption) => {
             <div className={styles.formGroup}>
               <label htmlFor="Cliente" className={styles.formLabel}>Cliente:</label>
               <Select
-                name="id_cliente" id="Cliente"
+                name="id_cliente"
+                id="Cliente"
                 value={obtenerClientesNombres().find(c => c.value === parseInt(orden.id_cliente)) || null}
                 onChange={handleCliente}
                 isDisabled={creatingOrder}
                 options={obtenerClientesNombres()}
-                isClearable isSearchable
+                isClearable
+                isSearchable
                 className={`${errors.cliente ? styles.inputError : ""} ${creatingOrder ? styles.disabledInput : ""}`}
                 placeholder="Seleccione una opción"
+                // SOLUCIÓN PARA MENÚ CORTADO
+                menuPortalTarget={document.body}
+                menuPosition="fixed"
+                menuShouldScrollIntoView={false}
+                styles={{
+                  menuPortal: base => ({ ...base, zIndex: 9999 }),
+                  menu: base => ({ ...base, zIndex: 9999 })
+                }}
               />
               {errors.cliente && (<span className={styles.errorText}>{errors.cliente}</span>)}
             </div>
@@ -585,10 +592,20 @@ const handleCliente = (selectedOption) => {
                           value={getSelectedProductValue(field.id)}
                           onChange={(selectedOption) => handleProductChange(selectedOption, field.id)}
                           options={obtenerOpcionesProductos(field.id)}
-                          isDisabled={creatingOrder} isClearable isSearchable
+                          isDisabled={creatingOrder}
+                          isClearable
+                          isSearchable
                           className={`${creatingOrder ? styles.disabledInput : ""}`}
                           placeholder="Seleccione un producto"
                           noOptionsMessage={() => "No hay productos disponibles"}
+                          // SOLUCIÓN PARA MENÚ CORTADO
+                          menuPortalTarget={document.body}
+                          menuPosition="fixed"
+                          menuShouldScrollIntoView={false}
+                          styles={{
+                            menuPortal: base => ({ ...base, zIndex: 9999 }),
+                            menu: base => ({ ...base, zIndex: 9999 })
+                          }}
                         />
                       </div>
                       <div className={styles.productField}>

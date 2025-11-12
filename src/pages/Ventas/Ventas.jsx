@@ -60,6 +60,55 @@ const Ventas = () => {
 		() => searchParams.get("id_ov") || ""
 	);
 
+	// FUNCIONES DE FECHA CORREGIDAS - VERSIÓN MEJORADA
+	const formatFecha = (fecha) => {
+		if (!fecha) return "No asignada";
+
+		try {
+			// Si la fecha incluye 'Z' (UTC), extraer manualmente la fecha
+			if (fecha.includes('Z')) {
+				// Extraer directamente YYYY-MM-DD del string
+				const [fechaPart] = fecha.split('T');
+				const [año, mes, dia] = fechaPart.split('-');
+				return `${dia}/${mes}/${año}`;
+			} else {
+				// Para fechas sin Z, usar el método normal
+				const fechaISO = fecha.replace(" ", "T");
+				const fechaObj = new Date(fechaISO);
+				return fechaObj.toLocaleDateString("es-ES", {
+					year: 'numeric',
+					month: '2-digit',
+					day: '2-digit'
+				});
+			}
+		} catch (error) {
+			console.warn("Error formateando fecha:", fecha, error);
+			return "Fecha inválida";
+		}
+	};
+
+	// Función para formatear fecha para input date - SOLO FECHA
+	const formatFechaParaInput = (fecha) => {
+		if (!fecha) return "";
+		try {
+			if (fecha.includes('Z')) {
+				// Para fechas UTC, extraer solo la parte de fecha (sin hora)
+				const [fechaPart] = fecha.split('T');
+				return fechaPart; // Retorna solo YYYY-MM-DD
+			} else if (fecha.includes('T')) {
+				// Para fechas que ya tienen formato datetime-local
+				const [fechaPart] = fecha.split('T');
+				return fechaPart; // Retorna solo YYYY-MM-DD
+			} else {
+				// Para otros formatos
+				const fechaObj = new Date(fecha.replace(" ", "T"));
+				return fechaObj.toISOString().slice(0, 10); // Solo la fecha
+			}
+		} catch (error) {
+			return "";
+		}
+	};
+
 	// Función para verificar si una orden puede ser editada - MODIFICADA
 	const puedeEditarOrden = (orden) => {
 		const idEstadoVenta =
@@ -107,6 +156,8 @@ const Ventas = () => {
 			);
 
 			const data = response.data;
+			console.log(data);
+
 			setOrdenes(data.results || []);
 			setTotalOrdenes(data.count || 0);
 			setTotalPaginas(
@@ -334,29 +385,6 @@ const Ventas = () => {
 		return idEstadoVenta === 3 || idEstadoVenta === 9;
 	};
 
-	const formatFecha = (fecha) => {
-		if (!fecha) return "No asignada";
-
-		try {
-			const fechaISO = fecha.replace(" ", "T");
-			return new Date(fechaISO).toLocaleString("es-ES");
-		} catch (error) {
-			console.warn("Error formateando fecha:", fecha, error);
-			return "Fecha inválida";
-		}
-	};
-
-	// Función para formatear fecha para input datetime-local
-	const formatFechaParaInput = (fecha) => {
-		if (!fecha) return "";
-		try {
-			const fechaObj = new Date(fecha.replace(" ", "T"));
-			return fechaObj.toISOString().slice(0, 16);
-		} catch (error) {
-			return "";
-		}
-	};
-
 	// Función para obtener la descripción de la prioridad por ID
 	const getDescripcionPrioridad = (idPrioridad) => {
 		const prioridad = prioridades.find((p) => p.id_prioridad === idPrioridad);
@@ -529,12 +557,21 @@ const Ventas = () => {
 				return;
 			}
 
-			// SOLUCIÓN: Solo validar si la fecha fue modificada
-			const fechaModificada = fechaEntregaEdit !== fechaOriginal;
+			// Asegurarnos de que la fecha tenga formato completo para la comparación
+			const fechaEditCompleta = fechaEntregaEdit.includes('T') 
+				? fechaEntregaEdit 
+				: fechaEntregaEdit + 'T00:00';
+			
+			const fechaOriginalCompleta = fechaOriginal.includes('T')
+				? fechaOriginal
+				: fechaOriginal + 'T00:00';
 
-			if (fechaModificada && fechaEntregaEdit && fechaOriginal) {
-				const fechaOriginalObj = new Date(fechaOriginal);
-				const fechaNuevaObj = new Date(fechaEntregaEdit);
+			// SOLUCIÓN: Solo validar si la fecha fue modificada
+			const fechaModificada = fechaEditCompleta !== fechaOriginalCompleta;
+
+			if (fechaModificada && fechaEditCompleta && fechaOriginalCompleta) {
+				const fechaOriginalObj = new Date(fechaOriginalCompleta);
+				const fechaNuevaObj = new Date(fechaEditCompleta);
 
 				// Solo validar si ambas fechas son válidas
 				if (
@@ -572,8 +609,12 @@ const Ventas = () => {
 				productos: productosValidos,
 			};
 
-			// Agregar fecha_entrega (obligatoria)
-			const fechaObj = new Date(fechaEntregaEdit);
+			// Agregar fecha_entrega (obligatoria) - mantener formato completo
+			const fechaParaEnviar = fechaEditCompleta.includes('T') 
+				? fechaEditCompleta 
+				: fechaEditCompleta + 'T00:00';
+			
+			const fechaObj = new Date(fechaParaEnviar);
 			const fechaFormateada = fechaObj
 				.toISOString()
 				.slice(0, 19)
@@ -971,42 +1012,34 @@ const Ventas = () => {
 											</select>
 										</div>
 									</div>
-
-									{/* Sección para editar fecha de entrega */}
-									<div className={styles.fechaEntregaEdicion}>
-										<h4>Fecha de Entrega Estimada:</h4>
-										<div className={styles.inputGrupo}>
-											<label htmlFor={`fecha-entrega-${orden.id_orden_venta}`}>
-												Fecha y Hora de Entrega: *
-											</label>
-											<input
-												id={`fecha-entrega-${orden.id_orden_venta}`}
-												type="datetime-local"
-												value={fechaEntregaEdit}
-												onChange={(e) => setFechaEntregaEdit(e.target.value)}
-												className={styles.inputFecha}
-												required
-												min={fechaOriginal}
-											/>
-										</div>
-										<div className={styles.fechaInfoContainer}>
-											{fechaOriginal && (
-												<small className={styles.fechaOriginalInfo}>
-													Fecha original:{" "}
-													{formatFecha(fechaOriginal.replace("T", " "))}
-												</small>
-											)}
-											{fechaEntregaEdit &&
-												fechaEntregaEdit !== fechaOriginal &&
-												fechaOriginal &&
-												new Date(fechaEntregaEdit) <=
-													new Date(fechaOriginal) && (
-													<small className={styles.fechaError}>
-														⚠️ La nueva fecha debe ser mayor a la fecha original
-													</small>
-												)}
-										</div>
-									</div>
+{/* Sección para editar fecha de entrega - SOLO FECHA */}
+<div className={styles.fechaEntregaEdicion}>
+	<h4>Fecha de Entrega Estimada:</h4>
+	<div className={styles.inputGrupo}>
+		<label htmlFor={`fecha-entrega-${orden.id_orden_venta}`}>
+			Fecha de Entrega:
+		</label>
+		<input
+			id={`fecha-entrega-${orden.id_orden_venta}`}
+			type="date"
+			value={fechaEntregaEdit.split('T')[0]}
+			onChange={(e) => setFechaEntregaEdit(e.target.value + 'T00:00')}
+			className={styles.inputFecha}
+			required
+			min={fechaOriginal.split('T')[0]}
+		/>
+	</div>
+	<div className={styles.fechaInfoContainer}>
+		{fechaEntregaEdit &&
+			fechaEntregaEdit !== fechaOriginal &&
+			fechaOriginal &&
+			new Date(fechaEntregaEdit) <= new Date(fechaOriginal) && (
+			<small className={styles.fechaError}>
+				⚠️ La nueva fecha debe ser mayor a la fecha original
+			</small>
+		)}
+	</div>
+</div>
 
 									<h3>Productos:</h3>
 
