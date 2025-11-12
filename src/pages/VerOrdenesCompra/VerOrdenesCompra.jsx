@@ -486,21 +486,21 @@ const VerOrdenesCompra = () => {
                 	</div>
               	)}
 
-              	<div className={styles.materiasPrimas}>
-                	<strong>Materias Primas:</strong>
-                	<div className={styles.listaMateriasPrimas}>
-                  	{orden.materias_primas.map((mp, index) => (
-                    	<div key={index} className={styles.materiaPrimaItem}>
-                      	<span className={styles.materiaPrimaNombre}>
-                        	{mp.materia_prima_nombre}
-                      	</span>
-                      	<span className={styles.materiaPrimaCantidad}>
-                        	{mp.cantidad} unidades
-                      	</span>
-                    	</div>
-                  	))}
-                	</div>
-              	</div>
+                    <div className={styles.materiasPrimas}>
+                    <strong>Materias Primas:</strong>
+                    <div className={styles.listaMateriasPrimas}>
+                        {orden.materias_primas.map((mp, index) => (
+                        <div key={index} className={styles.materiaPrimaItem}>
+                            <span className={styles.materiaPrimaNombre}>
+                            {mp.materia_prima_nombre}
+                            </span>
+                            <span className={styles.materiaPrimaCantidad}>
+                            {mp.cantidad} {mp.unidad_medida || mp.unidad_medida_descripcion || "unidades"}
+                            </span>
+                        </div>
+                        ))}
+                    </div>
+                    </div>
             	</div>
 
             	<div className={styles.cardFooter}>
@@ -583,17 +583,19 @@ const VerOrdenesCompra = () => {
           	
           	{ordenSeleccionada && (
             	<div className={styles.modalInfo}>
-              	<p><strong>Orden #:</strong> {ordenSeleccionada.numero_orden}</p>
-              	<p><strong>Proveedor:</strong> {ordenSeleccionada.proveedor.nombre}</p>
-              	<p><strong>Fecha Estimada:</strong> {formatearFecha(ordenSeleccionada.fecha_entrega_estimada)}</p>
-              	<div className={styles.materiasPrimasResumen}>
-                	<strong>Materias Primas:</strong>
-                	<ul>
-                  	{ordenSeleccionada.materias_primas.map((mp, index) => (
-                    	<li key={index}>{mp.materia_prima_nombre} - {mp.cantidad} unidades</li>
-                  	))}
-                	</ul>
-              	</div>
+                  	<p><strong>Orden #:</strong> {ordenSeleccionada.numero_orden}</p>
+                  	<p><strong>Proveedor:</strong> {ordenSeleccionada.proveedor.nombre}</p>
+                  	<p><strong>Fecha Estimada:</strong> {formatearFecha(ordenSeleccionada.fecha_entrega_estimada)}</p>
+                    <div className={styles.materiasPrimasResumen}>
+                    <strong>Materias Primas:</strong>
+                    <ul>
+                        {ordenSeleccionada.materias_primas.map((mp, index) => (
+                        <li key={index}>
+                            {mp.materia_prima_nombre} - {mp.cantidad} {mp.unidad_medida || mp.unidad_medida_descripcion || "unidades"}
+                        </li>
+                        ))}
+                    </ul>
+                    </div>
             	</div>
           	)}
 
@@ -658,9 +660,9 @@ const VerOrdenesCompra = () => {
                 	<div key={materia.id_materia_prima} className={styles.materiaPrimaFormItem}>
                   	<div className={styles.materiaPrimaInfo}>
                     	<strong>{materia.materia_prima_nombre}</strong>
-                    	<span className={styles.cantidadOriginal}>
-                      	Pedido: {materia.cantidad} unidades
-                    	</span>
+                        <span className={styles.cantidadOriginal}>
+                        Pedido: {materia.cantidad} {materia.unidad_medida || materia.unidad_medida_descripcion || "unidades"}
+                        </span>
                   	</div>
                   	<div className={styles.cantidadInputGroup}>
                     	<label htmlFor={`cantidad-${materia.id_materia_prima}`}>
@@ -676,7 +678,9 @@ const VerOrdenesCompra = () => {
                       	max={materia.cantidad}
                       	step="1"
                     	/>
-                    	<span className={styles.unidadMedida}>unidades</span>
+                        <span className={styles.unidadMedida}>
+                        {materia.unidad_medida || materia.unidad_medida_descripcion || "unidades"}
+                        </span>
                   	</div>
                 	{materia.cantidad_recibida < materia.cantidad && (
                   	<div className={styles.advertenciaIncompleta}>

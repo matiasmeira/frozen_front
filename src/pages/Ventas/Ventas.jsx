@@ -376,13 +376,13 @@ const Ventas = () => {
 		return idEstadoVenta === 3;
 	};
 
-	// Función para verificar si una orden puede ser cancelada - MODIFICADA: Solo id_estado_venta = 9
+	// Función para verificar si una orden puede ser cancelada - MODIFICADA: Permite cancelar órdenes con id_estado_venta = 3, 8 y 9
 	const puedeCancelarOrden = (orden) => {
 		const idEstadoVenta =
 			orden.estado_venta?.id_estado_venta || orden.id_estado_venta;
 
-		// PERMITIR cancelar órdenes con id_estado_venta = 3 ("Pendiente de Pago") y 9 ("En Preparación")
-		return idEstadoVenta === 3 || idEstadoVenta === 9;
+		// PERMITIR cancelar órdenes con id_estado_venta = 3 ("Pendiente de Pago"), 8 ("Creada") y 9 ("En Preparación")
+		return idEstadoVenta === 3 || idEstadoVenta === 8 || idEstadoVenta === 9;
 	};
 
 	// Función para obtener la descripción de la prioridad por ID
