@@ -13,15 +13,16 @@ import {
     FaBarcode,
     FaUserPlus,
     FaQuestionCircle,
-    FaSearch, // Nuevo ícono para Trazabilidad
-    FaMapMarkedAlt, // Alternativa para Trazabilidad
-    FaTruckLoading, // Nuevo ícono para Gestión de Órdenes de Despacho
-    FaCog, // Ícono para Configuración/Gestión
-    FaChartBar, // Nuevo ícono para Gestión de Indicadores y Reportes
+    FaSearch,
+    FaMapMarkedAlt,
+    FaTruckLoading,
+    FaCog,
+    FaChartBar,
+    FaCalendarWeek,
+    FaCalendarAlt, // Nuevo ícono para Calendario Producción
 } from 'react-icons/fa';
 
 import { BiCalendarCheck } from "react-icons/bi";
-
 import { HiAdjustments } from "react-icons/hi";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
@@ -30,8 +31,26 @@ const api = axios.create({
   baseURL: baseURL,
 });
 
+// Componente para ícono combinado
+const CalendarProductionIcon = () => (
+  <div style={{ position: 'relative', display: 'inline-block' }}>
+    <FaCalendarAlt />
+    <FaIndustry style={{ 
+      fontSize: '0.5em', 
+      position: 'absolute', 
+      top: '10px', 
+      right: '-3px',
+      background: 'white',
+      borderRadius: '50%',
+      padding: '1px'
+    }} />
+  </div>
+);
+
 // El "mapa" para asignar un ícono a cada título
 const iconMap = {
+  "Planificación Semanal": <FaCalendarWeek />,
+  "Calendario Produccion": <CalendarProductionIcon />, // Nuevo ícono agregado
   "Órdenes Producción": <FaIndustry />,
   "Órdenes de Venta": <FaShoppingCart />,
   "Stock Productos": <FaBoxes />,
@@ -43,13 +62,14 @@ const iconMap = {
   "Trazabilidad de Orden de Venta": <FaSearch />,
   "Gestión de Órdenes de Despacho": <FaTruckLoading />,
   "Configuración": <FaCog />,
-  "Dashboard": <FaChartBar />, // Nuevo ícono agregado
-  "Ordenes de Trabajo": <BiCalendarCheck />, // Nuevo ícono agregado
+  "Dashboard": <FaChartBar />,
+  "Ordenes de Trabajo": <BiCalendarCheck />,
   "Lineas de Producción": <HiAdjustments />,
 };
 
 const DefaultIcon = <FaQuestionCircle />;
 
+// El resto de tu componente permanece igual...
 function MenuPrincipal() {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
@@ -81,7 +101,6 @@ function MenuPrincipal() {
     fetchData()
   }, [])
 
-  // Tu código de loading (sin cambios)
   if (loading) {
     return (
       <div className={styles.home}>
@@ -91,7 +110,6 @@ function MenuPrincipal() {
     )
   }
 
-  // Tu código de error (sin cambios)
   if (error) {
     return (
       <div className={styles.home}>
@@ -114,11 +132,9 @@ function MenuPrincipal() {
 
           return (
             <div key={item.id_permiso} onClick={() => navigate(item.link)} className={styles.card}>
-             
               <div className={styles.cardIcon}>
                 {Icono}
               </div>
-             
               <p className={styles.cardDescription}>{item.descripcion}</p>
             </div>
           )
