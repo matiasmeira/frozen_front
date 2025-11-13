@@ -6,52 +6,43 @@ const api = axios.create({
 });
 
 class OrdenProduccionService {
-	// DTO - Transforma la respuesta compleja del backend en la estructura simple para el frontend
-	static transformarOrdenDTO(datosBackend) {
-		return {
-			// Datos básicos de la orden
-			id: datosBackend.id_orden_produccion,
-			id_orden_venta: datosBackend.id_orden_venta || null,
-		//	id_linea: datosBackend.id_linea_produccion?.id_linea_produccion || null,
-		//	linea_descripcion:
-		//		datosBackend.id_linea_produccion.descripcion || "Sin línea",
+static transformarOrdenDTO(datosBackend) {
+  return {
+    // Datos básicos de la orden
+    id: datosBackend.id_orden_produccion,
+    id_orden_venta: datosBackend.id_orden_venta || null,
+    
+    // Estado
+    estado: datosBackend.id_estado_orden_produccion?.descripcion || "Sin estado",
+    id_estado: datosBackend.id_estado_orden_produccion?.id_estado_orden_produccion || null,
 
-			// Estado
-			estado:
-				datosBackend.id_estado_orden_produccion?.descripcion || "Sin estado",
-			id_estado:
-				datosBackend.id_estado_orden_produccion?.id_estado_orden_produccion ||
-				null,
+    // Cantidad
+    cantidad: datosBackend.cantidad || 0,
 
-			// Cantidad
-			cantidad: datosBackend.cantidad || 0,
+    // Información del producto
+    producto: datosBackend.id_producto?.nombre || "Sin producto",
+    id_producto: datosBackend.id_producto?.id_producto || null,
+    producto_descripcion: datosBackend.id_producto?.descripcion || "Sin descripción",
 
-			// Información del producto
-			producto: datosBackend.id_producto?.nombre || "Sin producto",
-			id_producto: datosBackend.id_producto?.id_producto || null,
-			producto_descripcion:
-				datosBackend.id_producto?.descripcion || "Sin descripción",
+    // Fechas
+    fecha_creacion: datosBackend.fecha_creacion || "Sin fecha",
+    fecha_inicio: datosBackend.fecha_inicio || "Sin fecha",
+    fecha_planificada: datosBackend.fecha_planificada || null, // NUEVO CAMPO
 
-			// Fechas
-			fecha_creacion: datosBackend.fecha_creacion || "Sin fecha",
-			fecha_inicio: datosBackend.fecha_inicio || "Sin fecha",
+    // Personal
+    operario: `${datosBackend.id_operario?.nombre || "Sin nombre"} ${
+      datosBackend.id_operario?.apellido || "Sin apellido"
+    }`,
+    id_operario: datosBackend.id_operario?.id_operario || null,
+    supervisor: `${datosBackend.id_supervisor?.nombre || "Sin nombre"} ${
+      datosBackend.id_supervisor?.apellido || "Sin apellido"
+    }`,
 
-			// Personal
-			operario: `${datosBackend.id_operario?.nombre || "Sin nombre"} ${
-				datosBackend.id_operario?.apellido || "Sin apellido"
-			}`,
-			id_operario: datosBackend.id_operario?.id_operario || null,
-			supervisor: `${datosBackend.id_supervisor?.nombre || "Sin nombre"} ${
-				datosBackend.id_supervisor?.apellido || "Sin apellido"
-			}`,
-
-			// Información adicional del lote
-			id_lote_produccion:
-				datosBackend.id_lote_produccion?.id_lote_produccion || null,
-			estado_orden_descripcion:
-				datosBackend.id_estado_orden_produccion?.descripcion || "Sin estado",
-		};
-	}
+    // Información adicional del lote
+    id_lote_produccion: datosBackend.id_lote_produccion?.id_lote_produccion || null,
+    estado_orden_descripcion: datosBackend.id_estado_orden_produccion?.descripcion || "Sin estado",
+  };
+}
 
 	static async obtenerOrdenesPaginated(page = 1, filtros = {}) {
 		try {
@@ -111,7 +102,7 @@ class OrdenProduccionService {
 			const response = await api.get("/produccion/ordenes/");
 
 			const datosPagina = response.data;
-
+			
 			// Transformar cada orden en el array de results
 			const ordenesTransformadas = datosPagina.results.map((ordenCompleja) =>
 				this.transformarOrdenDTO(ordenCompleja)

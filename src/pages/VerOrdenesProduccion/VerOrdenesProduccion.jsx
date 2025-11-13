@@ -362,15 +362,23 @@ const VerOrdenesProduccion = () => {
     }
   };
 
-  const formatearFecha = (fechaISO) => {
-    if (!fechaISO) return "No iniciada";
+const formatearFecha = (fechaISO) => {
+  if (!fechaISO) return "No especificada";
+  
+  try {
     const fecha = new Date(fechaISO);
-    return `${fecha.getDate()}/${fecha.getMonth() + 1
-      }/${fecha.getFullYear()}, ${fecha.getHours()}:${fecha
-        .getMinutes()
-        .toString()
-        .padStart(2, "0")}`;
-  };
+    
+    // Verificar si la fecha es válida
+    if (isNaN(fecha.getTime())) {
+      return "Fecha inválida";
+    }
+    
+    return `${fecha.getDate().toString().padStart(2, '0')}/${(fecha.getMonth() + 1).toString().padStart(2, '0')}/${fecha.getFullYear()}, ${fecha.getHours().toString().padStart(2, '0')}:${fecha.getMinutes().toString().padStart(2, '0')}`;
+  } catch (error) {
+    console.error("Error al formatear fecha:", error);
+    return "Error en fecha";
+  }
+};
 
   const limpiarFiltros = () => {
     setFiltroProducto("todos");
@@ -547,14 +555,16 @@ const VerOrdenesProduccion = () => {
                   <span>{orden.cantidad} unidades</span>
                 </div>
 
-                <div className={styles.infoGrupo}>
-                  <strong>Creada:</strong>
-                  <span>{formatearFecha(orden.fecha_creacion)}</span>
-                </div>
 
+                {/* NUEVO: Campo de Fecha Planificada - REEMPLAZA Orden de Venta */}
                 <div className={styles.infoGrupo}>
-                  <strong>Orden de Venta:</strong>
-                  <span>{orden.id_orden_venta || "N/A"}</span>
+                  <strong>Fecha Planificada:</strong>
+                  <span>
+                    {orden.fecha_planificada 
+                      ? formatearFecha(orden.fecha_planificada) 
+                      : "No planificada"
+                    }
+                  </span>
                 </div>
               </div>
 
