@@ -192,15 +192,26 @@ const VerOrdenesDeTrabajo = () => {
 
 	// Funciones de formato, modales y validación
 	const formatearFecha = (fechaISO) => {
-		if (!fechaISO) return "No registrada";
-		const fecha = new Date(fechaISO);
-		return fecha.toLocaleString("es-ES", {
-			day: "2-digit",
-			month: "2-digit",
-			year: "numeric",
-			hour: "2-digit",
-			minute: "2-digit",
-		});
+		if (!fechaISO) return "No especificada";
+
+		try {
+			// Extraer directamente las partes de la fecha y hora del string ISO
+			// Formato: "2025-11-17T01:00:00Z"
+			const [fechaParte, tiempoParte] = fechaISO.split("T");
+			if (!fechaParte || !tiempoParte) return "Fecha inválida";
+
+			const [anio, mes, dia] = fechaParte.split("-");
+			// Extraer horas y minutos (ignorando segundos y Z)
+			const [horas, minutos] = tiempoParte.split(":");
+
+			// Verificar que tenemos los componentes necesarios
+			if (!anio || !mes || !dia || !horas || !minutos) return "Fecha inválida";
+
+			return `${dia}/${mes}/${anio}, ${horas}:${minutos}`;
+		} catch (error) {
+			console.error("Error al formatear fecha:", error);
+			return "Error en fecha";
+		}
 	};
 
 	const calcularProgreso = (orden) => {
@@ -861,15 +872,9 @@ const VerOrdenesDeTrabajo = () => {
 						className={styles.select}
 					>
 						<option value="todas">Todas las líneas</option>
-							<option value={1}>
-								Línea 1
-							</option>
-							<option value={2}>
-								Línea 2
-							</option>
-							<option value={3}>
-								Línea 3
-							</option>
+						<option value={1}>Línea 1</option>
+						<option value={2}>Línea 2</option>
+						<option value={3}>Línea 3</option>
 					</select>
 				</div>
 				<div className={styles.filtroGrupo}>
@@ -894,6 +899,7 @@ const VerOrdenesDeTrabajo = () => {
 			<div className={styles.listaOrdenes}>
 				{ordenes.length > 0
 					? ordenes.map((orden) => {
+							console.log(orden);
 							const progreso = calcularProgreso(orden);
 							const estado = estados[orden.id_estado_orden_trabajo];
 							const estaProcesando = procesando === orden.id_orden_trabajo;

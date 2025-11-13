@@ -27,6 +27,8 @@ const Calendario = () => {
         throw new Error('Error al cargar los eventos');
       }
       const data = await response.json();
+
+      console.log(data)
       setEvents(data);
     } catch (err) {
       setError(err.message);
@@ -37,8 +39,9 @@ const Calendario = () => {
 
   const getEventsForDay = (day) => {
     return events.filter(event => {
+      console.log("eventos", event)
       const eventStart = parseISO(event.start);
-      const eventEnd = parseISO(event.end);
+      const eventEnd = parseISO(event.fecha_planificada);
       return isSameDay(eventStart, day) || 
              (eventStart <= day && eventEnd >= day) ||
              (event.start === format(day, 'yyyy-MM-dd'));
