@@ -50,12 +50,12 @@ const getDateRange = (dias = 30) => {
 	fechaInicio.setDate(hoy.getDate() - dias);
 
 	// Asegurarnos de que estamos usando la fecha local correcta
-	console.log("📅 Fechas calculadas:", {
-		hoyLocal: hoy.toLocaleDateString("es-ES"),
-		inicioLocal: fechaInicio.toLocaleDateString("es-ES"),
-		hoyAPI: formatDateToAPI(hoy),
-		inicioAPI: formatDateToAPI(fechaInicio),
-	});
+	// console.log("📅 Fechas calculadas:", {
+	// 	hoyLocal: hoy.toLocaleDateString("es-ES"),
+	// 	inicioLocal: fechaInicio.toLocaleDateString("es-ES"),
+	// 	hoyAPI: formatDateToAPI(hoy),
+	// 	inicioAPI: formatDateToAPI(fechaInicio),
+	// });
 
 	return {
 		fechaDesde: formatDateToAPI(fechaInicio),
@@ -186,7 +186,7 @@ const Dashboard = () => {
 				// Construir URL con query params
 				const params = new URLSearchParams(fechas);
 
-				const url = `https://frozenback-test.up.railway.app/api/reportes/desperdicio/por_producto/?${params}`;
+				const url = `https://frozenback-test.up.railway.app/api/reportes/desperdicio/por_producto/?fecha_hasta=2025-11-20`;
 
 				const response = await fetch(url);
 
@@ -248,7 +248,7 @@ const Dashboard = () => {
 				// Construir URL con query params
 				const params = new URLSearchParams(fechas);
 
-				const url = `https://frozenback-test.up.railway.app/api/reportes/desperdicio/por_causa/?${params}`;
+				const url = `https://frozenback-test.up.railway.app/api/reportes/desperdicio/por_causa/?fecha_hasta=2025-11-20`;
 
 				const response = await fetch(url);
 
@@ -295,7 +295,7 @@ const Dashboard = () => {
 				// Construir URL con query params
 				const params = new URLSearchParams(fechas);
 
-				const url = `https://frozenback-test.up.railway.app/api/reportes/ventas/ventas-por-tipo/?${params}`;
+				const url = `https://frozenback-test.up.railway.app/api/reportes/ventas/ventas-por-tipo/?fecha_hasta=2025-11-20`;
 
 				const response = await fetch(url);
 
@@ -349,7 +349,7 @@ const Dashboard = () => {
 				// Construir URL con query params
 				const params = new URLSearchParams(fechas);
 
-				const url = `https://frozenback-test.up.railway.app/api/reportes/produccion/cumplimiento-semanal/?${params}`;
+				const url = `https://frozenback-test.up.railway.app/api/reportes/produccion/cumplimiento-semanal/?fecha_hasta=2025-11-20`;
 
 				const response = await fetch(url);
 
@@ -406,7 +406,7 @@ const Dashboard = () => {
 				// Construir URL con query params
 				const params = new URLSearchParams(fechas);
 
-				const url = `https://frozenback-test.up.railway.app/api/reportes/oee/?${params}`;
+				const url = `https://frozenback-test.up.railway.app/api/reportes/oee/?fecha_hasta=2025-11-20`;
 
 				const response = await fetch(url);
 
@@ -473,7 +473,7 @@ const Dashboard = () => {
 						fecha_hasta: mes.fecha_hasta,
 					});
 
-					const url = `https://frozenback-test.up.railway.app/api/reportes/oee/?${params}`;
+					const url = `https://frozenback-test.up.railway.app/api/reportes/oee/?fecha_hasta=2025-11-20`;
 
 					const response = await fetch(url);
 					if (!response.ok) {
@@ -543,7 +543,7 @@ const Dashboard = () => {
 				// Construir URL con query params
 				const params = new URLSearchParams(fechas);
 
-				const url = `https://frozenback-test.up.railway.app/api/reportes/produccion/cumplimiento-plan/?${params}`;
+				const url = `https://frozenback-test.up.railway.app/api/reportes/produccion/cumplimiento-plan/?fecha_hasta=2025-11-20`;
 
 				const response = await fetch(url);
 
@@ -591,7 +591,7 @@ const Dashboard = () => {
 				// Construir URL con query params
 				const params = new URLSearchParams(fechas);
 
-				const url = `https://frozenback-test.up.railway.app/api/reportes/desperdicio/tasa/?${params}`;
+				const url = `https://frozenback-test.up.railway.app/api/reportes/desperdicio/tasa/?$?fecha_hasta=2025-11-20`;
 
 				const response = await fetch(url);
 
