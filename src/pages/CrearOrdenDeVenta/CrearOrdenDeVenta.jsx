@@ -428,7 +428,7 @@ const handleCliente = (selectedOption) => {
     }
   };
 
-  const obtenerFechaMinima = () => { const f = new Date(); f.setDate(f.getDate() + 3); return f.toISOString().split("T")[0]; };
+  const obtenerFechaMinima = () => { const f = new Date(); f.setDate(f.getDate() + 4); return f.toISOString().split("T")[0]; };
   const obtenerFechaMaxima = () => { const f = new Date(); f.setDate(f.getDate() + 30); return f.toISOString().split("T")[0]; };
   const getSelectedProductValue = (fieldId) => { const f = fields.find(fi => fi.id === fieldId); if (!f || !f.id_producto) return null; const p = products.find(pr => pr.id_producto.toString() === f.id_producto); return p ? { value: p.id_producto, label: `${p.nombre}` } : null; };
 
