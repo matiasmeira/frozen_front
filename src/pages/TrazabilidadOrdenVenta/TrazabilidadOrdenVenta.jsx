@@ -44,9 +44,9 @@ const TrazabilidadOrdenVenta = () => {
     setDatos(null);
     
     try {
-      console.log('🔍 Haciendo request a:', `${baseURL}trazabilidad/por-orden-venta/?id_ov=${id}`);
+      console.log('🔍 Haciendo request a:', `${baseURL}trazabilidad/${id}/backward/`);
       
-      const respuesta = await api.get(`trazabilidad/por-orden-venta/?id_ov=${id}`);
+      const respuesta = await api.get(`trazabilidad/${id}/backward/`);
       
       console.log('✅ Datos recibidos:', respuesta.data);
       setDatos(respuesta.data);
@@ -92,7 +92,7 @@ const TrazabilidadOrdenVenta = () => {
               type="number"
               value={idInput}
               onChange={(e) => setIdInput(e.target.value)}
-              placeholder="Ej: 289"
+              placeholder="Ej: 768"
               className={styles.input}
               min="1"
             />
@@ -142,13 +142,9 @@ const TrazabilidadOrdenVenta = () => {
         <div className={styles.resultados}>
           <div className={styles.header}>
             <h2 className={styles.titulo}>
-              {datos.consulta.tipo}
+              Trazabilidad Backward - Orden de Venta #{datos.id_orden_venta}
             </h2>
             <div className={styles.infoGeneral}>
-              <div className={styles.infoItem}>
-                <span className={styles.infoLabel}>Orden de Venta:</span>
-                <span className={styles.infoValor}>#{datos.consulta.id_orden_venta}</span>
-              </div>
               <div className={styles.infoItem}>
                 <span className={styles.infoLabel}>Cliente:</span>
                 <span className={styles.infoValor}>
@@ -161,7 +157,7 @@ const TrazabilidadOrdenVenta = () => {
           <div className={styles.productos}>
             {datos.productos_trazados.map((producto, index) => (
               <ProductoTrazado 
-                key={producto.id_orden_venta_producto || index} 
+                key={`${producto.producto}-${index}`} 
                 producto={producto} 
               />
             ))}
@@ -184,23 +180,14 @@ const TrazabilidadOrdenVenta = () => {
   );
 };
 
-// Subcomponentes actualizados para la nueva estructura
+// Subcomponente para producto trazado
 const ProductoTrazado = ({ producto }) => {
   const [expandido, setExpandido] = useState(false);
 
-  // Verificar si hay órdenes de producción válidas
-  const tieneOrdenesProduccion = () => {
-    return producto.ordenes_produccion && 
-           !producto.ordenes_produccion.error && 
-           Array.isArray(producto.ordenes_produccion) && 
-           producto.ordenes_produccion.length > 0;
-  };
-
-  // Verificar si hay materias primas válidas
-  const tieneMateriasPrimas = () => {
-    return producto.materias_primas_usadas && 
-           Array.isArray(producto.materias_primas_usadas) && 
-           producto.materias_primas_usadas.length > 0;
+  const tieneLotesEntregados = () => {
+    return producto.lotes_entregados && 
+           Array.isArray(producto.lotes_entregados) && 
+           producto.lotes_entregados.length > 0;
   };
 
   return (
@@ -215,17 +202,11 @@ const ProductoTrazado = ({ producto }) => {
           </h3>
           <div className={styles.productoDetalles}>
             <span>Cantidad vendida: {producto.cantidad_vendida} unidades</span>
+            <span>Total trazado: {producto.total_trazado} unidades</span>
             <span>
-              Órdenes de producción: {
-                tieneOrdenesProduccion() 
-                  ? producto.ordenes_produccion.length 
-                  : 'No disponibles'
-              }
-            </span>
-            <span>
-              Materias primas: {
-                tieneMateriasPrimas()
-                  ? producto.materias_primas_usadas.length
+              Lotes entregados: {
+                tieneLotesEntregados() 
+                  ? producto.lotes_entregados.length 
                   : 'No disponibles'
               }
             </span>
@@ -238,41 +219,79 @@ const ProductoTrazado = ({ producto }) => {
 
       {expandido && (
         <div className={styles.detallesProducto}>
-          {/* Sección de Órdenes de Producción */}
+          {/* Sección de Lotes Entregados */}
           <div className={styles.seccion}>
-            <h4 className={styles.seccionTitulo}>Órdenes de Producción</h4>
-            {!tieneOrdenesProduccion() ? (
+            <h4 className={styles.seccionTitulo}>Lotes Entregados</h4>
+            {!tieneLotesEntregados() ? (
               <div className={styles.sinDatos}>
                 <div className={styles.iconoInfo}>ℹ️</div>
                 <div>
-                  {producto.ordenes_produccion?.error || 'No se encontraron órdenes de producción para este producto.'}
+                  No se encontraron lotes entregados para este producto.
                 </div>
               </div>
             ) : (
-              <div className={styles.ordenesProduccion}>
-                {producto.ordenes_produccion.map((ordenProd, index) => (
-                  <OrdenProduccion 
-                    key={ordenProd.id_orden_produccion || index} 
-                    ordenProd={ordenProd} 
+              <div className={styles.lotesEntregados}>
+                {producto.lotes_entregados.map((lote, index) => (
+                  <LoteEntregado 
+                    key={lote.id_lote_produccion || index} 
+                    lote={lote} 
                   />
                 ))}
               </div>
             )}
           </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
+const LoteEntregado = ({ lote }) => {
+  const [expandido, setExpandido] = useState(false);
+
+  const tieneMateriasPrimas = () => {
+    return lote.materias_primas_usadas && 
+           Array.isArray(lote.materias_primas_usadas) && 
+           lote.materias_primas_usadas.length > 0;
+  };
+
+  return (
+    <div className={styles.loteEntregado}>
+      <div 
+        className={styles.loteHeader}
+        onClick={() => setExpandido(!expandido)}
+      >
+        <div className={styles.loteInfo}>
+          <h5 className={styles.loteTitulo}>
+            Lote Producción #{lote.id_lote_produccion}
+          </h5>
+          <div className={styles.loteDetalles}>
+            <span>Cantidad reservada: {lote.cantidad_reservada} unidades</span>
+            <span>Orden Producción: #{lote.orden_produccion_id}</span>
+            <span>Fecha producción: {new Date(lote.fecha_produccion).toLocaleDateString()}</span>
+            <span>Fecha vencimiento: {new Date(lote.fecha_vencimiento).toLocaleDateString()}</span>
+          </div>
+        </div>
+        <div className={styles.flecha}>
+          {expandido ? '▼' : '►'}
+        </div>
+      </div>
+
+      {expandido && (
+        <div className={styles.detallesLote}>
           {/* Sección de Materias Primas */}
-          <div className={styles.seccion}>
-            <h4 className={styles.seccionTitulo}>Materias Primas Utilizadas</h4>
+          <div className={styles.subseccion}>
+            <h6 className={styles.subseccionTitulo}>Materias Primas Utilizadas</h6>
             {!tieneMateriasPrimas() ? (
               <div className={styles.sinDatos}>
                 <div className={styles.iconoInfo}>ℹ️</div>
                 <div>
-                  No se encontraron materias primas registradas para este producto.
+                  No se encontraron materias primas registradas para este lote.
                 </div>
               </div>
             ) : (
               <div className={styles.materiasPrimas}>
-                {producto.materias_primas_usadas.map((mp, index) => (
+                {lote.materias_primas_usadas.map((mp, index) => (
                   <MateriaPrima 
                     key={mp.id_lote_materia_prima || index} 
                     materiaPrima={mp} 
@@ -281,168 +300,6 @@ const ProductoTrazado = ({ producto }) => {
               </div>
             )}
           </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-const OrdenProduccion = ({ ordenProd }) => {
-  const [expandido, setExpandido] = useState(false);
-
-  // Verificar si la orden de producción tiene error
-  const tieneError = ordenProd.error;
-
-  // Verificar si tiene órdenes de trabajo válidas
-  const tieneOrdenesTrabajo = () => {
-    return ordenProd.ordenes_de_trabajo && 
-           Array.isArray(ordenProd.ordenes_de_trabajo) && 
-           ordenProd.ordenes_de_trabajo.length > 0;
-  };
-
-  if (tieneError) {
-    return (
-      <div className={styles.ordenProduccion}>
-        <div className={styles.ordenProdHeader}>
-          <div className={styles.ordenProdInfo}>
-            <h5 className={styles.ordenProdTitulo}>
-              Información no disponible
-            </h5>
-            <div className={styles.ordenProdDetalles}>
-              <span>Error: {ordenProd.error}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className={styles.ordenProduccion}>
-      <div 
-        className={styles.ordenProdHeader}
-        onClick={() => setExpandido(!expandido)}
-      >
-        <div className={styles.ordenProdInfo}>
-          <h5 className={styles.ordenProdTitulo}>
-            Orden Producción #{ordenProd.id_orden_produccion}
-          </h5>
-          <div className={styles.ordenProdDetalles}>
-            <span>Lote: #{ordenProd.lote_asociado}</span>
-            <span>Planificado: {ordenProd.cantidad_planificada} unidades</span>
-            <span>Supervisor: {ordenProd.supervisor}</span>
-            <span>Fecha: {new Date(ordenProd.fecha_creacion).toLocaleDateString()}</span>
-          </div>
-        </div>
-        <div className={styles.flecha}>
-          {expandido ? '▼' : '►'}
-        </div>
-      </div>
-
-      {expandido && (
-        <div className={styles.detallesOrdenProd}>
-          {/* Órdenes de Trabajo */}
-          <div className={styles.subseccion}>
-            <h6 className={styles.subseccionTitulo}>Órdenes de Trabajo</h6>
-            {!tieneOrdenesTrabajo() ? (
-              <div className={styles.sinDatos}>
-                <div className={styles.iconoInfo}>ℹ️</div>
-                <div>
-                  No se encontraron órdenes de trabajo para esta orden de producción.
-                </div>
-              </div>
-            ) : (
-              <div className={styles.ordenesTrabajo}>
-                {ordenProd.ordenes_de_trabajo.map((ordenTrabajo, index) => (
-                  <OrdenTrabajo 
-                    key={ordenTrabajo.id_orden_trabajo || index} 
-                    ordenTrabajo={ordenTrabajo} 
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-const OrdenTrabajo = ({ ordenTrabajo }) => {
-  const [expandido, setExpandido] = useState(false);
-
-  const calcularEficiencia = () => {
-    if (!ordenTrabajo.desperdicios_reportados || ordenTrabajo.desperdicios_reportados.length === 0) return 100;
-    
-    const totalDesperdiciado = ordenTrabajo.desperdicios_reportados.reduce(
-      (sum, desp) => sum + desp.cantidad_desperdiciada, 0
-    );
-    const totalProducido = ordenTrabajo.cantidad_producida_neta + totalDesperdiciado;
-    
-    return totalProducido > 0 
-      ? Math.round((ordenTrabajo.cantidad_producida_neta / totalProducido) * 100)
-      : 0;
-  };
-
-  const tieneDesperdicios = () => {
-    return ordenTrabajo.desperdicios_reportados && 
-           Array.isArray(ordenTrabajo.desperdicios_reportados) && 
-           ordenTrabajo.desperdicios_reportados.length > 0;
-  };
-
-  return (
-    <div className={styles.ordenTrabajo}>
-      <div 
-        className={styles.ordenTrabajoHeader}
-        onClick={() => setExpandido(!expandido)}
-      >
-        <div className={styles.ordenTrabajoInfo}>
-          <h6 className={styles.ordenTrabajoTitulo}>
-            Orden Trabajo #{ordenTrabajo.id_orden_trabajo}
-          </h6>
-          <div className={styles.ordenTrabajoDetalles}>
-            <span>Línea: {ordenTrabajo.linea_produccion}</span>
-            <span>Producción neta: {ordenTrabajo.cantidad_producida_neta} unidades</span>
-            <span>Estado: {ordenTrabajo.estado}</span>
-            <span>Eficiencia: {calcularEficiencia()}%</span>
-          </div>
-        </div>
-        <div className={styles.flecha}>
-          {expandido ? '▼' : '►'}
-        </div>
-      </div>
-
-      {expandido && (
-        <div className={styles.detallesOrdenTrabajo}>
-          <div className={styles.gridInfo}>
-            <div className={styles.gridItem}>
-              <span className={styles.gridLabel}>Inicio:</span>
-              <span>{new Date(ordenTrabajo.inicio_real).toLocaleString()}</span>
-            </div>
-            <div className={styles.gridItem}>
-              <span className={styles.gridLabel}>Fin:</span>
-              <span>{new Date(ordenTrabajo.fin_real).toLocaleString()}</span>
-            </div>
-            <div className={styles.gridItem}>
-              <span className={styles.gridLabel}>Duración:</span>
-              <span>
-                {Math.round((new Date(ordenTrabajo.fin_real) - new Date(ordenTrabajo.inicio_real)) / (1000 * 60))} min
-              </span>
-            </div>
-          </div>
-
-          {/* Desperdicios */}
-          {tieneDesperdicios() && (
-            <div className={styles.desperdicios}>
-              <h6 className={styles.desperdiciosTitulo}>Desperdicios Reportados</h6>
-              {ordenTrabajo.desperdicios_reportados.map((desperdicio, index) => (
-                <div key={index} className={styles.desperdicio}>
-                  <span className={styles.desperdicioTipo}>{desperdicio.tipo}:</span>
-                  <span className={styles.desperdicioCantidad}>{desperdicio.cantidad_desperdiciada} unidades</span>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       )}
     </div>

@@ -290,14 +290,14 @@
   border-bottom: 2px solid #3498db;
 }
 
-/* Órdenes de Producción */
-.ordenesProduccion {
+/* Lotes Entregados */
+.lotesEntregados {
   display: flex;
   flex-direction: column;
   gap: 15px;
 }
 
-.ordenProduccion {
+.loteEntregado {
   background: white;
   border-radius: 8px;
   border: 1px solid #e1e8ed;
@@ -305,11 +305,11 @@
   transition: box-shadow 0.3s ease;
 }
 
-.ordenProduccion:hover {
+.loteEntregado:hover {
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-.ordenProdHeader {
+.loteHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -320,24 +320,24 @@
   transition: all 0.3s ease;
 }
 
-.ordenProdHeader:hover {
+.loteHeader:hover {
   background: linear-gradient(135deg, #2980b9, #3498db);
 }
 
-.ordenProdTitulo {
+.loteTitulo {
   margin: 0 0 8px 0;
   font-size: 16px;
   font-weight: 600;
 }
 
-.ordenProdDetalles {
+.loteDetalles {
   display: flex;
   gap: 20px;
   font-size: 13px;
   opacity: 0.95;
 }
 
-.detallesOrdenProd {
+.detallesLote {
   padding: 0;
 }
 
@@ -353,59 +353,6 @@
   font-size: 16px;
   color: #34495e;
   font-weight: 600;
-}
-
-/* Órdenes de Trabajo */
-.ordenesTrabajo {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.ordenTrabajo {
-  background: white;
-  border-radius: 6px;
-  border: 1px solid #e1e8ed;
-  overflow: hidden;
-  transition: box-shadow 0.3s ease;
-}
-
-.ordenTrabajo:hover {
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-}
-
-.ordenTrabajoHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 18px 20px;
-  cursor: pointer;
-  background: #f8f9fa;
-  transition: background-color 0.3s ease;
-}
-
-.ordenTrabajoHeader:hover {
-  background: #e9ecef;
-}
-
-.ordenTrabajoTitulo {
-  margin: 0 0 6px 0;
-  font-size: 14px;
-  color: #2c3e50;
-  font-weight: 600;
-}
-
-.ordenTrabajoDetalles {
-  display: flex;
-  gap: 15px;
-  font-size: 12px;
-  color: #7f8c8d;
-}
-
-.detallesOrdenTrabajo {
-  padding: 20px;
-  background: white;
-  border-top: 1px solid #e9ecef;
 }
 
 /* Materias Primas */
@@ -492,58 +439,15 @@
   letter-spacing: 0.5px;
 }
 
-/* Desperdicios */
-.desperdicios {
-  margin-top: 15px;
-  padding-top: 15px;
-  border-top: 1px solid #e9ecef;
-}
-
-.desperdiciosTitulo {
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 10px;
-  color: #dc3545;
-}
-
-.desperdicio {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 12px;
-  margin-bottom: 5px;
-  background: #ffebee;
-  border-radius: 4px;
-  border-left: 4px solid #dc3545;
-}
-
-.desperdicio:last-child {
-  margin-bottom: 0;
-}
-
-.desperdicioTipo {
-  font-weight: 500;
-  color: #c62828;
-  font-size: 13px;
-}
-
-.desperdicioCantidad {
-  color: #dc3545;
-  font-weight: 600;
-  font-size: 13px;
-}
-
 /* Efectos de expansión */
 .productoHeader .flecha,
-.ordenProdHeader .flecha,
-.ordenTrabajoHeader .flecha,
+.loteHeader .flecha,
 .materiaPrimaHeader .flecha {
   transition: transform 0.3s ease;
 }
 
 .productoHeader[aria-expanded="true"] .flecha,
-.ordenProdHeader[aria-expanded="true"] .flecha,
-.ordenTrabajoHeader[aria-expanded="true"] .flecha,
+.loteHeader[aria-expanded="true"] .flecha,
 .materiaPrimaHeader[aria-expanded="true"] .flecha {
   transform: rotate(90deg);
 }
@@ -586,8 +490,7 @@
   }
 
   .productoDetalles,
-  .ordenProdDetalles,
-  .ordenTrabajoDetalles,
+  .loteDetalles,
   .materiaPrimaDetalles {
     flex-direction: column;
     gap: 8px;
@@ -598,8 +501,7 @@
   }
 
   .productoHeader,
-  .ordenProdHeader,
-  .ordenTrabajoHeader,
+  .loteHeader,
   .materiaPrimaHeader {
     padding: 15px;
   }
@@ -612,7 +514,6 @@
     padding: 15px;
   }
 
-  .detallesOrdenTrabajo,
   .detallesMateriaPrima {
     padding: 15px;
   }
@@ -622,11 +523,10 @@
     font-size: 18px;
   }
 
-  .ordenProdTitulo {
+  .loteTitulo {
     font-size: 14px;
   }
 
-  .ordenTrabajoTitulo,
   .materiaPrimaTitulo {
     font-size: 13px;
   }
@@ -650,8 +550,7 @@
   }
 
   .productoHeader,
-  .ordenProdHeader,
-  .ordenTrabajoHeader,
+  .loteHeader,
   .materiaPrimaHeader {
     padding: 12px;
   }
@@ -670,4 +569,79 @@
     align-items: flex-start;
     gap: 2px;
   }
+}
+
+/* Estilos para indicar elementos expandibles */
+.productoHeader,
+.loteHeader,
+.materiaPrimaHeader {
+  position: relative;
+}
+
+.productoHeader::after,
+.loteHeader::after,
+.materiaPrimaHeader::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+}
+
+/* Animación suave para la expansión */
+.detallesProducto,
+.detallesLote,
+.detallesMateriaPrima {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 1000px;
+  }
+}
+
+/* Mejoras visuales para los lotes */
+.loteEntregado {
+  position: relative;
+}
+
+.loteEntregado::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(to bottom, #3498db, #2980b9);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.loteEntregado:hover::before {
+  opacity: 1;
+}
+
+/* Estilos para las materias primas con colores diferenciados */
+.materiaPrima:nth-child(odd) .materiaPrimaHeader {
+  background: #f8f9fa;
+}
+
+.materiaPrima:nth-child(even) .materiaPrimaHeader {
+  background: #f1f3f4;
+}
+
+.materiaPrima:nth-child(odd) .materiaPrimaHeader:hover {
+  background: #e9ecef;
+}
+
+.materiaPrima:nth-child(even) .materiaPrimaHeader:hover {
+  background: #dee2e6;
 }
