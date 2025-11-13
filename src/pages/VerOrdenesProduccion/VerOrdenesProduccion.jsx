@@ -74,7 +74,6 @@ const VerOrdenesProduccion = () => {
         setProductos(productosData);
       } catch (err) {
         console.error("Error al cargar datos iniciales:", err);
-        // toast.error("Error al cargar datos de filtros"); // <--- Opcional: notificar error
       }
     };
 
@@ -168,7 +167,6 @@ const VerOrdenesProduccion = () => {
   };
 
   const manejarIniciarOrden = async (idOrden) => {
-    // <--- MENSAJE PRECISO
     const toastId = toast.loading(`Iniciando orden #${idOrden}...`);
     try {
       const response = await api.patch(
@@ -181,11 +179,9 @@ const VerOrdenesProduccion = () => {
       }
 
       await obtenerOrdenes(paginacion.currentPage);
-      // <--- MENSAJE PRECISO
       toast.update(toastId, { render: `¡Orden #${idOrden} movida a "En Proceso"!`, type: "success", isLoading: false, autoClose: 3000 });
     } catch (error) {
       console.error("Error al actualizar la orden:", error);
-      // <--- MENSAJE PRECISO
       toast.update(toastId, { render: `Error al iniciar la orden #${idOrden}`, type: "error", isLoading: false, autoClose: 3000 });
     }
   };
@@ -208,12 +204,11 @@ const VerOrdenesProduccion = () => {
   // Función para manejar la cancelación de la orden
   const manejarCancelarOrden = async () => {
     if (!razonCancelacion.trim()) {
-      toast.warn("Por favor, ingresa una razón para la cancelación"); // <--- MODIFICADO (sin alert)
+      toast.warn("Por favor, ingresa una razón para la cancelación");
       return;
     }
 
     setCancelando(true);
-    // <--- MENSAJE PRECISO (Usa el ID de la orden seleccionada)
     const toastId = toast.loading(`Cancelando orden #${ordenSeleccionada.id}...`);
     try {
       const response = await api.patch(
@@ -227,11 +222,9 @@ const VerOrdenesProduccion = () => {
 
       await obtenerOrdenes(paginacion.currentPage);
       cerrarModalCancelar();
-      // <--- MENSAJE PRECISO
       toast.update(toastId, { render: `¡Orden #${ordenSeleccionada.id} movida a "Cancelado"!`, type: "success", isLoading: false, autoClose: 3000 });
     } catch (error) {
       console.error("Error al cancelar la orden:", error);
-      // <--- MENSAJE PRECISO
       toast.update(toastId, { render: `Error al cancelar la orden #${ordenSeleccionada.id}`, type: "error", isLoading: false, autoClose: 3000 });
     } finally {
       setCancelando(false);
@@ -262,24 +255,23 @@ const VerOrdenesProduccion = () => {
   // Función para manejar el registro de no conformidad
   const manejarRegistrarNoConformidad = async () => {
     if (datosNoConformidad.cant_desperdiciada <= 0) {
-      toast.warn("La cantidad desperdiciada debe ser mayor a 0"); // <--- MODIFICADO (sin alert)
+      toast.warn("La cantidad desperdiciada debe ser mayor a 0");
       return;
     }
 
     if (datosNoConformidad.cant_desperdiciada > ordenSeleccionada.cantidad) {
-      toast.error( // <--- MODIFICADO (sin alert)
+      toast.error(
         "La cantidad desperdiciada no puede ser mayor a la cantidad total"
       );
       return;
     }
 
     if (!datosNoConformidad.descripcion.trim()) {
-      toast.warn("Por favor, ingresa una descripción de la no conformidad"); // <--- MODIFICADO (sin alert)
+      toast.warn("Por favor, ingresa una descripción de la no conformidad");
       return;
     }
 
     setRegistrandoNoConformidad(true);
-    // <--- MENSAJE PRECISO
     const toastId = toast.loading(`Registrando No Conformidad para la orden #${ordenSeleccionada.id}...`);
     try {
       const datosEnvio = {
@@ -294,7 +286,6 @@ const VerOrdenesProduccion = () => {
       );
 
       if (response.status === 201) {
-        // <--- MENSAJE PRECISO
         toast.update(toastId, { render: `No Conformidad registrada para la orden #${ordenSeleccionada.id}`, type: "success", isLoading: false, autoClose: 3000 });
       } else {
         throw new Error(`Error HTTP: ${response.status}`);
@@ -304,7 +295,6 @@ const VerOrdenesProduccion = () => {
       cerrarModalNoConformidad();
     } catch (error) {
       console.error("Error al registrar no conformidad:", error);
-      // <--- MENSAJE PRECISO
       toast.update(toastId, { render: `Error al registrar No Conformidad para la orden #${ordenSeleccionada.id}`, type: "error", isLoading: false, autoClose: 3000 });
     } finally {
       setRegistrandoNoConformidad(false);
@@ -357,7 +347,6 @@ const VerOrdenesProduccion = () => {
   };
 
   const manejarFinalizar = async (idOrden) => {
-    // <--- MENSAJE PRECISO
     const toastId = toast.loading(`Finalizando orden #${idOrden}...`);
     try {
       const response = await api.patch(
@@ -366,11 +355,9 @@ const VerOrdenesProduccion = () => {
       );
 
       await obtenerOrdenes(paginacion.currentPage);
-      // <--- MENSAJE PRECISO
       toast.update(toastId, { render: `¡Orden #${idOrden} marcada como "Finalizada"!`, type: "success", isLoading: false, autoClose: 3000 });
     } catch (error) {
       console.log(error);
-      // <--- MENSAJE PRECISO
       toast.update(toastId, { render: `Error al finalizar la orden #${idOrden}`, type: "error", isLoading: false, autoClose: 3000 });
     }
   };
@@ -425,76 +412,6 @@ const VerOrdenesProduccion = () => {
     return false;
   };
 
-  const handlePlanificar = async () => {
-    const toastId = toast.loading('Iniciando planificación, por favor espera...');
-
-    try {
-      await api.post('/planificacion/planificacion/'); 
-      
-      toast.update(toastId, { 
-        render: 'Planificación exitosa. Actualizando lista...', 
-        type: 'success', 
-        isLoading: true
-      });
-
-      // ESTA LÍNEA ES LA QUE ACTUALIZA LOS DATOS (EL "REFRESH" DE REACT)
-      await obtenerOrdenes(paginacion.currentPage);
-
-      toast.update(toastId, { 
-        render: '¡Órdenes actualizadas!', 
-        type: 'success', 
-        isLoading: false, 
-        autoClose: 3000 
-      });
-
-    } catch (error) {
-      console.error('Error al iniciar la planificación:', error);
-      toast.update(toastId, { 
-        render: 'Error al iniciar la planificación', 
-        type: 'error', 
-        isLoading: false, 
-        autoClose: 3000 
-      });
-    }
-  };
-
-  // --- ¡NUEVA FUNCIÓN! ---
-  const handleReplanificar = async () => {
-    const toastId = toast.loading('Iniciando replanificación, por favor espera...');
-
-    try {
-      // Apuntamos al nuevo endpoint
-      await api.post('/planificacion/replanificar/'); 
-      
-      toast.update(toastId, { 
-        render: 'Replanificación exitosa. Actualizando lista...', 
-        type: 'success', 
-        isLoading: true
-      });
-
-      // Actualizamos los datos
-      await obtenerOrdenes(paginacion.currentPage);
-
-      toast.update(toastId, { 
-        render: '¡Órdenes actualizadas!', 
-        type: 'success', 
-        isLoading: false, 
-        autoClose: 3000 
-      });
-
-    } catch (error) {
-      console.error('Error al iniciar la replanificación:', error);
-      toast.update(toastId, { 
-        // Mensaje de error personalizado
-        render: 'Error al iniciar la replanificación', 
-        type: 'error', 
-        isLoading: false, 
-        autoClose: 3000 
-      });
-    }
-  };
-  // --- FIN NUEVA FUNCIÓN ---
-
   if (cargando && ordenes.length === 0) {
     return (
       <div className={styles.cargando}>Cargando órdenes de producción...</div>
@@ -507,8 +424,6 @@ const VerOrdenesProduccion = () => {
 
   return (
     <div className={styles.verOrdenesProduccion}>
-      {/* --- NUEVO: Contenedor de Toasts --- */}
-      {/* Se posicionará según el CSS que importamos */}
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -521,29 +436,11 @@ const VerOrdenesProduccion = () => {
         pauseOnHover
         theme="colored"
       />
-      {/* --- Fin Contenedor de Toasts --- */}
 
       <div className={styles.headerContainer}>
         <h2 className={styles.titulo}>Órdenes de Producción</h2>
         
-        {/* --- JSX MODIFICADO --- */}
         <div className={styles.headerButtons}>
-          <button
-            className={styles.btnPlanificar}
-            onClick={handlePlanificar}
-          >
-            Planificar
-          </button>
-
-          {/* ¡NUEVO BOTÓN AÑADIDO! */}
-          <button
-            className={styles.btnPlanificar} // Asumo que usa el mismo estilo
-            onClick={handleReplanificar}
-          >
-            Replanificar
-          </button>
-          {/* --- FIN NUEVO BOTÓN --- */}
-
           <button
             className={styles.btnCrearOrden}
             onClick={redirigirACrearOrden}
@@ -551,9 +448,8 @@ const VerOrdenesProduccion = () => {
             Crear Nueva Orden
           </button>
         </div>
-        {/* --- FIN JSX MODIFICADO --- */}
-
       </div>
+
       {/* Controles de Filtrado */}
       <div className={styles.controles}>
         <div className={styles.filtroGrupo}>
@@ -567,7 +463,6 @@ const VerOrdenesProduccion = () => {
             className={styles.select}
           >
             <option value="todos">Todos los productos</option>
-            {/* Usar la lista completa de productos en lugar de productosUnicos */}
             {productos.map((producto) => (
               <option key={producto.id_producto} value={producto.id_producto}>
                 {producto.nombre}
@@ -657,11 +552,6 @@ const VerOrdenesProduccion = () => {
                   <span>{formatearFecha(orden.fecha_creacion)}</span>
                 </div>
 
-                {/* <div className={styles.infoGrupo}>
-                  <strong>Iniciada:</strong>
-                  <span>{formatearFecha(orden.fecha_inicio)}</span>
-                </div> */}
-
                 <div className={styles.infoGrupo}>
                   <strong>Orden de Venta:</strong>
                   <span>{orden.id_orden_venta || "N/A"}</span>
@@ -669,24 +559,8 @@ const VerOrdenesProduccion = () => {
               </div>
 
               <div className={styles.cardFooter}>
-                {/* {orden.estado === "Pendiente de inicio" ? (
-                  <button
-                    className={styles.btnIniciar}
-                    onClick={() => manejarIniciarOrden(orden.id)}
-                  >
-                    Iniciar
-                  </button>
-                ) : null} */}
-
                 {orden.estado === "En proceso" ? (
                   <>
-                    {/* <button
-                      className={styles.btnFinalizar}
-                      onClick={() => manejarFinalizar(orden.id)}
-                    >
-                      Finalizar
-                    </button>
-                    {console.log(puedeCancelar())} */}
                     {puedeCancelar() ? (
                       <button
                         className={styles.btnCancelar}
@@ -698,17 +572,6 @@ const VerOrdenesProduccion = () => {
                   </>
                 ) : null}
 
-                {/* CAMBIO AQUÍ: Mostrar solo cuando id_estado = 4 (En proceso) */}
-                {/* {orden.id_estado === 4 ? (
-                  <button
-                    className={styles.btnNoConformidad}
-                    onClick={() => abrirModalNoConformidad(orden)}
-                  >
-                    Agregar No Conformidad
-                  </button>
-                ) : null} */}
-
-                {/* Botón para ver órdenes de trabajo filtradas */}
                 {(orden.estado === "En proceso" || 
                   orden.estado === "Finalizada" || 
                   orden.estado === "Planificada") && (

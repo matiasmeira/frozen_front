@@ -28,29 +28,6 @@
 	font-weight: 600;
 }
 
-.btnPlanificar {
-  background-color: #28a745;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.3s ease;
-}
-
-.btnPlanificar:hover {
-  background-color: #218838;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.btnPlanificar:active {
-  background-color: #1e7e34;
-  transform: translateY(0);
-}
-
 .btnCrearOrden {
   background-color: #007bff;
   color: white;
@@ -72,28 +49,6 @@
 .btnCrearOrden:active {
   background-color: #004085;
   transform: translateY(0);
-}
-
-/* Para hacerlo responsive en pantallas pequeñas */
-@media (max-width: 768px) {
-  .headerContainer {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 15px;
-  }
-  
-  .headerButtons {
-    width: 100%;
-    flex-direction: column;
-  }
-  
-  .headerButtons button {
-    width: 100%;
-  }
-  
-  .btnCrearOrden {
-    align-self: stretch;
-  }
 }
 
 .controles {
@@ -248,64 +203,12 @@
 	font-size: 0.95em;
 }
 
-/* MEJORAS EN CARD FOOTER - BOTONES MEJOR ACOMODADOS */
 .cardFooter {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
 	padding-top: 20px;
 	border-top: 1px solid #f0f0f0;
-}
-
-/* Botones principales - ocupan todo el ancho individualmente */
-.btnIniciar,
-.btnFinalizar,
-.btnNoConformidad,
-.btnVerOrdenesTrabajo {
-	flex: 1 1 100%;
-	min-height: 42px;
-	font-size: 0.9em;
-	font-weight: 600;
-	border: none;
-	border-radius: 6px;
-	cursor: pointer;
-	transition: all 0.3s ease;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
-/* Botones secundarios - se acomodan en fila cuando hay múltiples */
-.cardFooter:has(.btnFinalizar) + .btnCancelar,
-.cardFooter:has(.btnIniciar) {
-	flex-direction: row;
-}
-
-.cardFooter:has(.btnFinalizar) .btnFinalizar,
-.cardFooter:has(.btnCancelar) .btnCancelar {
-	flex: 1;
-	min-width: 120px;
-}
-
-/* Estados específicos para botones individuales */
-.btnIniciar {
-	background-color: rgb(40, 167, 69);
-	color: white;
-}
-
-.btnIniciar:hover {
-	background-color: rgb(33, 136, 56);
-	transform: translateY(-1px);
-}
-
-.btnFinalizar {
-	background-color: #e74c3c;
-	color: white;
-}
-
-.btnFinalizar:hover {
-	background-color: #c0392b;
-	transform: translateY(-1px);
 }
 
 .btnCancelar {
@@ -327,27 +230,20 @@
 	transform: translateY(-1px);
 }
 
-/* Botón No Conformidad */
-.btnNoConformidad {
-	background-color: #d35400;
-	color: white;
-}
-
-.btnNoConformidad:hover {
-	background-color: #e67e22;
-	transform: translateY(-2px);
-	box-shadow: 0 4px 8px rgba(211, 84, 0, 0.3);
-}
-
-.btnNoConformidad:active {
-	background-color: #a04000;
-	transform: translateY(0);
-}
-
-/* Botón Ver Órdenes de Trabajo */
 .btnVerOrdenesTrabajo {
 	background-color: #3498db;
 	color: white;
+	flex: 1 1 100%;
+	min-height: 42px;
+	font-size: 0.9em;
+	font-weight: 600;
+	border: none;
+	border-radius: 6px;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .btnVerOrdenesTrabajo:hover {
@@ -358,15 +254,6 @@
 
 .btnVerOrdenesTrabajo:active {
 	background-color: #1f6ca5;
-	transform: translateY(0);
-}
-
-/* Estados hover generales para todos los botones */
-.cardFooter button:hover {
-	transform: translateY(-1px);
-}
-
-.cardFooter button:active {
 	transform: translateY(0);
 }
 
@@ -391,19 +278,6 @@
 	border: 1px solid #f5b7b1;
 }
 
-.btnCargarMas {
-	background-color: blue;
-	color: white;
-	border: none;
-	padding: 10px 20px;
-	border-radius: 6px;
-	cursor: pointer;
-	font-size: 0.9em;
-	font-weight: 600;
-	transition: all 0.3s ease;
-	flex: 1;
-}
-
 .sinResultados {
 	text-align: center;
 	padding: 60px 20px;
@@ -415,7 +289,6 @@
 	border: 2px dashed #bdc3c7;
 }
 
-/* Estilos para paginación */
 .paginacion {
 	display: flex;
 	justify-content: center;
@@ -459,7 +332,6 @@
 	min-width: 80px;
 }
 
-/* Estilos para el modal */
 .overlay {
 	position: fixed;
 	top: 0;
@@ -590,7 +462,6 @@
 	cursor: not-allowed;
 }
 
-/* Estilos para los nuevos modales */
 .inputGroup {
 	display: flex;
 	align-items: center;
@@ -626,126 +497,6 @@
 	margin-bottom: 20px;
 }
 
-.radioGroup {
-	display: flex;
-	gap: 20px;
-	margin-top: 8px;
-}
-
-.radioLabel {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	cursor: pointer;
-	font-weight: normal;
-}
-
-.radioInput {
-	display: none;
-}
-
-.radioCustom {
-	width: 18px;
-	height: 18px;
-	border: 2px solid #bdc3c7;
-	border-radius: 50%;
-	position: relative;
-	transition: all 0.3s ease;
-}
-
-.radioInput:checked + .radioCustom {
-	border-color: #3498db;
-	background-color: #3498db;
-}
-
-.radioInput:checked + .radioCustom::after {
-	content: "";
-	width: 8px;
-	height: 8px;
-	background: white;
-	border-radius: 50%;
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
-}
-
-/* Colores específicos para cada modal */
-.modalContent[aria-label="Registrar Desperdicio"] .modalInfo {
-	border-left-color: #e67e22;
-}
-
-.modalContent[aria-label="Registrar Desperdicio"] .btnModalConfirmar {
-	background-color: #e67e22;
-}
-
-.modalContent[aria-label="Registrar Desperdicio"]
-	.btnModalConfirmar:hover:not(:disabled) {
-	background-color: #d35400;
-}
-
-.modalContent[aria-label="Control de Calidad"] .modalInfo {
-	border-left-color: #9b59b6;
-}
-
-.modalContent[aria-label="Control de Calidad"] .btnModalConfirmar {
-	background-color: #9b59b6;
-}
-
-.modalContent[aria-label="Control de Calidad"]
-	.btnModalConfirmar:hover:not(:disabled) {
-	background-color: #8e44ad;
-}
-
-/* Estilos específicos para el modal de No Conformidad */
-.modalContent[aria-label="Agregar No Conformidad"] .modalInfo {
-	border-left-color: #d35400; /* Naranja oscuro para coincidir con el botón */
-}
-
-.modalContent[aria-label="Agregar No Conformidad"] .btnModalConfirmar {
-	background-color: #d35400; /* Naranja oscuro */
-}
-
-.modalContent[aria-label="Agregar No Conformidad"]
-	.btnModalConfirmar:hover:not(:disabled) {
-	background-color: #e67e22; /* Naranja más claro al hover */
-}
-
-/* Paleta de colores marrón para el botón de desperdicio */
-.btnDesperdicio {
-	/* Color principal - Marrón terroso */
-	background-color: #8b4513; /* SaddleBrown - Marrón intenso y profesional */
-	color: white;
-	border: none;
-	padding: 10px 20px;
-	border-radius: 6px;
-	cursor: pointer;
-	font-size: 0.9em;
-	font-weight: 600;
-	transition: all 0.3s ease;
-	flex: 1;
-}
-
-.btnDesperdicio:hover {
-	background-color: #a0522d; /* Sienna - Un poco más claro al hover */
-	transform: translateY(-2px);
-	box-shadow: 0 4px 8px rgba(139, 69, 19, 0.3);
-}
-
-.btnDesperdicio:active {
-	background-color: #654321; /* DarkBrown - Más oscuro al hacer click */
-	transform: translateY(0);
-}
-
-.btnDesperdicio:disabled {
-	background-color: #d2b48c; /* Tan - Color deshabilitado */
-	color: #a9a9a9;
-	cursor: not-allowed;
-	transform: none;
-	box-shadow: none;
-}
-
-/* Spinner pequeño para el botón de confirmación */
 .spinnerSmall {
 	width: 16px;
 	height: 16px;
@@ -764,7 +515,6 @@
 	}
 }
 
-/* Responsive */
 @media (max-width: 768px) {
 	.modal {
 		width: 95%;
@@ -817,7 +567,6 @@
 		margin-top: 10px;
 	}
 
-	/* MEJORAS RESPONSIVE PARA BOTONES */
 	.cardFooter {
 		flex-direction: column;
 		gap: 10px;
@@ -849,14 +598,13 @@
 	}
 }
 
-/* Estilos para cuando hay múltiples botones en una fila */
 @media (min-width: 769px) {
-	.cardFooter:has(.btnFinalizar):has(.btnCancelar) {
+	.cardFooter:has(.btnCancelar):has(.btnVerOrdenesTrabajo) {
 		flex-direction: row;
 	}
 	
-	.cardFooter:has(.btnFinalizar):has(.btnCancelar) .btnFinalizar,
-	.cardFooter:has(.btnFinalizar):has(.btnCancelar) .btnCancelar {
+	.cardFooter:has(.btnCancelar):has(.btnVerOrdenesTrabajo) .btnCancelar,
+	.cardFooter:has(.btnCancelar):has(.btnVerOrdenesTrabajo) .btnVerOrdenesTrabajo {
 		flex: 1;
 		min-width: 0;
 	}
