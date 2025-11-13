@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Modal from 'react-modal';
 import styles from './Calendario.module.css';
@@ -27,8 +27,6 @@ const Calendario = () => {
         throw new Error('Error al cargar los eventos');
       }
       const data = await response.json();
-
-      console.log(data)
       setEvents(data);
     } catch (err) {
       setError(err.message);
@@ -37,14 +35,31 @@ const Calendario = () => {
     }
   };
 
+  // Función para convertir fecha UTC a fecha local sin cambiar el día
+  const parseUTCDate = (dateString) => {
+    const date = new Date(dateString);
+    // Ajustar para mantener el mismo día visual
+    return new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+  };
+
   const getEventsForDay = (day) => {
     return events.filter(event => {
-      console.log("eventos", event)
-      const eventStart = parseISO(event.start);
-      const eventEnd = parseISO(event.fecha_planificada);
-      return isSameDay(eventStart, day) || 
-             (eventStart <= day && eventEnd >= day) ||
-             (event.start === format(day, 'yyyy-MM-dd'));
+      let eventDate;
+      
+      // Para OP (Produccion) usar fecha_planificada
+      if (event.type === 'Produccion') {
+        eventDate = parseUTCDate(event.fecha_planificada);
+      } 
+      // Para OC (Compra) y OV (Venta) usar start
+      else {
+        eventDate = parseUTCDate(event.start);
+      }
+      
+      // Normalizar las fechas para comparación (solo año, mes, día)
+      const normalizedEventDate = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+      const normalizedDay = new Date(day.getFullYear(), day.getMonth(), day.getDate());
+      
+      return normalizedEventDate.getTime() === normalizedDay.getTime();
     });
   };
 
@@ -54,6 +69,8 @@ const Calendario = () => {
         return styles.eventProduction;
       case 'Compra (Recepción)':
         return styles.eventCompra;
+      case 'Venta (Fecha Estimada)':
+        return styles.eventVenta;
       default:
         return styles.eventDefault;
     }
@@ -62,12 +79,25 @@ const Calendario = () => {
   const getEventStatusClass = (status) => {
     switch (status) {
       case 'En espera':
+      case 'Creada':
+      case 'Pendiente de Pago':
         return styles.statusEspera;
       case 'En proceso':
+      case 'Planificada':
+      case 'En Preparación':
         return styles.statusProceso;
       default:
         return styles.statusDefault;
     }
+  };
+
+  const getEventColor = (event) => {
+    return event.color || '#6B7280';
+  };
+
+  const formatEventDate = (dateString, eventType) => {
+    const date = parseUTCDate(dateString);
+    return format(date, 'dd/MM/yyyy HH:mm');
   };
 
   const handleDayClick = (day) => {
@@ -193,10 +223,11 @@ const Calendario = () => {
                           key={event.id}
                           className={`${styles.event} ${getEventTypeClass(event.type)} ${getEventStatusClass(event.status)}`}
                           title={event.title}
+                          style={{ backgroundColor: getEventColor(event) }}
                         >
                           <span className={styles.eventId}>{event.id}</span>
                           <span className={styles.eventTitle}>
-                            {event.title.split(':')[1] || event.title}
+                            {event.title.split(':')[1]?.trim() || event.title}
                           </span>
                         </div>
                       ))}
@@ -218,15 +249,19 @@ const Calendario = () => {
         <div className={styles.legend}>
           <div className={styles.legendItem}>
             <div className={`${styles.legendColor} ${styles.legendProduction}`}></div>
-            <span>Producción</span>
+            <span>Producción (OP)</span>
           </div>
           <div className={styles.legendItem}>
             <div className={`${styles.legendColor} ${styles.legendCompra}`}></div>
-            <span>Compra (Recepción)</span>
+            <span>Compra (OC)</span>
+          </div>
+          <div className={styles.legendItem}>
+            <div className={`${styles.legendColor} ${styles.legendVenta}`}></div>
+            <span>Venta (OV)</span>
           </div>
           <div className={styles.legendStatus}>
-            <span className={styles.statusEspera}>En espera</span>
-            <span className={styles.statusProceso}>En proceso</span>
+            <span className={styles.statusEspera}>En espera/Creada</span>
+            <span className={styles.statusProceso}>En proceso/Planificada</span>
           </div>
         </div>
       </div>
@@ -263,6 +298,7 @@ const Calendario = () => {
                     <div 
                       key={event.id} 
                       className={`${styles.modalEvent} ${getEventTypeClass(event.type)}`}
+                      style={{ borderLeftColor: getEventColor(event) }}
                     >
                       <div className={styles.modalEventHeader}>
                         <span className={styles.modalEventId}>{event.id}</span>
@@ -278,9 +314,25 @@ const Calendario = () => {
                           <strong>Tipo:</strong> {event.type}
                         </div>
                         
+                        {event.type === 'Produccion' ? (
+                          <div className={styles.modalEventDetail}>
+                            <strong>Fecha Planificada:</strong> {formatEventDate(event.fecha_planificada, event.type)}
+                          </div>
+                        ) : (
+                          <div className={styles.modalEventDetail}>
+                            <strong>Fecha:</strong> {formatEventDate(event.start, event.type)}
+                          </div>
+                        )}
+                        
                         {event.quantity && (
                           <div className={styles.modalEventDetail}>
                             <strong>Cantidad:</strong> {event.quantity} u.
+                          </div>
+                        )}
+                        
+                        {event.cantidad_total && (
+                          <div className={styles.modalEventDetail}>
+                            <strong>Cantidad Total:</strong> {event.cantidad_total} u.
                           </div>
                         )}
                         
@@ -290,13 +342,11 @@ const Calendario = () => {
                           </div>
                         )}
                         
-                        <div className={styles.modalEventDetail}>
-                          <strong>Inicio:</strong> {format(parseISO(event.start), 'dd/MM/yyyy HH:mm')}
-                        </div>
-                        
-                        <div className={styles.modalEventDetail}>
-                          <strong>Fin:</strong> {format(parseISO(event.end), 'dd/MM/yyyy HH:mm')}
-                        </div>
+                        {event.cliente && (
+                          <div className={styles.modalEventDetail}>
+                            <strong>Cliente:</strong> {event.cliente}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
