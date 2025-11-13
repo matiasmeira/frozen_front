@@ -75,6 +75,7 @@ const VerOrdenesProduccion = () => {
       } catch (err) {
         console.error("Error al cargar datos iniciales:", err);
       }
+
     };
 
     cargarDatosIniciales();
@@ -108,6 +109,7 @@ const VerOrdenesProduccion = () => {
         filtros
       );
 
+
       setOrdenes(response.ordenes);
       setOrdenesFiltradas(response.ordenes);
       setPaginacion({
@@ -118,6 +120,8 @@ const VerOrdenesProduccion = () => {
         previous: response.paginacion.previous,
         pageSize: 10,
       });
+
+      console.log(ordenes)
     } catch (err) {
       setError("Error al cargar las órdenes");
       console.error("Error:", err);
@@ -366,6 +370,7 @@ const formatearFecha = (fechaISO) => {
   if (!fechaISO) return "No especificada";
   
   try {
+    // Crear la fecha directamente desde el string ISO sin interpretación de zona horaria
     const fecha = new Date(fechaISO);
     
     // Verificar si la fecha es válida
@@ -373,7 +378,11 @@ const formatearFecha = (fechaISO) => {
       return "Fecha inválida";
     }
     
-    return `${fecha.getDate().toString().padStart(2, '0')}/${(fecha.getMonth() + 1).toString().padStart(2, '0')}/${fecha.getFullYear()}, ${fecha.getHours().toString().padStart(2, '0')}:${fecha.getMinutes().toString().padStart(2, '0')}`;
+    // Usar toLocaleDateString para evitar problemas de zona horaria
+    // o extraer los componentes de fecha directamente del string ISO
+    const [anio, mes, dia] = fechaISO.split('T')[0].split('-');
+    
+    return `${dia.padStart(2, '0')}/${mes.padStart(2, '0')}/${anio}`;
   } catch (error) {
     console.error("Error al formatear fecha:", error);
     return "Error en fecha";
@@ -531,6 +540,7 @@ const formatearFecha = (fechaISO) => {
 
       {/* Lista de órdenes */}
       <div className={styles.listaOrdenes}>
+        {console.log(ordenesFiltradas)}
         {ordenesFiltradas.length > 0 ? (
           ordenesFiltradas.map((orden) => (
             <div key={orden.id} className={styles.cardOrden}>
@@ -561,8 +571,9 @@ const formatearFecha = (fechaISO) => {
                   <strong>Fecha Planificada:</strong>
                   <span>
                     {orden.fecha_planificada 
+                    
                       ? formatearFecha(orden.fecha_planificada) 
-                      : "No planificada"
+                      : "No planificada" 
                     }
                   </span>
                 </div>
