@@ -134,12 +134,23 @@ const VerOrdenesCompra = () => {
     // Estados únicos para el filtro
     const estadosUnicos = [...new Set(ordenes.map((orden) => orden.estado))];
 
-    // Función para formatear fecha
-    const formatearFecha = (fechaISO) => {
-        if (!fechaISO) return "No especificada";
-        const fecha = new Date(fechaISO);
-        return `${fecha.getDate()}/${fecha.getMonth() + 1}/${fecha.getFullYear()}`;
-    };
+    // Función para formatear fecha (versión corregida)
+    const formatearFecha = (fechaISO) => {
+    if (!fechaISO) return "No especificada";
+    
+    try {
+        const fecha = new Date(fechaISO + 'T00:00:00Z');
+        return new Intl.DateTimeFormat('es-ES', {
+        day: '2-digit',
+        month: '2-digit', 
+        year: 'numeric',
+        timeZone: 'UTC'
+        }).format(fecha);
+    } catch (error) {
+        console.error("Error formateando fecha:", error);
+        return "Fecha inválida";
+    }
+    };
 
     // Función para obtener el color del estado
     const getColorEstado = (estado) => {
