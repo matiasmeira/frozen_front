@@ -24,7 +24,6 @@ const formatearPrecio = (precio) => {
 const normalizarDireccion = (calle, altura, localidad) => {
   if (!calle || !altura || !localidad) return null;
   
-  // Normalizar: quitar espacios extras, capitalizar, etc.
   const calleNormalizada = calle
     .trim()
     .toLowerCase()
@@ -38,6 +37,80 @@ const normalizarDireccion = (calle, altura, localidad) => {
     .replace(/\s+/g, ' ');
   
   return `${calleNormalizada} ${altura}, ${localidadNormalizada}, Argentina`;
+};
+
+// Función para obtener el nombre del día en español
+const obtenerNombreDia = (fecha) => {
+  const opciones = { weekday: 'long' };
+  const formateador = new Intl.DateTimeFormat('es-ES', opciones);
+  return formateador.format(fecha);
+};
+
+// Función CORREGIDA para verificar si una fecha es día hábil (no sábado ni domingo)
+const esDiaHabil = (fecha) => {
+  const dia = fecha.getDay(); 
+  // 0 = Domingo, 6 = Sábado - estos son los que NO queremos
+  return dia !== 0 && dia !== 6;
+};
+
+// Función para obtener la próxima fecha hábil
+const obtenerProximaFechaHabil = (fecha) => {
+  let fechaTemp = new Date(fecha);
+  while (!esDiaHabil(fechaTemp)) {
+    fechaTemp.setDate(fechaTemp.getDate() + 1);
+  }
+  return fechaTemp;
+};
+
+// Función para formatear fecha como YYYY-MM-DD
+const formatearFechaISO = (fecha) => {
+  return fecha.toISOString().split('T')[0];
+};
+
+// Componente de Date Picker personalizado CORREGIDO
+const DatePickerHabil = ({ value, onChange, min, max, disabled, className }) => {
+  const [fechaSeleccionada, setFechaSeleccionada] = useState(value || '');
+  
+  const handleChange = (e) => {
+    const fecha = e.target.value;
+    if (fecha) {
+      const fechaObj = new Date(fecha + 'T00:00:00'); // Asegurar timezone
+      const nombreDia = obtenerNombreDia(fechaObj);
+      
+      if (esDiaHabil(fechaObj)) {
+        setFechaSeleccionada(fecha);
+        onChange({ target: { name: 'fecha_entrega', value: fecha } });
+      } else {
+        toast.warn(`No se pueden seleccionar ${nombreDia.toLowerCase()}s`);
+        // Revertir al valor anterior
+        e.target.value = fechaSeleccionada;
+      }
+    } else {
+      setFechaSeleccionada('');
+      onChange({ target: { name: 'fecha_entrega', value: '' } });
+    }
+  };
+
+  useEffect(() => {
+    setFechaSeleccionada(value || '');
+  }, [value]);
+
+  return (
+    <input
+      type="date"
+      value={fechaSeleccionada}
+      min={min}
+      max={max}
+      onChange={handleChange}
+      disabled={disabled}
+      className={className}
+      onKeyDown={(e) => {
+        if (e.key !== 'Tab' && e.key !== 'Escape') {
+          e.preventDefault();
+        }
+      }}
+    />
+  );
 };
 
 function CrearOrdenDeVenta() {
@@ -161,7 +234,6 @@ function CrearOrdenDeVenta() {
   // Función para geocodificar la dirección
   const geocodificarDireccion = async (direccion) => {
     try {
-      // Usando Nominatim (OpenStreetMap) - servicio gratuito
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(direccion)}&limit=1&countrycodes=ar`
       );
@@ -204,18 +276,15 @@ const handleCliente = (selectedOption) => {
   let direccionCliente = { calle: "", altura: "", localidad: "" };
 
   if (clienteId) {
-    // Buscar el cliente en la lista completa
     const clienteSeleccionado = clientes.find(c => c.id_cliente === parseInt(clienteId));
     console.log(clienteSeleccionado)
     if (clienteSeleccionado) {
-      // Asignar la prioridad del cliente
       if (clienteSeleccionado.id_prioridad != null) {
         clientePrioridadId = clienteSeleccionado.id_prioridad.toString();
       } else {
         toast.warn(`El cliente seleccionado no tiene una prioridad predefinida.`);
       }
       
-      // Autocompletar los campos de dirección con los datos del cliente
       direccionCliente = {
         calle: clienteSeleccionado.calle || "",
         altura: clienteSeleccionado.altura || "",
@@ -227,7 +296,7 @@ const handleCliente = (selectedOption) => {
   setOrden(prev => ({
     ...prev,
     id_cliente: clienteId,
-    id_prioridad: clientePrioridadId, // Setea la prioridad automáticamente
+    id_prioridad: clientePrioridadId,
     calle: direccionCliente.calle,
     altura: direccionCliente.altura,
     localidad: direccionCliente.localidad
@@ -317,7 +386,6 @@ const handleCliente = (selectedOption) => {
     let esValido = true;
 
     if (!orden.id_cliente) { nuevosErrores.cliente = "Debes seleccionar un cliente"; esValido = false; }
-    // Validar prioridad autocompletada
     if (!orden.id_prioridad) { 
         nuevosErrores.prioridad = "El cliente no tiene prioridad (o no seleccionó cliente)"; 
         esValido = false; 
@@ -325,11 +393,16 @@ const handleCliente = (selectedOption) => {
     if (!orden.fecha_entrega) { nuevosErrores.fecha_entrega = "Debes indicar una fecha de entrega"; esValido = false; }
     else {
       const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
-      const fechaEntrega = new Date(orden.fecha_entrega);
+      const fechaEntrega = new Date(orden.fecha_entrega + 'T00:00:00');
       if (isNaN(fechaEntrega.getTime())) { nuevosErrores.fecha_entrega = "Fecha inválida"; esValido = false; }
       else {
           const diferenciaDias = Math.ceil((fechaEntrega - hoy) / (1000 * 60 * 60 * 24));
           if (diferenciaDias < 3) { nuevosErrores.fecha_entrega = "La fecha debe ser al menos 3 días mayor"; esValido = false; }
+          
+          if (!esDiaHabil(fechaEntrega)) {
+            nuevosErrores.fecha_entrega = "No se pueden seleccionar fines de semana";
+            esValido = false;
+          }
       }
     }
     if (!orden.calle?.trim()) { nuevosErrores.calle = "Debes ingresar la calle"; esValido = false; }
@@ -394,7 +467,7 @@ const handleCliente = (selectedOption) => {
       ...orden,
       productos: prodsEnviar,
       id_empleado: idEmpleadoLogueado,
-      direccion_normalizada: direccionNormalizada // Guardar la dirección normalizada
+      direccion_normalizada: direccionNormalizada
     };
 
     console.log("Enviando orden:", nuevaOrden);
@@ -428,11 +501,29 @@ const handleCliente = (selectedOption) => {
     }
   };
 
-  const obtenerFechaMinima = () => { const f = new Date(); f.setDate(f.getDate() + 4); return f.toISOString().split("T")[0]; };
-  const obtenerFechaMaxima = () => { const f = new Date(); f.setDate(f.getDate() + 30); return f.toISOString().split("T")[0]; };
-  const getSelectedProductValue = (fieldId) => { const f = fields.find(fi => fi.id === fieldId); if (!f || !f.id_producto) return null; const p = products.find(pr => pr.id_producto.toString() === f.id_producto); return p ? { value: p.id_producto, label: `${p.nombre}` } : null; };
+  // Función para obtener la fecha mínima CORREGIDA
+  const obtenerFechaMinima = () => { 
+    const f = new Date(); 
+    f.setDate(f.getDate() + 2);
+    const fechaHabil = obtenerProximaFechaHabil(f);
+    return formatearFechaISO(fechaHabil);
+  };
 
-  // Función para obtener la clase CSS de prioridad
+  // Función para obtener la fecha máxima CORREGIDA
+  const obtenerFechaMaxima = () => { 
+    const f = new Date(); 
+    f.setDate(f.getDate() + 30);
+    const fechaHabil = obtenerProximaFechaHabil(f);
+    return formatearFechaISO(fechaHabil);
+  };
+
+  const getSelectedProductValue = (fieldId) => { 
+    const f = fields.find(fi => fi.id === fieldId); 
+    if (!f || !f.id_producto) return null; 
+    const p = products.find(pr => pr.id_producto.toString() === f.id_producto); 
+    return p ? { value: p.id_producto, label: `${p.nombre}` } : null; 
+  };
+
   const getPrioridadClassName = (idPrioridad) => {
     const classMap = {
       '1': styles.prioridadBaja,
@@ -443,7 +534,6 @@ const handleCliente = (selectedOption) => {
     return classMap[idPrioridad] || styles.prioridadDisplayDiv;
   };
 
-  // Función para mostrar/ocultar el mapa
   const toggleMapa = () => {
     if (direccionNormalizada && !mostrarMapa) {
       geocodificarDireccion(direccionNormalizada);
@@ -476,7 +566,6 @@ const handleCliente = (selectedOption) => {
                 isSearchable
                 className={`${errors.cliente ? styles.inputError : ""} ${creatingOrder ? styles.disabledInput : ""}`}
                 placeholder="Seleccione una opción"
-                // SOLUCIÓN PARA MENÚ CORTADO
                 menuPortalTarget={document.body}
                 menuPosition="fixed"
                 menuShouldScrollIntoView={false}
@@ -489,17 +578,20 @@ const handleCliente = (selectedOption) => {
             </div>
             <div className={styles.formGroup}>
               <label htmlFor="FechaEntrega" className={styles.formLabel}>Fecha Solicitada de Entrega</label>
-              <input
-                type="date" id="FechaEntrega" name="fecha_entrega"
+              <DatePickerHabil
+                id="FechaEntrega"
+                name="fecha_entrega"
                 value={orden.fecha_entrega}
-                min={obtenerFechaMinima()} max={obtenerFechaMaxima()}
-                onChange={handleChange} disabled={creatingOrder}
+                min={obtenerFechaMinima()}
+                max={obtenerFechaMaxima()}
+                onChange={handleChange}
+                disabled={creatingOrder}
                 className={`${styles.formInput} ${errors.fecha_entrega ? styles.inputError : ""} ${creatingOrder ? styles.disabledInput : ""}`}
               />
               {errors.fecha_entrega && (<span className={styles.errorText}>{errors.fecha_entrega}</span>)}
             </div>
 
-            {/* Div de Prioridad (readonly y coloreado) */}
+            {/* Resto del código permanece igual... */}
             <div className={styles.formGroup}>
               <label htmlFor="Prioridad" className={styles.formLabel}>Prioridad:</label>
               <div
@@ -515,6 +607,7 @@ const handleCliente = (selectedOption) => {
               </div>
               {errors.prioridad && (<span className={styles.errorText}>{errors.prioridad}</span>)}
             </div>
+
 
             <div className={styles.formGroup}>
               <label htmlFor="Calle" className={styles.fieldLabel}>Calle</label>
