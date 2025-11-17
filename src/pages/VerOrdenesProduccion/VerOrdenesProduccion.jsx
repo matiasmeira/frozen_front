@@ -619,15 +619,6 @@ const VerOrdenesProduccion = () => {
                   </>
                 ) : null}
 
-                {orden.estado === "En proceso" ? (
-                  <button
-                    className={styles.btnCancelar}
-                    onClick={() => abrirModalConfirmacionCancelar(orden)}
-                  >
-                    Cancelar Orden
-                  </button>
-                ) : null}
-
                 {(orden.estado === "En proceso" || 
                   orden.estado === "Finalizada" || 
                   orden.estado === "Planificada") && (
