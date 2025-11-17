@@ -397,7 +397,8 @@ const handleCliente = (selectedOption) => {
       if (isNaN(fechaEntrega.getTime())) { nuevosErrores.fecha_entrega = "Fecha inválida"; esValido = false; }
       else {
           const diferenciaDias = Math.ceil((fechaEntrega - hoy) / (1000 * 60 * 60 * 24));
-          if (diferenciaDias < 3) { nuevosErrores.fecha_entrega = "La fecha debe ser al menos 3 días mayor"; esValido = false; }
+          // CAMBIO: De 3 días a 2 días
+          if (diferenciaDias < 2) { nuevosErrores.fecha_entrega = "La fecha debe ser al menos 2 días mayor"; esValido = false; }
           
           if (!esDiaHabil(fechaEntrega)) {
             nuevosErrores.fecha_entrega = "No se pueden seleccionar fines de semana";
@@ -501,15 +502,15 @@ const handleCliente = (selectedOption) => {
     }
   };
 
-  // Función para obtener la fecha mínima CORREGIDA
+  // Función para obtener la fecha mínima CORREGIDA - ahora 2 días después
   const obtenerFechaMinima = () => { 
     const f = new Date(); 
-    f.setDate(f.getDate() + 2);
+    f.setDate(f.getDate() + 2); // CAMBIO: Se mantiene +2 días
     const fechaHabil = obtenerProximaFechaHabil(f);
     return formatearFechaISO(fechaHabil);
   };
 
-  // Función para obtener la fecha máxima CORREGIDA
+  // Función para obtener la fecha máxima (se mantiene igual)
   const obtenerFechaMaxima = () => { 
     const f = new Date(); 
     f.setDate(f.getDate() + 30);
