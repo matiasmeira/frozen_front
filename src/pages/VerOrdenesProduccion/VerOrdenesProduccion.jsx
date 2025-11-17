@@ -47,6 +47,9 @@ const VerOrdenesProduccion = () => {
   const [razonCancelacion, setRazonCancelacion] = useState("");
   const [cancelando, setCancelando] = useState(false);
 
+  // NUEVO: Estado para el modal de confirmación simple
+  const [modalConfirmacionCancelarAbierto, setModalConfirmacionCancelarAbierto] = useState(false);
+
   // Estados para el modal de no conformidad
   const [modalNoConformidadAbierto, setModalNoConformidadAbierto] = useState(false);
   const [datosNoConformidad, setDatosNoConformidad] = useState({
@@ -190,14 +193,53 @@ const VerOrdenesProduccion = () => {
     }
   };
 
-  // Función para abrir el modal de cancelación
+  // NUEVO: Función para abrir el modal de confirmación simple
+  const abrirModalConfirmacionCancelar = (orden) => {
+    setOrdenSeleccionada(orden);
+    setModalConfirmacionCancelarAbierto(true);
+  };
+
+  // NUEVO: Función para cerrar el modal de confirmación simple
+  const cerrarModalConfirmacionCancelar = () => {
+    setModalConfirmacionCancelarAbierto(false);
+    setOrdenSeleccionada(null);
+  };
+
+  // NUEVO: Función para manejar la cancelación directa (sin razón)
+  const manejarCancelarOrdenDirecta = async () => {
+    if (!ordenSeleccionada) return;
+
+    setCancelando(true);
+    const toastId = toast.loading(`Cancelando orden #${ordenSeleccionada.id}...`);
+    try {
+      const response = await api.patch(
+        `/produccion/ordenes/${ordenSeleccionada.id}/actualizar_estado/`,
+        { id_estado_orden_produccion: 7 } // 7 = Cancelada
+      );
+
+      if (response.status !== 200) {
+        throw new Error(`Error HTTP: ${response.status}`);
+      }
+
+      await obtenerOrdenes(paginacion.currentPage);
+      cerrarModalConfirmacionCancelar();
+      toast.update(toastId, { render: `¡Orden #${ordenSeleccionada.id} cancelada exitosamente!`, type: "success", isLoading: false, autoClose: 3000 });
+    } catch (error) {
+      console.error("Error al cancelar la orden:", error);
+      toast.update(toastId, { render: `Error al cancelar la orden #${ordenSeleccionada.id}`, type: "error", isLoading: false, autoClose: 3000 });
+    } finally {
+      setCancelando(false);
+    }
+  };
+
+  // Función para abrir el modal de cancelación con razón (mantener por si se necesita)
   const abrirModalCancelar = (orden) => {
     setOrdenSeleccionada(orden);
     setRazonCancelacion("");
     setModalCancelarAbierto(true);
   };
 
-  // Función para cerrar el modal de cancelación
+  // Función para cerrar el modal de cancelación con razón
   const cerrarModalCancelar = () => {
     setModalCancelarAbierto(false);
     setOrdenSeleccionada(null);
@@ -205,8 +247,8 @@ const VerOrdenesProduccion = () => {
     setCancelando(false);
   };
 
-  // Función para manejar la cancelación de la orden
-  const manejarCancelarOrden = async () => {
+  // Función para manejar la cancelación de la orden con razón (mantener por si se necesita)
+  const manejarCancelarOrdenConRazon = async () => {
     if (!razonCancelacion.trim()) {
       toast.warn("Por favor, ingresa una razón para la cancelación");
       return;
@@ -226,7 +268,7 @@ const VerOrdenesProduccion = () => {
 
       await obtenerOrdenes(paginacion.currentPage);
       cerrarModalCancelar();
-      toast.update(toastId, { render: `¡Orden #${ordenSeleccionada.id} movida a "Cancelado"!`, type: "success", isLoading: false, autoClose: 3000 });
+      toast.update(toastId, { render: `¡Orden #${ordenSeleccionada.id} cancelada exitosamente!`, type: "success", isLoading: false, autoClose: 3000 });
     } catch (error) {
       console.error("Error al cancelar la orden:", error);
       toast.update(toastId, { render: `Error al cancelar la orden #${ordenSeleccionada.id}`, type: "error", isLoading: false, autoClose: 3000 });
@@ -350,44 +392,28 @@ const VerOrdenesProduccion = () => {
     });
   };
 
-  const manejarFinalizar = async (idOrden) => {
-    const toastId = toast.loading(`Finalizando orden #${idOrden}...`);
+  const formatearFecha = (fechaISO) => {
+    if (!fechaISO) return "No especificada";
+    
     try {
-      const response = await api.patch(
-        `/produccion/ordenes/${idOrden}/actualizar_estado/`,
-        { id_estado_orden_produccion: 2 } // 2 = Finalizada
-      );
-
-      await obtenerOrdenes(paginacion.currentPage);
-      toast.update(toastId, { render: `¡Orden #${idOrden} marcada como "Finalizada"!`, type: "success", isLoading: false, autoClose: 3000 });
+      // Crear la fecha directamente desde el string ISO sin interpretación de zona horaria
+      const fecha = new Date(fechaISO);
+      
+      // Verificar si la fecha es válida
+      if (isNaN(fecha.getTime())) {
+        return "Fecha inválida";
+      }
+      
+      // Usar toLocaleDateString para evitar problemas de zona horaria
+      // o extraer los componentes de fecha directamente del string ISO
+      const [anio, mes, dia] = fechaISO.split('T')[0].split('-');
+      
+      return `${dia.padStart(2, '0')}/${mes.padStart(2, '0')}/${anio}`;
     } catch (error) {
-      console.log(error);
-      toast.update(toastId, { render: `Error al finalizar la orden #${idOrden}`, type: "error", isLoading: false, autoClose: 3000 });
+      console.error("Error al formatear fecha:", error);
+      return "Error en fecha";
     }
   };
-
-const formatearFecha = (fechaISO) => {
-  if (!fechaISO) return "No especificada";
-  
-  try {
-    // Crear la fecha directamente desde el string ISO sin interpretación de zona horaria
-    const fecha = new Date(fechaISO);
-    
-    // Verificar si la fecha es válida
-    if (isNaN(fecha.getTime())) {
-      return "Fecha inválida";
-    }
-    
-    // Usar toLocaleDateString para evitar problemas de zona horaria
-    // o extraer los componentes de fecha directamente del string ISO
-    const [anio, mes, dia] = fechaISO.split('T')[0].split('-');
-    
-    return `${dia.padStart(2, '0')}/${mes.padStart(2, '0')}/${anio}`;
-  } catch (error) {
-    console.error("Error al formatear fecha:", error);
-    return "Error en fecha";
-  }
-};
 
   const limpiarFiltros = () => {
     setFiltroProducto("todos");
@@ -580,17 +606,26 @@ const formatearFecha = (fechaISO) => {
               </div>
 
               <div className={styles.cardFooter}>
-                {orden.estado === "En proceso" ? (
+                {orden.estado === "Pendiente de inicio" || orden.estado === "En espera" ? (
                   <>
                     {puedeCancelar() ? (
                       <button
                         className={styles.btnCancelar}
-                        onClick={() => abrirModalCancelar(orden)}
+                        onClick={() => abrirModalConfirmacionCancelar(orden)}
                       >
                         Cancelar
                       </button>
                     ) : null}
                   </>
+                ) : null}
+
+                {orden.estado === "En proceso" ? (
+                  <button
+                    className={styles.btnCancelar}
+                    onClick={() => abrirModalConfirmacionCancelar(orden)}
+                  >
+                    Cancelar Orden
+                  </button>
                 ) : null}
 
                 {(orden.estado === "En proceso" || 
@@ -645,7 +680,66 @@ const formatearFecha = (fechaISO) => {
         </div>
       )}
 
-      {/* Modal de Cancelación */}
+      {/* NUEVO: Modal de Confirmación Simple para Cancelar */}
+      <Modal
+        isOpen={modalConfirmacionCancelarAbierto}
+        onRequestClose={cerrarModalConfirmacionCancelar}
+        className={styles.modal}
+        overlayClassName={styles.overlay}
+        contentLabel="Confirmar Cancelación de Orden"
+      >
+        <div className={styles.modalContent}>
+          <h2 className={styles.modalTitulo}>Confirmar Cancelación</h2>
+
+          {ordenSeleccionada && (
+            <div className={styles.modalInfo}>
+              <p>
+                <strong>Orden #:</strong> {ordenSeleccionada.id}
+              </p>
+              <p>
+                <strong>Producto:</strong> {ordenSeleccionada.producto}
+              </p>
+              <p>
+                <strong>Cantidad:</strong> {ordenSeleccionada.cantidad} unidades
+              </p>
+              <p>
+                <strong>Estado Actual:</strong> {ordenSeleccionada.estado}
+              </p>
+            </div>
+          )}
+
+          <div className={styles.modalAdvertencia}>
+            <p>¿Estás seguro de que deseas cancelar esta orden de producción?</p>
+            <p><strong>Esta acción no se puede deshacer.</strong></p>
+          </div>
+
+          <div className={styles.modalActions}>
+            <button
+              onClick={cerrarModalConfirmacionCancelar}
+              className={styles.btnModalCancelar}
+              disabled={cancelando}
+            >
+              Volver
+            </button>
+            <button
+              onClick={manejarCancelarOrdenDirecta}
+              className={styles.btnModalConfirmarCancelar}
+              disabled={cancelando}
+            >
+              {cancelando ? (
+                <>
+                  <div className={styles.spinnerSmall}></div>
+                  Cancelando...
+                </>
+              ) : (
+                "Sí, Cancelar Orden"
+              )}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Modal de Cancelación con Razón (mantener por si se necesita) */}
       <Modal
         isOpen={modalCancelarAbierto}
         onRequestClose={cerrarModalCancelar}
@@ -697,7 +791,7 @@ const formatearFecha = (fechaISO) => {
               Volver
             </button>
             <button
-              onClick={manejarCancelarOrden}
+              onClick={manejarCancelarOrdenConRazon}
               className={styles.btnModalConfirmar}
               disabled={cancelando || !razonCancelacion.trim()}
             >

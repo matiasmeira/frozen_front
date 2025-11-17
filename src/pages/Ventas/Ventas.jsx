@@ -937,7 +937,7 @@ const Ventas = () => {
 							{/* BOTONES DE ACCIÓN - INCLUYENDO FACTURAR Y GESTIONAR ENTREGA */}
 							<div className={styles.botonesAccion}>
 								{/* Botón para facturar - SOLO SE MUESTRA SI id_estado_venta = 3 */}
-								{puedeFacturarOrden(orden) && (
+								{/* {puedeFacturarOrden(orden) && (
 									<button
 										onClick={(e) => {
 											e.stopPropagation();
@@ -947,7 +947,7 @@ const Ventas = () => {
 									>
 										Facturar
 									</button>
-								)}
+								)} */}
 
 								{/* Botón para cancelar orden - SOLO SE MUESTRA SI id_estado_venta = 9 (En Preparación) */}
 								{puedeCancelarOrden(orden) && (
