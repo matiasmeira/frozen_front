@@ -5,9 +5,6 @@ import { useState, useEffect, useCallback } from "react";
 import Select from "react-select";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-import { es } from "date-fns/locale";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -84,7 +81,7 @@ function CrearOrdenDeVenta() {
   const [direccionNormalizada, setDireccionNormalizada] = useState("");
   const [mostrarMapa, setMostrarMapa] = useState(false);
   const [coordenadas, setCoordenadas] = useState(null);
-  const [fechaEntrega, setFechaEntrega] = useState(null);
+  const [fechaTemporal, setFechaTemporal] = useState("");
 
   const [fields, setFields] = useState([
     { id: "1", id_producto: "", cantidad: 1, unidad_medida: "", cantidad_disponible: 0, precio_unitario: 0, subtotal: 0, },
@@ -114,13 +111,6 @@ function CrearOrdenDeVenta() {
       setCoordenadas(null);
     }
   }, [orden.calle, orden.altura, orden.localidad]);
-
-  // Sincronizar fechaEntrega con orden.fecha_entrega
-  useEffect(() => {
-    if (orden.fecha_entrega) {
-      setFechaEntrega(new Date(orden.fecha_entrega));
-    }
-  }, [orden.fecha_entrega]);
 
   const calcularTotalVenta = useCallback(() => {
     const total = fields.reduce((sum, field) => sum + field.subtotal, 0);
@@ -230,24 +220,30 @@ function CrearOrdenDeVenta() {
     if (errors[name]) { setErrors(prev => ({ ...prev, [name]: "", })); }
   };
 
-  // Manejador específico para fecha
-  const handleFechaChange = (fecha) => {
-    setFechaEntrega(fecha);
+  // Manejador específico para fecha que valida fin de semana
+  const handleFechaChange = (e) => {
+    const { value } = e.target;
     
-    if (fecha) {
+    // Guardar temporalmente para mostrar en el input
+    setFechaTemporal(value);
+    
+    if (value) {
+      const fechaSeleccionada = new Date(value);
+      
       // Validar si es fin de semana
-      if (esFinDeSemana(fecha)) {
+      if (esFinDeSemana(fechaSeleccionada)) {
         setErrors(prev => ({ 
           ...prev, 
           fecha_entrega: "No se permiten entregas los fines de semana (sábado o domingo)" 
         }));
+        // No actualizar la orden si es fin de semana
         setOrden(prev => ({ ...prev, fecha_entrega: "" }));
         return;
       } else {
         // Validar que sea al menos 3 días hábiles desde hoy
         const hoy = new Date();
         hoy.setHours(0, 0, 0, 0);
-        const diasHabiles = calcularDiasHabiles(hoy, fecha);
+        const diasHabiles = calcularDiasHabiles(hoy, fechaSeleccionada);
         
         if (diasHabiles < 3) {
           setErrors(prev => ({ 
@@ -262,8 +258,7 @@ function CrearOrdenDeVenta() {
         if (errors.fecha_entrega) {
           setErrors(prev => ({ ...prev, fecha_entrega: "" }));
         }
-        const fechaString = fecha.toISOString().split("T")[0];
-        setOrden(prev => ({ ...prev, fecha_entrega: fechaString }));
+        setOrden(prev => ({ ...prev, fecha_entrega: value }));
       }
     } else {
       // Si no hay valor, limpiar
@@ -509,7 +504,7 @@ function CrearOrdenDeVenta() {
         setDireccionNormalizada("");
         setMostrarMapa(false);
         setCoordenadas(null);
-        setFechaEntrega(null);
+        setFechaTemporal("");
       } else {
         throw new Error(response.data?.message || `Error ${response.status}`);
       }
@@ -527,23 +522,18 @@ function CrearOrdenDeVenta() {
     }
   };
 
-  // Función para filtrar fines de semana en el DatePicker
-  const filtrarFinesDeSemana = (fecha) => {
-    return !esFinDeSemana(fecha);
-  };
-
-  // Función para obtener fecha mínima (próximo día hábil dentro de 4 días)
+  // Función para obtener fecha mínima (4 días desde hoy, pero solo días hábiles)
   const obtenerFechaMinima = () => {
     const fecha = new Date();
     fecha.setDate(fecha.getDate() + 4);
-    return obtenerProximaFechaHabil(fecha);
+    return obtenerProximaFechaHabil(fecha).toISOString().split("T")[0];
   };
 
-  // Función para obtener fecha máxima (30 días desde hoy)
+  // Función para obtener fecha máxima (30 días desde hoy, pero solo días hábiles)
   const obtenerFechaMaxima = () => {
     const fecha = new Date();
     fecha.setDate(fecha.getDate() + 30);
-    return fecha;
+    return obtenerProximaFechaHabil(fecha).toISOString().split("T")[0];
   };
 
   const getSelectedProductValue = (fieldId) => { const f = fields.find(fi => fi.id === fieldId); if (!f || !f.id_producto) return null; const p = products.find(pr => pr.id_producto.toString() === f.id_producto); return p ? { value: p.id_producto, label: `${p.nombre}` } : null; };
@@ -604,19 +594,16 @@ function CrearOrdenDeVenta() {
             </div>
             <div className={styles.formGroup}>
               <label htmlFor="FechaEntrega" className={styles.formLabel}>Fecha Solicitada de Entrega</label>
-              <DatePicker
-                id="FechaEntrega"
-                selected={fechaEntrega}
-                onChange={handleFechaChange}
-                minDate={obtenerFechaMinima()}
-                maxDate={obtenerFechaMaxima()}
-                filterDate={filtrarFinesDeSemana}
+              <input
+                type="date" 
+                id="FechaEntrega" 
+                name="fecha_entrega"
+                value={fechaTemporal}
+                min={obtenerFechaMinima()} 
+                max={obtenerFechaMaxima()}
+                onChange={handleFechaChange} 
                 disabled={creatingOrder}
-                locale={es}
-                dateFormat="dd/MM/yyyy"
-                placeholderText="Seleccione una fecha"
                 className={`${styles.formInput} ${errors.fecha_entrega ? styles.inputError : ""} ${creatingOrder ? styles.disabledInput : ""}`}
-                isClearable
               />
               {errors.fecha_entrega && (<span className={styles.errorText}>{errors.fecha_entrega}</span>)}
               <div className={styles.fechaInfo}>

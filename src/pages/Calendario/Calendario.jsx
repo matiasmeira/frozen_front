@@ -44,16 +44,7 @@ const Calendario = () => {
 
   const getEventsForDay = (day) => {
     return events.filter(event => {
-      let eventDate;
-      
-      // Para OP (Produccion) usar fecha_planificada
-      if (event.type === 'Produccion') {
-        eventDate = parseUTCDate(event.fecha_planificada);
-      } 
-      // Para OC (Compra) y OV (Venta) usar start
-      else {
-        eventDate = parseUTCDate(event.start);
-      }
+      const eventDate = parseUTCDate(event.start);
       
       // Normalizar las fechas para comparación (solo año, mes, día)
       const normalizedEventDate = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
@@ -95,7 +86,7 @@ const Calendario = () => {
     return event.color || '#6B7280';
   };
 
-  const formatEventDate = (dateString, eventType) => {
+  const formatEventDate = (dateString) => {
     const date = parseUTCDate(dateString);
     return format(date, 'dd/MM/yyyy HH:mm');
   };
@@ -314,19 +305,31 @@ const Calendario = () => {
                           <strong>Tipo:</strong> {event.type}
                         </div>
                         
-                        {event.type === 'Produccion' ? (
+                        <div className={styles.modalEventDetail}>
+                          <strong>Fecha:</strong> {formatEventDate(event.start)}
+                        </div>
+                        
+                        {event.end && (
                           <div className={styles.modalEventDetail}>
-                            <strong>Fecha Planificada:</strong> {formatEventDate(event.fecha_planificada, event.type)}
-                          </div>
-                        ) : (
-                          <div className={styles.modalEventDetail}>
-                            <strong>Fecha:</strong> {formatEventDate(event.start, event.type)}
+                            <strong>Hasta:</strong> {formatEventDate(event.end)}
                           </div>
                         )}
                         
-                        {event.quantity && (
+                        {event.cantidad_planificada_dia && (
                           <div className={styles.modalEventDetail}>
-                            <strong>Cantidad:</strong> {event.quantity} u.
+                            <strong>Cantidad Planificada:</strong> {event.cantidad_planificada_dia} u.
+                          </div>
+                        )}
+                        
+                        {event.horas_reservadas && (
+                          <div className={styles.modalEventDetail}>
+                            <strong>Horas Reservadas:</strong> {event.horas_reservadas} h
+                          </div>
+                        )}
+                        
+                        {event.linea && (
+                          <div className={styles.modalEventDetail}>
+                            <strong>Línea:</strong> {event.linea}
                           </div>
                         )}
                         
