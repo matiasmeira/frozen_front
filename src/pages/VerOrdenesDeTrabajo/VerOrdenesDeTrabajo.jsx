@@ -338,7 +338,7 @@ const VerOrdenesDeTrabajo = () => {
 			const cantidadDesperdiciada = tieneDesperdiciosRegistrados()
 				? parseInt(cantidadDesperdicioFinalizar)
 				: 0;
-			const produccionFinal = cantidadProgramada - cantidadDesperdiciada;
+			const produccionFinal = cantidadProgramada;
 
 			const payloadFinalizar = {
 				produccion_bruta: produccionFinal,
