@@ -57,11 +57,11 @@ const Calendario = () => {
   const getEventTypeClass = (type) => {
     switch (type) {
       case 'Produccion':
-        return styles.eventProduction;
+        return styles.eventOP;
       case 'Compra (Recepción)':
-        return styles.eventCompra;
+        return styles.eventOC;
       case 'Venta (Fecha Estimada)':
-        return styles.eventVenta;
+        return styles.eventOV;
       default:
         return styles.eventDefault;
     }
@@ -89,6 +89,42 @@ const Calendario = () => {
   const formatEventDate = (dateString) => {
     const date = parseUTCDate(dateString);
     return format(date, 'dd/MM/yyyy HH:mm');
+  };
+
+  // Función para extraer el ID real de OP del título
+  const getEventDisplayId = (event) => {
+    // Si el evento es de tipo Producción, buscar el ID de OP en el título
+    if (event.type === 'Produccion') {
+      // Buscar patrones como "OP-123" en el título
+      const opMatch = event.title.match(/OP-?\d+/i);
+      if (opMatch) {
+        return opMatch[0].toUpperCase();
+      }
+      
+      // Si no encuentra OP, buscar otros patrones de ID
+      const idMatch = event.title.match(/(\d+)/);
+      if (idMatch) {
+        return `OP-${idMatch[1]}`;
+      }
+    }
+    
+    // Para otros tipos de eventos, usar el ID del evento
+    return event.id || 'EV';
+  };
+
+  // Función para extraer la descripción sin el ID
+  const getEventDisplayTitle = (event) => {
+    let title = event.title;
+    
+    // Remover el ID de OP si existe en el título
+    if (event.type === 'Produccion') {
+      title = title.replace(/OP-?\d+\s*:?\s*/i, '');
+    }
+    
+    // Remover cualquier otro patrón de ID al inicio
+    title = title.replace(/^[A-Z]{2,3}-?\d+\s*:?\s*/, '');
+    
+    return title.trim() || 'Sin título';
   };
 
   const handleDayClick = (day) => {
@@ -216,9 +252,11 @@ const Calendario = () => {
                           title={event.title}
                           style={{ backgroundColor: getEventColor(event) }}
                         >
-                          <span className={styles.eventId}>{event.id}</span>
+                          <span className={styles.eventId}>
+                            {getEventDisplayId(event)}
+                          </span>
                           <span className={styles.eventTitle}>
-                            {event.title.split(':')[1]?.trim() || event.title}
+                            {getEventDisplayTitle(event)}
                           </span>
                         </div>
                       ))}
@@ -236,25 +274,21 @@ const Calendario = () => {
           })}
         </div>
 
-        {/* Leyenda */}
         <div className={styles.legend}>
           <div className={styles.legendItem}>
-            <div className={`${styles.legendColor} ${styles.legendProduction}`}></div>
+            <div className={`${styles.legendColor} ${styles.legendOP}`}></div>
             <span>Producción (OP)</span>
           </div>
           <div className={styles.legendItem}>
-            <div className={`${styles.legendColor} ${styles.legendCompra}`}></div>
+            <div className={`${styles.legendColor} ${styles.legendOC}`}></div>
             <span>Compra (OC)</span>
           </div>
           <div className={styles.legendItem}>
-            <div className={`${styles.legendColor} ${styles.legendVenta}`}></div>
+            <div className={`${styles.legendColor} ${styles.legendOV}`}></div>
             <span>Venta (OV)</span>
           </div>
-          <div className={styles.legendStatus}>
-            <span className={styles.statusEspera}>En espera/Creada</span>
-            <span className={styles.statusProceso}>En proceso/Planificada</span>
-          </div>
         </div>
+
       </div>
 
       {/* Modal para mostrar eventos del día */}
@@ -292,13 +326,17 @@ const Calendario = () => {
                       style={{ borderLeftColor: getEventColor(event) }}
                     >
                       <div className={styles.modalEventHeader}>
-                        <span className={styles.modalEventId}>{event.id}</span>
+                        <span className={styles.modalEventId}>
+                          {getEventDisplayId(event)}
+                        </span>
                         <span className={`${styles.modalEventStatus} ${getEventStatusClass(event.status)}`}>
                           {event.status}
                         </span>
                       </div>
                       
-                      <h3 className={styles.modalEventTitle}>{event.title}</h3>
+                      <h3 className={styles.modalEventTitle}>
+                        {getEventDisplayTitle(event)}
+                      </h3>
                       
                       <div className={styles.modalEventDetails}>
                         <div className={styles.modalEventDetail}>

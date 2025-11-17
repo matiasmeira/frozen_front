@@ -182,16 +182,23 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.eventProduction {
-  background: #e8f5e8;
-  border-left-color: #27ae60;
-  color: #155724;
+/* EVENT TYPES - CORREGIDOS */
+.eventOP {
+  background: #fff9e6;
+  border-left-color: #ffc107;
+  color: #856404;
 }
 
-.eventCompra {
+.eventOC {
   background: #e3f2fd;
   border-left-color: #2196f3;
   color: #0d47a1;
+}
+
+.eventOV {
+  background: #e8f5e8;
+  border-left-color: #27ae60;
+  color: #155724;
 }
 
 .eventDefault {
@@ -258,12 +265,16 @@
   border-radius: 3px;
 }
 
-.legendProduction {
-  background: #27ae60;
+.legendOP {
+  background: #ffc107;
 }
 
-.legendCompra {
+.legendOC {
   background: #2196f3;
+}
+
+.legendOV {
+  background: #27ae60;
 }
 
 .legendStatus {
@@ -476,14 +487,20 @@
   background: #5a6268;
 }
 
-.modalEvent.eventProduction {
-  background: #e8f5e8;
-  border-left-color: #27ae60;
+/* MODAL EVENT TYPES - CORREGIDOS */
+.modalEvent.eventOP {
+  background: #fff9e6;
+  border-left-color: #ffc107;
 }
 
-.modalEvent.eventCompra {
+.modalEvent.eventOC {
   background: #e3f2fd;
   border-left-color: #2196f3;
+}
+
+.modalEvent.eventOV {
+  background: #e8f5e8;
+  border-left-color: #27ae60;
 }
 
 .modalEvent.eventDefault {

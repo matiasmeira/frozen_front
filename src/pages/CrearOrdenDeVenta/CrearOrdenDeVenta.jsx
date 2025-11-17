@@ -24,6 +24,7 @@ const formatearPrecio = (precio) => {
 const normalizarDireccion = (calle, altura, localidad) => {
   if (!calle || !altura || !localidad) return null;
   
+  // Normalizar: quitar espacios extras, capitalizar, etc.
   const calleNormalizada = calle
     .trim()
     .toLowerCase()
@@ -39,37 +40,6 @@ const normalizarDireccion = (calle, altura, localidad) => {
   return `${calleNormalizada} ${altura}, ${localidadNormalizada}, Argentina`;
 };
 
-// Función para verificar si una fecha es fin de semana (sábado o domingo)
-const esFinDeSemana = (fecha) => {
-  const diaSemana = fecha.getDay();
-  return diaSemana === 0 || diaSemana === 6; // 0 = domingo, 6 = sábado
-};
-
-// Función para obtener la próxima fecha hábil (excluyendo fines de semana)
-const obtenerProximaFechaHabil = (fecha) => {
-  const nuevaFecha = new Date(fecha);
-  while (esFinDeSemana(nuevaFecha)) {
-    nuevaFecha.setDate(nuevaFecha.getDate() + 1);
-  }
-  return nuevaFecha;
-};
-
-// Función para calcular días hábiles entre dos fechas
-const calcularDiasHabiles = (fechaInicio, fechaFin) => {
-  let dias = 0;
-  const fechaActual = new Date(fechaInicio);
-  const fechaFinal = new Date(fechaFin);
-  
-  while (fechaActual <= fechaFinal) {
-    if (!esFinDeSemana(fechaActual)) {
-      dias++;
-    }
-    fechaActual.setDate(fechaActual.getDate() + 1);
-  }
-  
-  return dias;
-};
-
 function CrearOrdenDeVenta() {
   const [cantidadElementos, setCantidadElementos] = useState(1);
   const [clientes, setClientes] = useState([]);
@@ -81,7 +51,6 @@ function CrearOrdenDeVenta() {
   const [direccionNormalizada, setDireccionNormalizada] = useState("");
   const [mostrarMapa, setMostrarMapa] = useState(false);
   const [coordenadas, setCoordenadas] = useState(null);
-  const [fechaTemporal, setFechaTemporal] = useState("");
 
   const [fields, setFields] = useState([
     { id: "1", id_producto: "", cantidad: 1, unidad_medida: "", cantidad_disponible: 0, precio_unitario: 0, subtotal: 0, },
@@ -192,6 +161,7 @@ function CrearOrdenDeVenta() {
   // Función para geocodificar la dirección
   const geocodificarDireccion = async (direccion) => {
     try {
+      // Usando Nominatim (OpenStreetMap) - servicio gratuito
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(direccion)}&limit=1&countrycodes=ar`
       );
@@ -220,55 +190,6 @@ function CrearOrdenDeVenta() {
     if (errors[name]) { setErrors(prev => ({ ...prev, [name]: "", })); }
   };
 
-  // Manejador específico para fecha que valida fin de semana
-  const handleFechaChange = (e) => {
-    const { value } = e.target;
-    
-    // Guardar temporalmente para mostrar en el input
-    setFechaTemporal(value);
-    
-    if (value) {
-      const fechaSeleccionada = new Date(value);
-      
-      // Validar si es fin de semana
-      if (esFinDeSemana(fechaSeleccionada)) {
-        setErrors(prev => ({ 
-          ...prev, 
-          fecha_entrega: "No se permiten entregas los fines de semana (sábado o domingo)" 
-        }));
-        // No actualizar la orden si es fin de semana
-        setOrden(prev => ({ ...prev, fecha_entrega: "" }));
-        return;
-      } else {
-        // Validar que sea al menos 3 días hábiles desde hoy
-        const hoy = new Date();
-        hoy.setHours(0, 0, 0, 0);
-        const diasHabiles = calcularDiasHabiles(hoy, fechaSeleccionada);
-        
-        if (diasHabiles < 3) {
-          setErrors(prev => ({ 
-            ...prev, 
-            fecha_entrega: "La fecha debe ser al menos 3 días hábiles mayor (excluyendo fines de semana)" 
-          }));
-          setOrden(prev => ({ ...prev, fecha_entrega: "" }));
-          return;
-        }
-        
-        // Si pasa todas las validaciones, limpiar errores y actualizar
-        if (errors.fecha_entrega) {
-          setErrors(prev => ({ ...prev, fecha_entrega: "" }));
-        }
-        setOrden(prev => ({ ...prev, fecha_entrega: value }));
-      }
-    } else {
-      // Si no hay valor, limpiar
-      setOrden(prev => ({ ...prev, fecha_entrega: "" }));
-      if (errors.fecha_entrega) {
-        setErrors(prev => ({ ...prev, fecha_entrega: "" }));
-      }
-    }
-  };
-
   const handleAlturaChange = (e) => {
     const { value } = e.target;
     const soloNumeros = value.replace(/[^0-9]/g, '');
@@ -276,50 +197,53 @@ function CrearOrdenDeVenta() {
     if (errors.altura) { setErrors(prev => ({ ...prev, altura: "", })); }
   };
 
-  // --- LÓGICA DE PRIORIDAD AUTOMÁTICA Y DIRECCIÓN ---
-  const handleCliente = (selectedOption) => {
-    const clienteId = selectedOption?.value || "";
-    let clientePrioridadId = "";
-    let direccionCliente = { calle: "", altura: "", localidad: "" };
+// --- LÓGICA DE PRIORIDAD AUTOMÁTICA Y DIRECCIÓN ---
+const handleCliente = (selectedOption) => {
+  const clienteId = selectedOption?.value || "";
+  let clientePrioridadId = "";
+  let direccionCliente = { calle: "", altura: "", localidad: "" };
 
-    if (clienteId) {
-      const clienteSeleccionado = clientes.find(c => c.id_cliente === parseInt(clienteId));
-      console.log(clienteSeleccionado)
-      if (clienteSeleccionado) {
-        if (clienteSeleccionado.id_prioridad != null) {
-          clientePrioridadId = clienteSeleccionado.id_prioridad.toString();
-        } else {
-          toast.warn(`El cliente seleccionado no tiene una prioridad predefinida.`);
-        }
-        
-        direccionCliente = {
-          calle: clienteSeleccionado.calle || "",
-          altura: clienteSeleccionado.altura || "",
-          localidad: clienteSeleccionado.localidad || ""
-        };
+  if (clienteId) {
+    // Buscar el cliente en la lista completa
+    const clienteSeleccionado = clientes.find(c => c.id_cliente === parseInt(clienteId));
+    console.log(clienteSeleccionado)
+    if (clienteSeleccionado) {
+      // Asignar la prioridad del cliente
+      if (clienteSeleccionado.id_prioridad != null) {
+        clientePrioridadId = clienteSeleccionado.id_prioridad.toString();
+      } else {
+        toast.warn(`El cliente seleccionado no tiene una prioridad predefinida.`);
       }
+      
+      // Autocompletar los campos de dirección con los datos del cliente
+      direccionCliente = {
+        calle: clienteSeleccionado.calle || "",
+        altura: clienteSeleccionado.altura || "",
+        localidad: clienteSeleccionado.localidad || ""
+      };
     }
+  }
 
-    setOrden(prev => ({
+  setOrden(prev => ({
+    ...prev,
+    id_cliente: clienteId,
+    id_prioridad: clientePrioridadId, // Setea la prioridad automáticamente
+    calle: direccionCliente.calle,
+    altura: direccionCliente.altura,
+    localidad: direccionCliente.localidad
+  }));
+
+  if (errors.cliente || errors.prioridad || errors.calle || errors.altura || errors.localidad) {
+    setErrors(prev => ({
       ...prev,
-      id_cliente: clienteId,
-      id_prioridad: clientePrioridadId,
-      calle: direccionCliente.calle,
-      altura: direccionCliente.altura,
-      localidad: direccionCliente.localidad
+      cliente: clienteId ? "" : prev.cliente,
+      prioridad: clientePrioridadId ? "" : (clienteId ? prev.prioridad : ""),
+      calle: direccionCliente.calle ? "" : prev.calle,
+      altura: direccionCliente.altura ? "" : prev.altura,
+      localidad: direccionCliente.localidad ? "" : prev.localidad
     }));
-
-    if (errors.cliente || errors.prioridad || errors.calle || errors.altura || errors.localidad) {
-      setErrors(prev => ({
-        ...prev,
-        cliente: clienteId ? "" : prev.cliente,
-        prioridad: clientePrioridadId ? "" : (clienteId ? prev.prioridad : ""),
-        calle: direccionCliente.calle ? "" : prev.calle,
-        altura: direccionCliente.altura ? "" : prev.altura,
-        localidad: direccionCliente.localidad ? "" : prev.localidad
-      }));
-    }
-  };
+  }
+};
 
   const obtenerClientesNombres = useCallback(() => {
     return clientes.sort((a,b) => (a.nombre || '').localeCompare(b.nombre || ''))
@@ -393,38 +317,21 @@ function CrearOrdenDeVenta() {
     let esValido = true;
 
     if (!orden.id_cliente) { nuevosErrores.cliente = "Debes seleccionar un cliente"; esValido = false; }
+    // Validar prioridad autocompletada
     if (!orden.id_prioridad) { 
         nuevosErrores.prioridad = "El cliente no tiene prioridad (o no seleccionó cliente)"; 
         esValido = false; 
     }
-    
-    if (!orden.fecha_entrega) { 
-      nuevosErrores.fecha_entrega = "Debes indicar una fecha de entrega"; 
-      esValido = false; 
-    } else {
+    if (!orden.fecha_entrega) { nuevosErrores.fecha_entrega = "Debes indicar una fecha de entrega"; esValido = false; }
+    else {
+      const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
       const fechaEntrega = new Date(orden.fecha_entrega);
-      
-      if (isNaN(fechaEntrega.getTime())) { 
-        nuevosErrores.fecha_entrega = "Fecha inválida"; 
-        esValido = false; 
-      } else {
-        // Verificar que no sea fin de semana
-        if (esFinDeSemana(fechaEntrega)) {
-          nuevosErrores.fecha_entrega = "No se permiten entregas los fines de semana (sábado o domingo)";
-          esValido = false;
-        } else {
-          // Validar los 3 días hábiles mínimos
-          const hoy = new Date();
-          hoy.setHours(0, 0, 0, 0);
-          const diasHabiles = calcularDiasHabiles(hoy, fechaEntrega);
-          if (diasHabiles < 3) { 
-            nuevosErrores.fecha_entrega = "La fecha debe ser al menos 3 días hábiles mayor (excluyendo fines de semana)"; 
-            esValido = false; 
-          }
-        }
+      if (isNaN(fechaEntrega.getTime())) { nuevosErrores.fecha_entrega = "Fecha inválida"; esValido = false; }
+      else {
+          const diferenciaDias = Math.ceil((fechaEntrega - hoy) / (1000 * 60 * 60 * 24));
+          if (diferenciaDias < 3) { nuevosErrores.fecha_entrega = "La fecha debe ser al menos 3 días mayor"; esValido = false; }
       }
     }
-
     if (!orden.calle?.trim()) { nuevosErrores.calle = "Debes ingresar la calle"; esValido = false; }
     if (!orden.altura?.trim()) { nuevosErrores.altura = "Debes ingresar la altura"; esValido = false; }
     if (!orden.localidad?.trim()) { nuevosErrores.localidad = "Debes ingresar la localidad"; esValido = false; }
@@ -487,7 +394,7 @@ function CrearOrdenDeVenta() {
       ...orden,
       productos: prodsEnviar,
       id_empleado: idEmpleadoLogueado,
-      direccion_normalizada: direccionNormalizada
+      direccion_normalizada: direccionNormalizada // Guardar la dirección normalizada
     };
 
     console.log("Enviando orden:", nuevaOrden);
@@ -504,7 +411,6 @@ function CrearOrdenDeVenta() {
         setDireccionNormalizada("");
         setMostrarMapa(false);
         setCoordenadas(null);
-        setFechaTemporal("");
       } else {
         throw new Error(response.data?.message || `Error ${response.status}`);
       }
@@ -522,20 +428,8 @@ function CrearOrdenDeVenta() {
     }
   };
 
-  // Función para obtener fecha mínima (4 días desde hoy, pero solo días hábiles)
-  const obtenerFechaMinima = () => {
-    const fecha = new Date();
-    fecha.setDate(fecha.getDate() + 4);
-    return obtenerProximaFechaHabil(fecha).toISOString().split("T")[0];
-  };
-
-  // Función para obtener fecha máxima (30 días desde hoy, pero solo días hábiles)
-  const obtenerFechaMaxima = () => {
-    const fecha = new Date();
-    fecha.setDate(fecha.getDate() + 30);
-    return obtenerProximaFechaHabil(fecha).toISOString().split("T")[0];
-  };
-
+  const obtenerFechaMinima = () => { const f = new Date(); f.setDate(f.getDate() + 4); return f.toISOString().split("T")[0]; };
+  const obtenerFechaMaxima = () => { const f = new Date(); f.setDate(f.getDate() + 30); return f.toISOString().split("T")[0]; };
   const getSelectedProductValue = (fieldId) => { const f = fields.find(fi => fi.id === fieldId); if (!f || !f.id_producto) return null; const p = products.find(pr => pr.id_producto.toString() === f.id_producto); return p ? { value: p.id_producto, label: `${p.nombre}` } : null; };
 
   // Función para obtener la clase CSS de prioridad
@@ -582,6 +476,7 @@ function CrearOrdenDeVenta() {
                 isSearchable
                 className={`${errors.cliente ? styles.inputError : ""} ${creatingOrder ? styles.disabledInput : ""}`}
                 placeholder="Seleccione una opción"
+                // SOLUCIÓN PARA MENÚ CORTADO
                 menuPortalTarget={document.body}
                 menuPosition="fixed"
                 menuShouldScrollIntoView={false}
@@ -595,22 +490,16 @@ function CrearOrdenDeVenta() {
             <div className={styles.formGroup}>
               <label htmlFor="FechaEntrega" className={styles.formLabel}>Fecha Solicitada de Entrega</label>
               <input
-                type="date" 
-                id="FechaEntrega" 
-                name="fecha_entrega"
-                value={fechaTemporal}
-                min={obtenerFechaMinima()} 
-                max={obtenerFechaMaxima()}
-                onChange={handleFechaChange} 
-                disabled={creatingOrder}
+                type="date" id="FechaEntrega" name="fecha_entrega"
+                value={orden.fecha_entrega}
+                min={obtenerFechaMinima()} max={obtenerFechaMaxima()}
+                onChange={handleChange} disabled={creatingOrder}
                 className={`${styles.formInput} ${errors.fecha_entrega ? styles.inputError : ""} ${creatingOrder ? styles.disabledInput : ""}`}
               />
               {errors.fecha_entrega && (<span className={styles.errorText}>{errors.fecha_entrega}</span>)}
-              <div className={styles.fechaInfo}>
-                <small>No se permiten entregas los sábados ni domingos</small>
-              </div>
             </div>
 
+            {/* Div de Prioridad (readonly y coloreado) */}
             <div className={styles.formGroup}>
               <label htmlFor="Prioridad" className={styles.formLabel}>Prioridad:</label>
               <div
@@ -643,6 +532,7 @@ function CrearOrdenDeVenta() {
               {errors.localidad && (<span className={styles.errorText}>{errors.localidad}</span>)}
             </div>
 
+            {/* Sección de Dirección Normalizada y Mapa */}
             {direccionNormalizada && (
               <div className={styles.direccionSection}>
                 <div className={styles.direccionNormalizada}>
@@ -708,6 +598,7 @@ function CrearOrdenDeVenta() {
                           className={`${creatingOrder ? styles.disabledInput : ""}`}
                           placeholder="Seleccione un producto"
                           noOptionsMessage={() => "No hay productos disponibles"}
+                          // SOLUCIÓN PARA MENÚ CORTADO
                           menuPortalTarget={document.body}
                           menuPosition="fixed"
                           menuShouldScrollIntoView={false}
