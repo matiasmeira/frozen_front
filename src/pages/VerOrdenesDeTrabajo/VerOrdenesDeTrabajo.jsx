@@ -318,6 +318,19 @@ const VerOrdenesDeTrabajo = () => {
 		try {
 			setProcesando(ordenId);
 
+
+			// Paso 2: Calcular producción final
+			const cantidadProgramada = ordenParaFinalizar.cantidad_programada;
+			const cantidadDesperdiciada = tieneDesperdiciosRegistrados()
+				? parseInt(cantidadDesperdicioFinalizar)
+				: 0;
+			const produccionFinal = cantidadProgramada;
+
+			const payloadFinalizar = {
+				produccion_bruta: produccionFinal,
+			};
+
+			
 			// Paso 1: Registrar desperdicios si existen
 			if (tieneDesperdiciosRegistrados()) {
 				const payloadDesperdicio = {
@@ -332,17 +345,6 @@ const VerOrdenesDeTrabajo = () => {
 					payloadDesperdicio
 				);
 			}
-
-			// Paso 2: Calcular producción final
-			const cantidadProgramada = ordenParaFinalizar.cantidad_programada;
-			const cantidadDesperdiciada = tieneDesperdiciosRegistrados()
-				? parseInt(cantidadDesperdicioFinalizar)
-				: 0;
-			const produccionFinal = cantidadProgramada;
-
-			const payloadFinalizar = {
-				produccion_bruta: produccionFinal,
-			};
 
 			console.log(
 				"Finalizando orden:",

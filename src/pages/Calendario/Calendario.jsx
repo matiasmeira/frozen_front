@@ -88,7 +88,7 @@ const Calendario = () => {
 
   const formatEventDate = (dateString) => {
     const date = parseUTCDate(dateString);
-    return format(date, 'dd/MM/yyyy HH:mm');
+    return format(date, 'dd/MM/yyyy');
   };
 
   // Función para extraer el ID real de OP del título
