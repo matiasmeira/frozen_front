@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import CrearOrdenDespacho from '../CrearOrdenDespacho/CrearOrdenDespacho.jsx';
 import styles from './OrdenesDespacho.module.css';
 
@@ -20,6 +22,54 @@ const OrdenesDespacho = () => {
   const [selectedOrdenes, setSelectedOrdenes] = useState({});
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
 
+  // Función para mostrar errores
+  const showError = (message) => {
+    toast.error(message, {
+      position: "top-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+    });
+  };
+
+  // Función para mostrar éxito
+  const showSuccess = (message) => {
+    toast.success(message, {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+    });
+  };
+
+  // Función para mostrar advertencias
+  const showWarning = (message) => {
+    toast.warning(message, {
+      position: "top-right",
+      autoClose: 4000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+    });
+  };
+
+  // Función para mostrar información
+  const showInfo = (message) => {
+    toast.info(message, {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+    });
+  };
+
   useEffect(() => {
     fetchRepartidores();
     fetchEstados();
@@ -36,6 +86,7 @@ const OrdenesDespacho = () => {
       setRepartidores(response.data.results);
     } catch (err) {
       console.error('Error fetching repartidores:', err);
+      showError('Error al cargar la lista de repartidores');
     }
   };
 
@@ -45,6 +96,7 @@ const OrdenesDespacho = () => {
       setEstados(response.data.results);
     } catch (err) {
       console.error('Error fetching estados:', err);
+      showError('Error al cargar los estados de despacho');
     }
   };
 
@@ -76,9 +128,11 @@ const OrdenesDespacho = () => {
       setOrdenes(response.data);
       setLoading(false);
     } catch (err) {
-      setError('Error al cargar las órdenes de despacho');
+      const errorMessage = 'Error al cargar las órdenes de despacho';
+      setError(errorMessage);
       setLoading(false);
       console.error('Error fetching orders:', err);
+      showError(errorMessage);
     }
   };
 
@@ -105,7 +159,7 @@ const OrdenesDespacho = () => {
 
   const finalizarOrden = async (ordenId) => {
     if (!selectedOrdenes[ordenId] || selectedOrdenes[ordenId].length === 0) {
-      alert('Por favor selecciona al menos una orden de venta para marcar como entregada');
+      showWarning('Por favor selecciona al menos una orden de venta para marcar como entregada');
       return;
     }
 
@@ -124,10 +178,11 @@ const OrdenesDespacho = () => {
         return newSelected;
       });
       
-      alert('Orden finalizada exitosamente');
+      showSuccess(`Orden #${ordenId} finalizada exitosamente`);
     } catch (err) {
       console.error('Error finalizando orden:', err);
-      alert('Error al finalizar la orden. Por favor intenta nuevamente.');
+      const errorMessage = err.response?.data?.message || 'Error al finalizar la orden. Por favor intenta nuevamente.';
+      showError(errorMessage);
     } finally {
       setFinalizando(prev => ({ ...prev, [ordenId]: false }));
     }
@@ -135,7 +190,7 @@ const OrdenesDespacho = () => {
 
   const handleOrdenCreada = () => {
     setMostrarFormulario(false);
-    fetchOrdenes(); // Recargar la lista
+    fetchOrdenes();
   };
 
   const handleRepartidorFiltroChange = (event) => {
@@ -149,6 +204,7 @@ const OrdenesDespacho = () => {
   const limpiarFiltros = () => {
     setRepartidorFiltro('');
     setEstadoFiltro('');
+    showInfo('Filtros limpiados correctamente');
   };
 
   const formatFecha = (fechaString) => {
@@ -187,15 +243,39 @@ const OrdenesDespacho = () => {
   };
 
   if (loading && ordenes.length === 0) {
-    return <div className={styles.loading}>Cargando órdenes de despacho...</div>;
+    return (
+      <>
+        <ToastContainer />
+        <div className={styles.loading}>Cargando órdenes de despacho...</div>
+      </>
+    );
   }
 
   if (error) {
-    return <div className={styles.error}>{error}</div>;
+    return (
+      <>
+        <ToastContainer />
+        <div className={styles.error}>{error}</div>
+      </>
+    );
   }
 
   return (
     <div className={styles.container}>
+      {/* Container de Toastify */}
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+      
       <div className={styles.header}>
         <h1 className={styles.title}>Órdenes de Despacho</h1>
         <button 

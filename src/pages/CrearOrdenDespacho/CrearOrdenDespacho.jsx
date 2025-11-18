@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Select from 'react-select';
+import { toast } from 'react-toastify';
 import styles from './CrearOrdenDespacho.module.css';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
@@ -38,7 +39,7 @@ const CrearOrdenDespacho = ({ onCancel, onSuccess }) => {
         setRepartidores(allRepartidores);
       } catch (err) {
         console.error('Error cargando repartidores:', err);
-        setError('Error al cargar la lista de repartidores');
+        toast.error('Error al cargar la lista de repartidores');
       } finally {
         setLoadingRepartidores(false);
       }
@@ -56,7 +57,7 @@ const CrearOrdenDespacho = ({ onCancel, onSuccess }) => {
         setOrdenesVentaDisponibles(response.data);
       } catch (err) {
         console.error('Error cargando órdenes de venta:', err);
-        setError('Error al cargar las órdenes de venta disponibles');
+        toast.error('Error al cargar las órdenes de venta disponibles');
       } finally {
         setLoadingOrdenesVenta(false);
       }
@@ -99,11 +100,16 @@ const CrearOrdenDespacho = ({ onCancel, onSuccess }) => {
         }));
         setOrdenVentaSeleccionada(null);
         setError('');
+        toast.success('Orden de venta agregada correctamente');
       } else {
-        setError('Esta orden de venta ya está agregada');
+        const errorMsg = 'Esta orden de venta ya está agregada';
+        setError(errorMsg);
+        toast.warning(errorMsg);
       }
     } else {
-      setError('Por favor selecciona una orden de venta');
+      const errorMsg = 'Por favor selecciona una orden de venta';
+      setError(errorMsg);
+      toast.warning(errorMsg);
     }
   };
 
@@ -112,6 +118,7 @@ const CrearOrdenDespacho = ({ onCancel, onSuccess }) => {
       ...prev,
       ordenes_venta: prev.ordenes_venta.filter(id => id !== ordenId)
     }));
+    toast.info('Orden de venta eliminada de la lista');
   };
 
   const handleSubmit = async (e) => {
@@ -120,12 +127,16 @@ const CrearOrdenDespacho = ({ onCancel, onSuccess }) => {
 
     // Validaciones
     if (!formData.repartidor_id) {
-      setError('Debe seleccionar un repartidor');
+      const errorMsg = 'Debe seleccionar un repartidor';
+      setError(errorMsg);
+      toast.warning(errorMsg);
       return;
     }
 
     if (formData.ordenes_venta.length === 0) {
-      setError('Debe agregar al menos una orden de venta');
+      const errorMsg = 'Debe agregar al menos una orden de venta';
+      setError(errorMsg);
+      toast.warning(errorMsg);
       return;
     }
 
@@ -138,7 +149,9 @@ const CrearOrdenDespacho = ({ onCancel, onSuccess }) => {
       );
 
       if (!repartidorSeleccionado) {
-        setError('Repartidor no encontrado');
+        const errorMsg = 'Repartidor no encontrado';
+        setError(errorMsg);
+        toast.error(errorMsg);
         return;
       }
 
@@ -155,15 +168,24 @@ const CrearOrdenDespacho = ({ onCancel, onSuccess }) => {
 
       await api.post('despachos/ordenes-despacho/', datosEnvio);
       
+      toast.success('¡Orden de despacho creada exitosamente!');
       onSuccess();
-      alert('Orden de despacho creada exitosamente');
     } catch (err) {
       console.error('Error creando orden de despacho:', err);
+      let errorMessage = 'Error al crear la orden de despacho. Por favor intenta nuevamente.';
+      
       if (err.response?.data) {
-        setError(`Error: ${JSON.stringify(err.response.data)}`);
-      } else {
-        setError('Error al crear la orden de despacho. Por favor intenta nuevamente.');
+        if (typeof err.response.data === 'string') {
+          errorMessage = err.response.data;
+        } else if (err.response.data.detail) {
+          errorMessage = err.response.data.detail;
+        } else {
+          errorMessage = `Error: ${JSON.stringify(err.response.data)}`;
+        }
       }
+      
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

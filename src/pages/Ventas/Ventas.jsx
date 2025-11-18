@@ -496,7 +496,7 @@ const Ventas = () => {
 	const iniciarEdicion = (orden) => {
 		// Verificar si la orden puede ser editada
 		if (!puedeEditarOrden(orden)) {
-			alert("Solo se pueden editar órdenes en estado 'Creada' o 'En Preparación'");
+			toast.warn("Solo se pueden editar órdenes en estado 'Creada' o 'En Preparación'");
 			return;
 		}
 
@@ -555,7 +555,7 @@ const Ventas = () => {
 
 	const agregarProducto = () => {
 		if (!nuevoProducto.id_producto) {
-			alert("Por favor selecciona un producto");
+			toast.warn("Por favor selecciona un producto");
 			return;
 		}
 
@@ -564,7 +564,7 @@ const Ventas = () => {
 		);
 
 		if (!productoSeleccionado) {
-			alert("Producto no encontrado");
+			toast.error("Producto no encontrado");
 			return;
 		}
 
@@ -573,7 +573,7 @@ const Ventas = () => {
 		);
 
 		if (yaExiste) {
-			alert("Este producto ya está en la orden");
+			toast.warn("Este producto ya está en la orden");
 			return;
 		}
 
@@ -600,7 +600,7 @@ const Ventas = () => {
 
 			// Validar que la fecha de entrega no esté vacía
 			if (!fechaEntregaEdit.trim()) {
-				alert("La fecha de entrega estimada es obligatoria");
+				toast.error("La fecha de entrega estimada es obligatoria");
 				setGuardando(false);
 				return;
 			}
@@ -608,7 +608,7 @@ const Ventas = () => {
 			// Validar que la fecha sea hábil
 			const fechaObj = new Date(fechaEntregaEdit + 'T00:00:00');
 			if (!esDiaHabil(fechaObj)) {
-				alert("No se pueden seleccionar fines de semana");
+				toast.warn("No se pueden seleccionar fines de semana");
 				setGuardando(false);
 				return;
 			}
@@ -616,7 +616,7 @@ const Ventas = () => {
 			// Validar que la nueva fecha sea mayor a la original
 			const fechaOriginalObj = new Date(fechaOriginal + 'T00:00:00');
 			if (fechaObj <= fechaOriginalObj) {
-				alert("La nueva fecha de entrega debe ser mayor a la fecha original");
+				toast.warn("La nueva fecha de entrega debe ser mayor a la fecha original");
 				setGuardando(false);
 				return;
 			}
@@ -629,9 +629,7 @@ const Ventas = () => {
 				.filter((p) => p.cantidad > 0);
 
 			if (productosValidos.length === 0) {
-				alert(
-					"La orden debe tener al menos un producto con cantidad mayor a 0"
-				);
+				toast.error("La orden debe tener al menos un producto con cantidad mayor a 0");
 				setGuardando(false);
 				return;
 			}
@@ -662,12 +660,12 @@ const Ventas = () => {
 			await fetchOrdenes(paginaActual);
 
 			cancelarEdicion();
-			alert("Orden actualizada correctamente");
+			toast.success("Orden actualizada correctamente");
 		} catch (err) {
 			const mensaje = err.response?.data
 				? `Error ${err.response.status}: ${JSON.stringify(err.response.data)}`
 				: "Error de conexión";
-			alert(mensaje);
+			toast.error(mensaje);
 			console.error("Error guardando cambios:", err);
 		} finally {
 			setGuardando(false);
@@ -686,7 +684,7 @@ const Ventas = () => {
 
 		// Verificar si la orden puede ser editada antes de iniciar edición
 		if (!puedeEditarOrden(orden)) {
-			alert("Solo se pueden editar órdenes en estado 'Creada' o 'En Preparación'");
+			toast.warn("Solo se pueden editar órdenes en estado 'Creada' o 'En Preparación'");
 			return;
 		}
 
