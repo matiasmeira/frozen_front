@@ -403,13 +403,24 @@ const VerLineasDeProduccion = () => {
 															type="number"
 															className={styles.inputEdicion}
 															value={valoresEditados.cant_por_hora}
-															onChange={(e) =>
-																manejarCambioInput(
-																	"cant_por_hora",
-																	e.target.value
-																)
-															}
+															onChange={(e) => {
+																const valor = e.target.value;
+																// Solo permitir números positivos o vacío
+																if (valor === "" || parseInt(valor) >= 1) {
+																	manejarCambioInput("cant_por_hora", valor);
+																}
+															}}
 															min="1"
+															onKeyDown={(e) => {
+																// Prevenir teclas de negativo
+																if (
+																	e.key === "-" ||
+																	e.key === "e" ||
+																	e.key === "E"
+																) {
+																	e.preventDefault();
+																}
+															}}
 														/>
 													) : (
 														productoLinea.cant_por_hora
@@ -422,13 +433,24 @@ const VerLineasDeProduccion = () => {
 															type="number"
 															className={styles.inputEdicion}
 															value={valoresEditados.cantidad_minima}
-															onChange={(e) =>
-																manejarCambioInput(
-																	"cantidad_minima",
-																	e.target.value
-																)
-															}
+															onChange={(e) => {
+																const valor = e.target.value;
+																// Solo permitir números positivos o vacío
+																if (valor === "" || parseInt(valor) > 0) {
+																	manejarCambioInput("cantidad_minima", valor);
+																}
+															}}
 															min="0"
+															onKeyDown={(e) => {
+																// Prevenir teclas de negativo
+																if (
+																	e.key === "-" ||
+																	e.key === "e" ||
+																	e.key === "E"
+																) {
+																	e.preventDefault();
+																}
+															}}
 														/>
 													) : (
 														productoLinea.cantidad_minima
