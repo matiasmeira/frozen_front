@@ -281,8 +281,6 @@ const handleCliente = (selectedOption) => {
     if (clienteSeleccionado) {
       if (clienteSeleccionado.id_prioridad != null) {
         clientePrioridadId = clienteSeleccionado.id_prioridad.toString();
-      } else {
-        toast.warn(`El cliente seleccionado no tiene una prioridad predefinida.`);
       }
       
       direccionCliente = {
@@ -302,11 +300,10 @@ const handleCliente = (selectedOption) => {
     localidad: direccionCliente.localidad
   }));
 
-  if (errors.cliente || errors.prioridad || errors.calle || errors.altura || errors.localidad) {
+  if (errors.cliente || errors.calle || errors.altura || errors.localidad) {
     setErrors(prev => ({
       ...prev,
       cliente: clienteId ? "" : prev.cliente,
-      prioridad: clientePrioridadId ? "" : (clienteId ? prev.prioridad : ""),
       calle: direccionCliente.calle ? "" : prev.calle,
       altura: direccionCliente.altura ? "" : prev.altura,
       localidad: direccionCliente.localidad ? "" : prev.localidad
@@ -386,10 +383,6 @@ const handleCliente = (selectedOption) => {
     let esValido = true;
 
     if (!orden.id_cliente) { nuevosErrores.cliente = "Debes seleccionar un cliente"; esValido = false; }
-    if (!orden.id_prioridad) { 
-        nuevosErrores.prioridad = "El cliente no tiene prioridad (o no seleccionó cliente)"; 
-        esValido = false; 
-    }
     if (!orden.fecha_entrega) { nuevosErrores.fecha_entrega = "Debes indicar una fecha de entrega"; esValido = false; }
     else {
       const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
@@ -525,16 +518,6 @@ const handleCliente = (selectedOption) => {
     return p ? { value: p.id_producto, label: `${p.nombre}` } : null; 
   };
 
-  const getPrioridadClassName = (idPrioridad) => {
-    const classMap = {
-      '1': styles.prioridadBaja,
-      '2': styles.prioridadMedia,
-      '3': styles.prioridadAlta,
-      '4': styles.prioridadUrgente
-    };
-    return classMap[idPrioridad] || styles.prioridadDisplayDiv;
-  };
-
   const toggleMapa = () => {
     if (direccionNormalizada && !mostrarMapa) {
       geocodificarDireccion(direccionNormalizada);
@@ -592,23 +575,7 @@ const handleCliente = (selectedOption) => {
               {errors.fecha_entrega && (<span className={styles.errorText}>{errors.fecha_entrega}</span>)}
             </div>
 
-            {/* Resto del código permanece igual... */}
-            <div className={styles.formGroup}>
-              <label htmlFor="Prioridad" className={styles.formLabel}>Prioridad:</label>
-              <div
-                id="Prioridad"
-                className={`${styles.prioridadDisplayDiv} ${getPrioridadClassName(orden.id_prioridad)} ${!orden.id_cliente ? styles.placeholder : ''} ${errors.prioridad ? styles.inputError : ""}`}
-              >
-                {orden.id_cliente
-                  ? (orden.id_prioridad
-                      ? prioridades.find(p => p.id_prioridad.toString() === orden.id_prioridad)?.descripcion || 'Desconocida'
-                      : 'Cliente sin prioridad')
-                  : 'Seleccione cliente'
-                }
-              </div>
-              {errors.prioridad && (<span className={styles.errorText}>{errors.prioridad}</span>)}
-            </div>
-
+            {/* Se eliminó completamente la sección de prioridad */}
 
             <div className={styles.formGroup}>
               <label htmlFor="Calle" className={styles.fieldLabel}>Calle</label>
