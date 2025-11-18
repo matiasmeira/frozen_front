@@ -665,3 +665,81 @@
 		grid-template-columns: 1fr;
 	}
 }
+
+/* Estilos para la funcionalidad de edición */
+
+.inputEdicion {
+	width: 80px;
+	padding: 4px 8px;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	font-size: 14px;
+	text-align: center;
+}
+
+.inputEdicion:focus {
+	outline: none;
+	border-color: #007bff;
+	box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.acciones {
+	text-align: center;
+	width: 120px;
+}
+
+.botonesEdicion {
+	display: flex;
+	gap: 8px;
+	justify-content: center;
+}
+
+.botonEditar,
+.botonCheck,
+.botonCancelar {
+	background: none;
+	border: none;
+	font-size: 16px;
+	cursor: pointer;
+	padding: 4px 8px;
+	border-radius: 4px;
+	transition: background-color 0.2s;
+}
+
+.botonEditar:hover {
+	background-color: #f8f9fa;
+}
+
+.botonCheck:hover {
+	background-color: #d4edda;
+}
+
+.botonCancelar:hover {
+	background-color: #f8d7da;
+}
+
+.botonEditar:disabled,
+.botonCheck:disabled,
+.botonCancelar:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+/* Asegurar que la tabla tenga suficiente espacio para las nuevas columnas */
+.tabla {
+	width: 100%;
+}
+
+.tabla th:nth-child(2),
+.tabla td:nth-child(2),
+.tabla th:nth-child(3),
+.tabla td:nth-child(3) {
+	width: 120px;
+	text-align: center;
+}
+
+.tabla th:nth-child(4),
+.tabla td:nth-child(4) {
+	width: 120px;
+	text-align: center;
+}

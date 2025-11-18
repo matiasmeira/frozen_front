@@ -27,6 +27,14 @@ const VerLineasDeProduccion = () => {
 	const [productosFabricables, setProductosFabricables] = useState([]);
 	const [cargandoProductos, setCargandoProductos] = useState(false);
 
+	// Estados para edición
+	const [editandoProducto, setEditandoProducto] = useState(null);
+	const [valoresEditados, setValoresEditados] = useState({
+		cantidad_minima: "",
+		cant_por_hora: "",
+	});
+	const [guardando, setGuardando] = useState(false);
+
 	useEffect(() => {
 		obtenerDatosIniciales();
 	}, []);
@@ -72,6 +80,7 @@ const VerLineasDeProduccion = () => {
 		setLineaSeleccionada(linea);
 		setCargandoProductos(true);
 		setModalAbierto(true);
+		setEditandoProducto(null); // Resetear edición al abrir modal
 
 		// Filtrar los productos que puede fabricar esta línea usando id_linea
 		const productosDeEstaLinea = productosLinea.filter(
@@ -108,6 +117,112 @@ const VerLineasDeProduccion = () => {
 		setModalAbierto(false);
 		setLineaSeleccionada(null);
 		setProductosFabricables([]);
+		setEditandoProducto(null);
+	};
+
+	// Función para iniciar edición
+	const iniciarEdicion = (productoLinea) => {
+		setEditandoProducto(productoLinea.id_producto_linea);
+		setValoresEditados({
+			cantidad_minima: productoLinea.cantidad_minima,
+			cant_por_hora: productoLinea.cant_por_hora,
+		});
+	};
+
+	// Función para cancelar edición
+	const cancelarEdicion = () => {
+		setEditandoProducto(null);
+		setValoresEditados({
+			cantidad_minima: "",
+			cant_por_hora: "",
+		});
+	};
+
+	// Función para guardar cambios
+	const guardarCambios = async () => {
+		if (!editandoProducto) return;
+
+		try {
+			setGuardando(true);
+
+			// Encontrar el producto que se está editando
+			const productoEditando = productosFabricables.find(
+				(pl) => pl.id_producto_linea === editandoProducto
+			);
+
+			if (!productoEditando) {
+				toast.error("No se encontró el producto a editar.");
+				return;
+			}
+
+			// Preparar datos para enviar
+			const datosActualizacion = {
+				id_producto: productoEditando.id_producto,
+				id_linea_produccion: lineaSeleccionada.id_linea,
+				cantidad_minima: parseInt(valoresEditados.cantidad_minima),
+				cant_por_hora: parseInt(valoresEditados.cant_por_hora),
+			};
+
+			console.log("Enviando datos de actualización:", datosActualizacion);
+
+			// Hacer la petición PUT al endpoint
+			const response = await api.post(
+				"/recetas/actualizar_capacidad/",
+				datosActualizacion
+			);
+
+			// Actualizar el estado local
+			const productosActualizados = productosFabricables.map((pl) => {
+				if (pl.id_producto_linea === editandoProducto) {
+					return {
+						...pl,
+						cantidad_minima: datosActualizacion.cantidad_minima,
+						cant_por_hora: datosActualizacion.cant_por_hora,
+					};
+				}
+				return pl;
+			});
+
+			setProductosFabricables(productosActualizados);
+
+			// Actualizar también el estado global de productosLinea
+			const productosLineaActualizados = productosLinea.map((pl) => {
+				if (pl.id_producto_linea === editandoProducto) {
+					return {
+						...pl,
+						cantidad_minima: datosActualizacion.cantidad_minima,
+						cant_por_hora: datosActualizacion.cant_por_hora,
+					};
+				}
+				return pl;
+			});
+
+			setProductosLinea(productosLineaActualizados);
+
+			// Cerrar modo edición
+			setEditandoProducto(null);
+			setValoresEditados({
+				cantidad_minima: "",
+				cant_por_hora: "",
+			});
+
+			toast.success("¡Capacidades actualizadas correctamente!");
+		} catch (err) {
+			console.error("Error al actualizar capacidades:", err);
+			const errorMessage =
+				err.response?.data?.message || "Error al guardar los cambios";
+			toast.error(errorMessage);
+		} finally {
+			setGuardando(false);
+		}
+	};
+
+	// Manejar cambios en los inputs de edición
+	const manejarCambioInput = (campo, valor) => {
+		setValoresEditados((prev) => ({
+			...prev,
+			[campo]: valor,
+		}));
 	};
 
 	// Estado helper functions
@@ -192,7 +307,7 @@ const VerLineasDeProduccion = () => {
 			{/* Cards Grid */}
 			<div className={styles.cardsGrid}>
 				{lineas.length > 0 ? (
-					lineas.map((linea, index) => (
+					lineas.map((linea) => (
 						<div key={linea.id_linea} className={styles.card}>
 							<div className={styles.cardHeader}>
 								<h3 className={styles.lineaName}>{linea.nombre_linea}</h3>
@@ -267,6 +382,7 @@ const VerLineasDeProduccion = () => {
 											<th>Producto</th>
 											<th>Cantidad por Hora</th>
 											<th>Cantidad Mínima</th>
+											<th>Acciones</th>
 										</tr>
 									</thead>
 									<tbody>
@@ -281,10 +397,70 @@ const VerLineasDeProduccion = () => {
 													</small>
 												</td>
 												<td className={styles.cantidad}>
-													{productoLinea.cant_por_hora}
+													{editandoProducto ===
+													productoLinea.id_producto_linea ? (
+														<input
+															type="number"
+															className={styles.inputEdicion}
+															value={valoresEditados.cant_por_hora}
+															onChange={(e) =>
+																manejarCambioInput(
+																	"cant_por_hora",
+																	e.target.value
+																)
+															}
+															min="1"
+														/>
+													) : (
+														productoLinea.cant_por_hora
+													)}
 												</td>
 												<td className={styles.cantidad}>
-													{productoLinea.cantidad_minima}
+													{editandoProducto ===
+													productoLinea.id_producto_linea ? (
+														<input
+															type="number"
+															className={styles.inputEdicion}
+															value={valoresEditados.cantidad_minima}
+															onChange={(e) =>
+																manejarCambioInput(
+																	"cantidad_minima",
+																	e.target.value
+																)
+															}
+															min="0"
+														/>
+													) : (
+														productoLinea.cantidad_minima
+													)}
+												</td>
+												<td className={styles.acciones}>
+													{editandoProducto ===
+													productoLinea.id_producto_linea ? (
+														<div className={styles.botonesEdicion}>
+															<button
+																className={styles.botonCheck}
+																onClick={guardarCambios}
+																disabled={guardando}
+															>
+																{guardando ? "⏳" : "✅"}
+															</button>
+															<button
+																className={styles.botonCancelar}
+																onClick={cancelarEdicion}
+																disabled={guardando}
+															>
+																❌
+															</button>
+														</div>
+													) : (
+														<button
+															className={styles.botonEditar}
+															onClick={() => iniciarEdicion(productoLinea)}
+														>
+															✏️
+														</button>
+													)}
 												</td>
 											</tr>
 										))}
