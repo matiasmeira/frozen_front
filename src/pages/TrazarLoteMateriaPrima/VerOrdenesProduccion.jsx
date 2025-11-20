@@ -59,29 +59,42 @@ const VerOrdenesProduccion = ({ idMateriaPrima }) => {
 		<div className={styles.componente}>
 			<h3>Órdenes de Producción Relacionadas</h3>
 			<p>
-				<strong>Lote Materia Prima Origen:</strong>{" "}
-				{datos.lote_materia_prima_origen}
+				<strong>Lote Consultado:</strong> {datos.lote_consultado}
 			</p>
 			<p>
-				<strong>Cantidad Encontrada:</strong> {datos.cantidad_encontrada}
+				<strong>Total de Órdenes:</strong> {datos.total_ordenes}
 			</p>
 
 			<div className={styles.lista}>
-				{datos.lotes_produccion.map((lote) => (
-					<div key={lote.id_lote_produccion} className={styles.tarjeta}>
-						<h4>Lote #{lote.id_lote_produccion}</h4>
+				{datos.resultados.map((orden) => (
+					<div key={orden.id_orden} className={styles.tarjeta}>
+						<h4>Orden #{orden.id_orden}</h4>
 						<p>
-							<strong>Producto:</strong> {lote.producto_nombre}
+							<strong>Producto:</strong> {orden.producto}
 						</p>
 						<p>
-							<strong>Cantidad:</strong> {lote.cantidad}
+							<strong>Cantidad a Producir:</strong> {orden.cantidad_a_producir}
 						</p>
 						<p>
-							<strong>Fecha Producción:</strong>{" "}
-							{new Date(lote.fecha_produccion).toLocaleDateString()}
+							<strong>Fecha Creación:</strong>{" "}
+							{new Date(orden.fecha_creacion).toLocaleDateString()}
 						</p>
 						<p>
-							<strong>Producto</strong> {lote.producto_nombre}
+							<strong>Fecha Planificada:</strong>{" "}
+							{new Date(orden.fecha_planificada).toLocaleDateString()}
+						</p>
+						<p>
+							<strong>Lote Producto:</strong> {orden.lote_producto}
+						</p>
+						<p>
+							<strong>Estado:</strong>{" "}
+							<span
+								className={`${styles.estado} ${
+									styles[orden.estado.toLowerCase()]
+								}`}
+							>
+								{orden.estado}
+							</span>
 						</p>
 					</div>
 				))}

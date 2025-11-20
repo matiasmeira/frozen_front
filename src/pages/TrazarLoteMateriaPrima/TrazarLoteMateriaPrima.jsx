@@ -30,7 +30,7 @@ const TrazarLoteMateriaPrima  = () => {
 					}`}
 					onClick={() => setComponenteActivo("lotes")}
 				>
-					Ver Lotes de Producto Relacionados
+					Ver Ordenes de produccion relacionadas
 				</button>
 
 				<button
@@ -39,7 +39,7 @@ const TrazarLoteMateriaPrima  = () => {
 					}`}
 					onClick={() => setComponenteActivo("ordenes")}
 				>
-					Ver Órdenes de Producción Relacionadas
+					Ver Lotes de Productos terminados relacionados
 				</button>
 			</div>
 

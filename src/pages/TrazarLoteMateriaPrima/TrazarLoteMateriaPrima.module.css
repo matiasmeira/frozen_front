@@ -358,3 +358,31 @@
 		padding: 15px;
 	}
 }
+.estado {
+	padding: 4px 12px;
+	border-radius: 20px;
+	font-size: 0.8em;
+	font-weight: bold;
+	margin-left: 8px;
+	display: inline-block;
+}
+
+.finalizada {
+	background-color: #d4edda;
+	color: #155724;
+}
+
+.planificada {
+	background-color: #fff3cd;
+	color: #856404;
+}
+
+.enproceso {
+	background-color: #cce7ff;
+	color: #004085;
+}
+
+.pendiente {
+	background-color: #f8d7da;
+	color: #721c24;
+}

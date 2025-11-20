@@ -92,52 +92,39 @@ const VerLotesProducto = ({ idMateriaPrima }) => {
 		<div className={styles.componente}>
 			<h3>Lotes de Producto Relacionados</h3>
 			<p>
-				<strong>Lote Consultado:</strong> {datos.lote_consultado}
+				<strong>Lote Materia Prima Origen:</strong>{" "}
+				{datos.lote_materia_prima_origen}
 			</p>
 			<p>
-				<strong>Total de Órdenes:</strong> {datos.total_ordenes}
+				<strong>Cantidad Encontrada:</strong> {datos.cantidad_encontrada}
 			</p>
 
 			<div className={styles.lista}>
-				{datos.resultados.map((orden) => (
-					<div key={orden.id_orden} className={styles.tarjeta}>
-						<h4>Orden #{orden.id_orden}</h4>
+				{datos.lotes_produccion.map((lote) => (
+					<div key={lote.id_lote_produccion} className={styles.tarjeta}>
+						<h4>Lote de Producción #{lote.id_lote_produccion}</h4>
 						<p>
-							<strong>Producto:</strong> {orden.producto}
+							<strong>Producto:</strong> {lote.producto_nombre}
 						</p>
 						<p>
-							<strong>Cantidad a Producir:</strong> {orden.cantidad_a_producir}
+							<strong>Cantidad Producida:</strong> {lote.cantidad}
 						</p>
 						<p>
-							<strong>Fecha Creación:</strong>{" "}
-							{new Date(orden.fecha_creacion).toLocaleDateString()}
+							<strong>Fecha de Producción:</strong>{" "}
+							{new Date(lote.fecha_produccion).toLocaleDateString()}
 						</p>
 						<p>
-							<strong>Fecha Planificada:</strong>{" "}
-							{new Date(orden.fecha_planificada).toLocaleDateString()}
-						</p>
-						<p>
-							<strong>Lote Producto:</strong> {orden.lote_producto}
-						</p>
-						<p>
-							<strong>Estado:</strong>
-							<span
-								className={`${styles.estado} ${
-									styles[orden.estado.toLowerCase()]
-								}`}
-							>
-								{orden.estado}
-							</span>
+							<strong>ID Producto:</strong> {lote.id_producto}
 						</p>
 
 						<button
 							className={styles.botonVerOrdenes}
-							onClick={() => obtenerOrdenesPorLote(orden.lote_producto)}
+							onClick={() => obtenerOrdenesPorLote(lote.id_lote_produccion)}
 							disabled={
-								cargandoOrdenes && loteSeleccionado === orden.lote_producto
+								cargandoOrdenes && loteSeleccionado === lote.id_lote_produccion
 							}
 						>
-							{cargandoOrdenes && loteSeleccionado === orden.lote_producto
+							{cargandoOrdenes && loteSeleccionado === lote.id_lote_produccion
 								? "Cargando..."
 								: "Ver Órdenes Relacionadas"}
 						</button>
