@@ -128,4 +128,40 @@
   .unit {
     min-width: auto;
   }
+
+
+  .cantidadInfo {
+  margin-top: 8px;
+}
+
+.ajusteText {
+  display: block;
+  color: #e67e22;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+/* Estilos para los toasts personalizados si los necesitas */
+:global(.Toastify__toast--success) {
+  background-color: #27ae60;
+}
+
+:global(.Toastify__toast--error) {
+  background-color: #e74c3c;
+}
+
+:global(.Toastify__toast--warning) {
+  background-color: #f39c12;
+}
+
+:global(.Toastify__toast--info) {
+  background-color: #3498db;
+}
+
+.ajusteText {
+  display: block;
+  color: #e67e22;
+  font-weight: 500;
+  margin-top: 8px; /* Espacio superior */
+}
 }
