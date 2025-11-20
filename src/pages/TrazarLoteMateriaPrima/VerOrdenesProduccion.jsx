@@ -14,7 +14,7 @@ const VerOrdenesProduccion = ({ idMateriaPrima }) => {
 			setError(null);
 			try {
 				const response = await fetch(
-					`http://127.0.0.1:8000/api/lotes-produccion/por-mp/${idMateriaPrima}/`
+					`https://frozenback-test.up.railway.app/api/lotes-produccion/por-mp/${idMateriaPrima}/`
 				);
 				if (!response.ok) {
 					throw new Error("Error al obtener las órdenes de producción");
