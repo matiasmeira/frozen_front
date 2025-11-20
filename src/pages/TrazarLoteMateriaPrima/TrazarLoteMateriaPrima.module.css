@@ -187,3 +187,174 @@
 		font-size: 24px;
 	}
 }
+/* Estilos para el botón de ver órdenes */
+.botonVerOrdenes {
+	padding: 8px 16px;
+	background-color: #28a745;
+	color: white;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 14px;
+	margin-top: 10px;
+	transition: background-color 0.3s ease;
+}
+
+.botonVerOrdenes:hover {
+	background-color: #218838;
+}
+
+.botonVerOrdenes:disabled {
+	background-color: #6c757d;
+	cursor: not-allowed;
+}
+
+/* Estilos del modal */
+.modalOverlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: rgba(0, 0, 0, 0.5);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 1000;
+	padding: 20px;
+}
+
+.modalContent {
+	background: white;
+	border-radius: 8px;
+	width: 90%;
+	max-width: 1000px;
+	max-height: 80vh;
+	display: flex;
+	flex-direction: column;
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.modalHeader {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 20px;
+	border-bottom: 1px solid #e0e0e0;
+	background-color: #f8f9fa;
+	border-radius: 8px 8px 0 0;
+}
+
+.modalHeader h3 {
+	margin: 0;
+	color: #333;
+}
+
+.botonCerrar {
+	background: none;
+	border: none;
+	font-size: 24px;
+	cursor: pointer;
+	color: #666;
+	padding: 0;
+	width: 30px;
+	height: 30px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.botonCerrar:hover {
+	color: #333;
+	background-color: #e9ecef;
+	border-radius: 50%;
+}
+
+.modalBody {
+	padding: 20px;
+	overflow-y: auto;
+	flex: 1;
+}
+
+.modalFooter {
+	padding: 15px 20px;
+	border-top: 1px solid #e0e0e0;
+	display: flex;
+	justify-content: flex-end;
+	background-color: #f8f9fa;
+	border-radius: 0 0 8px 8px;
+}
+
+.botonSecundario {
+	padding: 8px 16px;
+	background-color: #6c757d;
+	color: white;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+.botonSecundario:hover {
+	background-color: #5a6268;
+}
+
+/* Estilos para la tabla */
+.tablaOrdenes {
+	margin-top: 15px;
+	overflow-x: auto;
+}
+
+.tablaOrdenes table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 14px;
+}
+
+.tablaOrdenes th,
+.tablaOrdenes td {
+	padding: 10px;
+	text-align: left;
+	border-bottom: 1px solid #e0e0e0;
+}
+
+.tablaOrdenes th {
+	background-color: #f8f9fa;
+	font-weight: 600;
+	color: #333;
+}
+
+.tablaOrdenes tr:hover {
+	background-color: #f5f5f5;
+}
+
+.resumen {
+	background-color: #e9ecef;
+	padding: 15px;
+	border-radius: 4px;
+	margin-bottom: 15px;
+}
+
+.resumen p {
+	margin: 5px 0;
+}
+
+/* Responsive para el modal */
+@media (max-width: 768px) {
+	.modalContent {
+		width: 95%;
+		margin: 10px;
+	}
+
+	.tablaOrdenes {
+		font-size: 12px;
+	}
+
+	.tablaOrdenes th,
+	.tablaOrdenes td {
+		padding: 6px;
+	}
+
+	.modalBody {
+		padding: 15px;
+	}
+}
