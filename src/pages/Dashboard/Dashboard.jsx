@@ -41,25 +41,17 @@ const formatDateToAPI = (date) => {
 	return `${year}-${month}-${day}`;
 };
 
-// Función para calcular fechas del período (MEJORADA)
+// Función para calcular fechas del período (MODIFICADA: fecha_desde = hoy, fecha_hasta = hoy + 30 días)
 const getDateRange = (dias = 30) => {
 	const hoy = new Date();
 
-	// Crear una copia para la fecha de inicio
-	const fechaInicio = new Date(hoy);
-	fechaInicio.setDate(hoy.getDate() - dias);
-
-	// Asegurarnos de que estamos usando la fecha local correcta
-	// console.log("📅 Fechas calculadas:", {
-	// 	hoyLocal: hoy.toLocaleDateString("es-ES"),
-	// 	inicioLocal: fechaInicio.toLocaleDateString("es-ES"),
-	// 	hoyAPI: formatDateToAPI(hoy),
-	// 	inicioAPI: formatDateToAPI(fechaInicio),
-	// });
+	// Crear una copia para la fecha de fin (hoy + 30 días)
+	const fechaFin = new Date(hoy);
+	fechaFin.setDate(hoy.getDate() + dias);
 
 	return {
-		fechaDesde: formatDateToAPI(fechaInicio),
-		fechaHasta: formatDateToAPI(hoy),
+		fechaDesde: formatDateToAPI(hoy),        // Hoy
+		fechaHasta: formatDateToAPI(fechaFin),   // Hoy + 30 días
 	};
 };
 
@@ -183,10 +175,9 @@ const Dashboard = () => {
 
 				console.log("📊 Desperdicio por Producto - Fechas:", fechas);
 
-				// Construir URL con query params
+				// Construir URL con query params usando las fechas dinámicas
 				const params = new URLSearchParams(fechas);
-
-				const url = `https://frozenback-test.up.railway.app/api/reportes/desperdicio/por_producto/?fecha_hasta=2025-11-20`;
+				const url = `https://frozenback-test.up.railway.app/api/reportes/desperdicio/por_producto/?${params.toString()}`;
 
 				const response = await fetch(url);
 
@@ -245,10 +236,9 @@ const Dashboard = () => {
 
 				console.log("📊 Desperdicio por Causa - Fechas:", fechas);
 
-				// Construir URL con query params
+				// Construir URL con query params usando las fechas dinámicas
 				const params = new URLSearchParams(fechas);
-
-				const url = `https://frozenback-test.up.railway.app/api/reportes/desperdicio/por_causa/?fecha_hasta=2025-11-20`;
+				const url = `https://frozenback-test.up.railway.app/api/reportes/desperdicio/por_causa/?${params.toString()}`;
 
 				const response = await fetch(url);
 
@@ -287,15 +277,14 @@ const Dashboard = () => {
 			try {
 				setCargando((prev) => ({ ...prev, ventasPorTipo: true }));
 
-				// Obtener fechas para ventas (últimos 30 días)
+				// Obtener fechas para ventas
 				const fechas = getFechasParaAPI("ventas");
 
 				console.log("🛒 Ventas por Tipo - Fechas:", fechas);
 
-				// Construir URL con query params
+				// Construir URL con query params usando las fechas dinámicas
 				const params = new URLSearchParams(fechas);
-
-				const url = `https://frozenback-test.up.railway.app/api/reportes/ventas/ventas-por-tipo/?fecha_hasta=2025-11-20`;
+				const url = `https://frozenback-test.up.railway.app/api/reportes/ventas/ventas-por-tipo/?${params.toString()}`;
 
 				const response = await fetch(url);
 
@@ -341,15 +330,14 @@ const Dashboard = () => {
 			try {
 				setCargando((prev) => ({ ...prev, cumplimientoSemanal: true }));
 
-				// Obtener fechas para cumplimiento semanal (últimos 30 días)
+				// Obtener fechas para cumplimiento semanal
 				const fechas = getFechasParaAPI("cumplimiento");
 
 				console.log("📊 Cumplimiento Semanal - Fechas:", fechas);
 
-				// Construir URL con query params
+				// Construir URL con query params usando las fechas dinámicas
 				const params = new URLSearchParams(fechas);
-
-				const url = `https://frozenback-test.up.railway.app/api/reportes/produccion/cumplimiento-semanal/?fecha_hasta=2025-11-20`;
+				const url = `https://frozenback-test.up.railway.app/api/reportes/produccion/cumplimiento-semanal/?${params.toString()}`;
 
 				const response = await fetch(url);
 
@@ -392,21 +380,20 @@ const Dashboard = () => {
 		fetchCumplimientoSemanal();
 	}, []);
 
-	// Efecto para cargar datos de OEE con fechas dinámicas (últimos 30 días)
+	// Efecto para cargar datos de OEE con fechas dinámicas
 	useEffect(() => {
 		const fetchOEE = async () => {
 			try {
 				setCargando((prev) => ({ ...prev, oee: true }));
 
-				// Obtener fechas para OEE (últimos 30 días)
+				// Obtener fechas para OEE
 				const fechas = getFechasParaAPI("oee");
 
 				console.log("📊 OEE - Fechas:", fechas);
 
-				// Construir URL con query params
+				// Construir URL con query params usando las fechas dinámicas
 				const params = new URLSearchParams(fechas);
-
-				const url = `https://frozenback-test.up.railway.app/api/reportes/oee/?fecha_hasta=2025-11-20`;
+				const url = `https://frozenback-test.up.railway.app/api/reportes/oee/?${params.toString()}`;
 
 				const response = await fetch(url);
 
@@ -473,7 +460,7 @@ const Dashboard = () => {
 						fecha_hasta: mes.fecha_hasta,
 					});
 
-					const url = `https://frozenback-test.up.railway.app/api/reportes/oee/?fecha_hasta=2025-11-20`;
+					const url = `https://frozenback-test.up.railway.app/api/reportes/oee/?${params.toString()}`;
 
 					const response = await fetch(url);
 					if (!response.ok) {
@@ -540,10 +527,9 @@ const Dashboard = () => {
 
 				console.log("📊 Cumplimiento Plan - Fechas:", fechas);
 
-				// Construir URL con query params
+				// Construir URL con query params usando las fechas dinámicas
 				const params = new URLSearchParams(fechas);
-
-				const url = `https://frozenback-test.up.railway.app/api/reportes/produccion/cumplimiento-plan/?fecha_hasta=2025-11-20`;
+				const url = `https://frozenback-test.up.railway.app/api/reportes/produccion/cumplimiento-plan/?${params.toString()}`;
 
 				const response = await fetch(url);
 
@@ -588,10 +574,9 @@ const Dashboard = () => {
 
 				console.log("📊 Desperdicio - Fechas:", fechas);
 
-				// Construir URL con query params
+				// Construir URL con query params usando las fechas dinámicas
 				const params = new URLSearchParams(fechas);
-
-				const url = `https://frozenback-test.up.railway.app/api/reportes/desperdicio/tasa/?$?fecha_hasta=2025-11-20`;
+				const url = `https://frozenback-test.up.railway.app/api/reportes/desperdicio/tasa/?${params.toString()}`;
 
 				const response = await fetch(url);
 
@@ -624,6 +609,9 @@ const Dashboard = () => {
 
 		fetchTasaDesperdicio();
 	}, []);
+
+	// El resto del componente permanece igual...
+	// Configuración para Chart.js, datos de gráficos, funciones helper, y JSX...
 
 	// Configuración para Chart.js
 	const chartOptions = {
@@ -883,8 +871,9 @@ const Dashboard = () => {
 		});
 	};
 
-	// Función para generar reporte PDF
+	// Función para generar reporte PDF (se mantiene igual)
 	const generarReportePDF = async () => {
+		// ... (código de generarReportePDF permanece igual)
 		setGenerandoReporte(true);
 		
 		try {

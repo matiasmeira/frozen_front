@@ -6,7 +6,7 @@ import { useSearchParams } from 'react-router-dom';
 // Configuración de Axios con la variable de entorno
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 const api = axios.create({
-  baseURL: baseURL,
+	baseURL: baseURL,
 });
 
 const TrazabilidadOrdenVenta = () => {
@@ -44,7 +44,7 @@ const TrazabilidadOrdenVenta = () => {
     setDatos(null);
     
     try {
-      console.log('🔍 Haciendo request a:', `${baseURL}trazabilidad/${id}/backward/`);
+      console.log('🔍 Haciendo request a:', `${baseURL}api/trazabilidad/${id}/backward/`);
       
       const respuesta = await api.get(`trazabilidad/${id}/backward/`);
       
@@ -77,6 +77,13 @@ const TrazabilidadOrdenVenta = () => {
     setError(null);
   };
 
+  // Calcular total trazado para cada producto
+  const calcularTotalTrazado = (producto) => {
+    return producto.origen.reduce((total, origenItem) => {
+      return total + (origenItem.cantidad || origenItem.cantidad_asignada || 0);
+    }, 0);
+  };
+
   return (
     <div className={styles.contenedor}>
       <div className={styles.buscador}>
@@ -92,7 +99,7 @@ const TrazabilidadOrdenVenta = () => {
               type="number"
               value={idInput}
               onChange={(e) => setIdInput(e.target.value)}
-              placeholder="Ej: 768"
+              placeholder="Ej: 1024"
               className={styles.input}
               min="1"
             />
@@ -151,6 +158,12 @@ const TrazabilidadOrdenVenta = () => {
                   {datos.cliente.nombre} (ID: {datos.cliente.id_cliente})
                 </span>
               </div>
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>Fecha de Entrega:</span>
+                <span className={styles.infoValor}>
+                  {new Date(datos.fecha_entrega).toLocaleDateString()}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -158,7 +171,8 @@ const TrazabilidadOrdenVenta = () => {
             {datos.productos_trazados.map((producto, index) => (
               <ProductoTrazado 
                 key={`${producto.producto}-${index}`} 
-                producto={producto} 
+                producto={producto}
+                totalTrazado={calcularTotalTrazado(producto)}
               />
             ))}
           </div>
@@ -181,13 +195,13 @@ const TrazabilidadOrdenVenta = () => {
 };
 
 // Subcomponente para producto trazado
-const ProductoTrazado = ({ producto }) => {
+const ProductoTrazado = ({ producto, totalTrazado }) => {
   const [expandido, setExpandido] = useState(false);
 
-  const tieneLotesEntregados = () => {
-    return producto.lotes_entregados && 
-           Array.isArray(producto.lotes_entregados) && 
-           producto.lotes_entregados.length > 0;
+  const tieneOrigen = () => {
+    return producto.origen && 
+           Array.isArray(producto.origen) && 
+           producto.origen.length > 0;
   };
 
   return (
@@ -195,6 +209,7 @@ const ProductoTrazado = ({ producto }) => {
       <div 
         className={styles.productoHeader}
         onClick={() => setExpandido(!expandido)}
+        aria-expanded={expandido}
       >
         <div className={styles.productoInfo}>
           <h3 className={styles.productoNombre}>
@@ -202,13 +217,9 @@ const ProductoTrazado = ({ producto }) => {
           </h3>
           <div className={styles.productoDetalles}>
             <span>Cantidad vendida: {producto.cantidad_vendida} unidades</span>
-            <span>Total trazado: {producto.total_trazado} unidades</span>
+            <span>Total trazado: {totalTrazado} unidades</span>
             <span>
-              Lotes entregados: {
-                tieneLotesEntregados() 
-                  ? producto.lotes_entregados.length 
-                  : 'No disponibles'
-              }
+              Orígenes: {tieneOrigen() ? producto.origen.length : 'No disponibles'}
             </span>
           </div>
         </div>
@@ -219,22 +230,22 @@ const ProductoTrazado = ({ producto }) => {
 
       {expandido && (
         <div className={styles.detallesProducto}>
-          {/* Sección de Lotes Entregados */}
+          {/* Sección de Orígenes */}
           <div className={styles.seccion}>
-            <h4 className={styles.seccionTitulo}>Lotes Entregados</h4>
-            {!tieneLotesEntregados() ? (
+            <h4 className={styles.seccionTitulo}>Orígenes del Producto</h4>
+            {!tieneOrigen() ? (
               <div className={styles.sinDatos}>
                 <div className={styles.iconoInfo}>ℹ️</div>
                 <div>
-                  No se encontraron lotes entregados para este producto.
+                  No se encontraron orígenes para este producto.
                 </div>
               </div>
             ) : (
-              <div className={styles.lotesEntregados}>
-                {producto.lotes_entregados.map((lote, index) => (
-                  <LoteEntregado 
-                    key={lote.id_lote_produccion || index} 
-                    lote={lote} 
+              <div className={styles.origenes}>
+                {producto.origen.map((origen, index) => (
+                  <OrigenProducto 
+                    key={`${origen.tipo}-${origen.id_lote_pt || origen.id_orden_produccion}-${index}`} 
+                    origen={origen} 
                   />
                 ))}
               </div>
@@ -246,13 +257,28 @@ const ProductoTrazado = ({ producto }) => {
   );
 };
 
-const LoteEntregado = ({ lote }) => {
+const OrigenProducto = ({ origen }) => {
   const [expandido, setExpandido] = useState(false);
 
   const tieneMateriasPrimas = () => {
-    return lote.materias_primas_usadas && 
-           Array.isArray(lote.materias_primas_usadas) && 
-           lote.materias_primas_usadas.length > 0;
+    return origen.composicion_mp && 
+           Array.isArray(origen.composicion_mp) && 
+           origen.composicion_mp.length > 0;
+  };
+
+  const getTituloOrigen = () => {
+    switch (origen.tipo) {
+      case 'STOCK_EXISTENTE':
+        return `Stock Existente - Lote #${origen.id_lote_pt}`;
+      case 'PRODUCCION_EN_CURSO (MTO)':
+        return `Producción en Curso (MTO) - OP #${origen.id_orden_produccion}`;
+      default:
+        return origen.tipo;
+    }
+  };
+
+  const getCantidad = () => {
+    return origen.cantidad || origen.cantidad_asignada || 0;
   };
 
   return (
@@ -260,16 +286,25 @@ const LoteEntregado = ({ lote }) => {
       <div 
         className={styles.loteHeader}
         onClick={() => setExpandido(!expandido)}
+        aria-expanded={expandido}
       >
         <div className={styles.loteInfo}>
           <h5 className={styles.loteTitulo}>
-            Lote Producción #{lote.id_lote_produccion}
+            {getTituloOrigen()}
           </h5>
           <div className={styles.loteDetalles}>
-            <span>Cantidad reservada: {lote.cantidad_reservada} unidades</span>
-            <span>Orden Producción: #{lote.orden_produccion_id}</span>
-            <span>Fecha producción: {new Date(lote.fecha_produccion).toLocaleDateString()}</span>
-            <span>Fecha vencimiento: {new Date(lote.fecha_vencimiento).toLocaleDateString()}</span>
+            <span>Cantidad: {getCantidad()} unidades</span>
+            {origen.estado_reserva && <span>Estado: {origen.estado_reserva}</span>}
+            {origen.estado_op && <span>Estado OP: {origen.estado_op}</span>}
+            {origen.fecha_vencimiento && (
+              <span>Vencimiento: {new Date(origen.fecha_vencimiento).toLocaleDateString()}</span>
+            )}
+            {origen.fecha_planificada && (
+              <span>Fecha planificada: {new Date(origen.fecha_planificada).toLocaleDateString()}</span>
+            )}
+            {origen.id_lote_pt_proyectado && (
+              <span>Lote proyectado: #{origen.id_lote_pt_proyectado}</span>
+            )}
           </div>
         </div>
         <div className={styles.flecha}>
@@ -281,19 +316,19 @@ const LoteEntregado = ({ lote }) => {
         <div className={styles.detallesLote}>
           {/* Sección de Materias Primas */}
           <div className={styles.subseccion}>
-            <h6 className={styles.subseccionTitulo}>Materias Primas Utilizadas</h6>
+            <h6 className={styles.subseccionTitulo}>Composición con Materias Primas</h6>
             {!tieneMateriasPrimas() ? (
               <div className={styles.sinDatos}>
                 <div className={styles.iconoInfo}>ℹ️</div>
                 <div>
-                  No se encontraron materias primas registradas para este lote.
+                  No se encontraron materias primas registradas para este origen.
                 </div>
               </div>
             ) : (
               <div className={styles.materiasPrimas}>
-                {lote.materias_primas_usadas.map((mp, index) => (
+                {origen.composicion_mp.map((mp, index) => (
                   <MateriaPrima 
-                    key={mp.id_lote_materia_prima || index} 
+                    key={mp.id_lote_mp || index} 
                     materiaPrima={mp} 
                   />
                 ))}
@@ -314,14 +349,16 @@ const MateriaPrima = ({ materiaPrima }) => {
       <div 
         className={styles.materiaPrimaHeader}
         onClick={() => setExpandido(!expandido)}
+        aria-expanded={expandido}
       >
         <div className={styles.materiaPrimaInfo}>
           <h5 className={styles.materiaPrimaTitulo}>
-            {materiaPrima.nombre_materia_prima}
+            {materiaPrima.materia_prima}
           </h5>
           <div className={styles.materiaPrimaDetalles}>
-            <span>Lote MP: #{materiaPrima.id_lote_materia_prima}</span>
-            <span>Cantidad usada: {materiaPrima.cantidad_usada}</span>
+            <span>Lote MP: #{materiaPrima.id_lote_mp}</span>
+            <span>Cantidad: {materiaPrima.cantidad_reservada}</span>
+            <span>Estado: {materiaPrima.estado_reserva}</span>
           </div>
         </div>
         <div className={styles.flecha}>
@@ -334,7 +371,11 @@ const MateriaPrima = ({ materiaPrima }) => {
           <div className={styles.gridInfo}>
             <div className={styles.gridItem}>
               <span className={styles.gridLabel}>Proveedor:</span>
-              <span>{materiaPrima.proveedor.nombre} (ID: {materiaPrima.proveedor.id_proveedor})</span>
+              <span>{materiaPrima.proveedor}</span>
+            </div>
+            <div className={styles.gridItem}>
+              <span className={styles.gridLabel}>Vencimiento:</span>
+              <span>{new Date(materiaPrima.vencimiento_mp).toLocaleDateString()}</span>
             </div>
           </div>
         </div>

@@ -12,6 +12,80 @@ const api = axios.create({
 	baseURL: baseURL,
 });
 
+// Función para obtener el nombre del día en español
+const obtenerNombreDia = (fecha) => {
+  const opciones = { weekday: 'long' };
+  const formateador = new Intl.DateTimeFormat('es-ES', opciones);
+  return formateador.format(fecha);
+};
+
+// Función para verificar si una fecha es día hábil (no sábado ni domingo)
+const esDiaHabil = (fecha) => {
+  const dia = fecha.getDay(); 
+  // 0 = Domingo, 6 = Sábado - estos son los que NO queremos
+  return dia !== 0 && dia !== 6;
+};
+
+// Función para obtener la próxima fecha hábil
+const obtenerProximaFechaHabil = (fecha) => {
+  let fechaTemp = new Date(fecha);
+  while (!esDiaHabil(fechaTemp)) {
+    fechaTemp.setDate(fechaTemp.getDate() + 1);
+  }
+  return fechaTemp;
+};
+
+// Función para formatear fecha como YYYY-MM-DD
+const formatearFechaISO = (fecha) => {
+  return fecha.toISOString().split('T')[0];
+};
+
+// Componente de Date Picker personalizado
+const DatePickerHabil = ({ value, onChange, min, max, disabled, className }) => {
+  const [fechaSeleccionada, setFechaSeleccionada] = useState(value || '');
+  
+  const handleChange = (e) => {
+    const fecha = e.target.value;
+    if (fecha) {
+      const fechaObj = new Date(fecha + 'T00:00:00'); // Asegurar timezone
+      const nombreDia = obtenerNombreDia(fechaObj);
+      
+      if (esDiaHabil(fechaObj)) {
+        setFechaSeleccionada(fecha);
+        onChange(fecha);
+      } else {
+        toast.warn(`No se pueden seleccionar ${nombreDia.toLowerCase()}s`);
+        // Revertir al valor anterior
+        e.target.value = fechaSeleccionada;
+      }
+    } else {
+      setFechaSeleccionada('');
+      onChange('');
+    }
+  };
+
+  useEffect(() => {
+    setFechaSeleccionada(value || '');
+  }, [value]);
+
+  return (
+    <input
+      type="date"
+      value={fechaSeleccionada}
+      min={min}
+      max={max}
+      onChange={handleChange}
+      disabled={disabled}
+      className={className}
+      onKeyDown={(e) => {
+        if (e.key !== 'Tab' && e.key !== 'Escape') {
+          e.preventDefault();
+        }
+      }}
+    />
+  );
+};
+
 const Ventas = () => {
 	const [modalCancelar, setModalCancelar] = useState({
 		visible: false,
@@ -22,7 +96,6 @@ const Ventas = () => {
 
 	const [ordenes, setOrdenes] = useState([]);
 	const [productosDisponibles, setProductosDisponibles] = useState([]);
-	const [prioridades, setPrioridades] = useState([]);
 	const [estadosDisponibles, setEstadosDisponibles] = useState([]);
 	const [clientesDisponibles, setClientesDisponibles] = useState([]);
 
@@ -36,7 +109,6 @@ const Ventas = () => {
 		cantidad: 1,
 	});
 	const [fechaEntregaEdit, setFechaEntregaEdit] = useState("");
-	const [prioridadEdit, setPrioridadEdit] = useState("");
 	const [fechaOriginal, setFechaOriginal] = useState("");
 	const [cancelandoOrden, setCancelandoOrden] = useState(null);
 
@@ -109,15 +181,27 @@ const Ventas = () => {
 		}
 	};
 
+	// Función para obtener la fecha mínima (2 días después)
+	const obtenerFechaMinima = () => { 
+		const f = new Date(); 
+		f.setDate(f.getDate() + 2);
+		const fechaHabil = obtenerProximaFechaHabil(f);
+		return formatearFechaISO(fechaHabil);
+	};
+
+	// Función para obtener la fecha máxima (30 días después)
+	const obtenerFechaMaxima = () => { 
+		const f = new Date(); 
+		f.setDate(f.getDate() + 30);
+		const fechaHabil = obtenerProximaFechaHabil(f);
+		return formatearFechaISO(fechaHabil);
+	};
+
 	// Función para verificar si una orden puede ser editada - MODIFICADA
 	const puedeEditarOrden = (orden) => {
-		const idEstadoVenta =
-			orden.estado_venta?.id_estado_venta || orden.id_estado_venta;
-		const estadoDescripcion = getDescripcionEstado(orden.estado_venta);
-
-		// No permitir editar órdenes canceladas o pagadas
-		// Pero sí permitir editar órdenes en estado 3 y 9 (que también se pueden cancelar)
-		return estadoDescripcion !== "Cancelada" && idEstadoVenta !== 1;
+		const idEstadoVenta = orden.estado_venta?.id_estado_venta || orden.id_estado_venta;
+		// Solo permitir editar órdenes en estado "Creada" (8) o "En Preparación" (9)
+		return idEstadoVenta === 8 || idEstadoVenta === 9;
 	};
 
 	// Función para navegar a crear nueva orden
@@ -135,8 +219,6 @@ const Ventas = () => {
 			params.append("page", pagina.toString());
 
 			if (filtroId.trim() !== "") {
-				// Si hay un ID, buscar solo por ese ID
-				// Ajusta 'id_orden_venta' si tu API espera otro nombre de parámetro
 				params.append("id_orden_venta", filtroId.trim());
 			} else {
 				// Si no hay ID, usar los otros filtros
@@ -211,13 +293,11 @@ const Ventas = () => {
 			try {
 				setLoading(true);
 
-				const [productosResponse, prioridadesResponse] = await Promise.all([
+				const [productosResponse] = await Promise.all([
 					api.get("/productos/productos/"),
-					api.get("/ventas/prioridades/"),
 				]);
 
 				setProductosDisponibles(productosResponse.data.results || []);
-				setPrioridades(prioridadesResponse.data.results || []);
 
 				// Cargar estados y clientes
 				await Promise.all([fetchEstados(), fetchClientes()]);
@@ -327,17 +407,16 @@ const Ventas = () => {
 		setPaginaActual(1);
 	};
 
-	// FUNCIÓN PARA CANCELAR ORDEN - MODIFICADA: Solo permite cancelar órdenes con id_estado_venta = 9
+	// FUNCIÓN PARA CANCELAR ORDEN
 	const cancelarOrden = async (idOrdenVenta) => {
-		// El modal ya hizo la confirmación.
 		try {
-			setCancelandoOrden(idOrdenVenta); // Pone el spinner en el modal
+			setCancelandoOrden(idOrdenVenta);
 			const datosCancelacion = {
 				id_orden_venta: idOrdenVenta,
 				id_estado_venta: 6, // ID para estado "Cancelada"
 			};
 
-			const response = await api.put(
+			await api.put(
 				"/ventas/ordenes_venta/cambiar_estado/",
 				datosCancelacion,
 				{
@@ -345,21 +424,20 @@ const Ventas = () => {
 						"Content-Type": "application/json",
 					},
 				}
-			); // Recargar la página actual para reflejar el cambio
+			);
 
 			await fetchOrdenes(paginaActual);
-			toast.success("Orden cancelada correctamente"); // <-- ¡AQUÍ ESTÁ TOASTIFY!
+			toast.success("Orden cancelada correctamente");
 		} catch (err) {
 			const mensaje = err.response?.data
 				? `Error ${err.response.status}: ${JSON.stringify(err.response.data)}`
 				: "Error de conexión";
 
-			toast.error(mensaje); // <-- ¡AQUÍ ESTÁ TOASTIFY!
-
+			toast.error(mensaje);
 			console.error("Error cancelando orden:", err);
 		} finally {
 			setCancelandoOrden(null);
-			setModalCancelar({ visible: false, id: null }); // <-- Cierra el modal
+			setModalCancelar({ visible: false, id: null });
 		}
 	};
 
@@ -371,24 +449,15 @@ const Ventas = () => {
 	// Función para verificar si una orden puede ser facturada - MODIFICADA
 	const puedeFacturarOrden = (orden) => {
 		// Solo permitir facturar órdenes con id_estado_venta = 3 ("pendiente de pago")
-		const idEstadoVenta =
-			orden.estado_venta?.id_estado_venta || orden.id_estado_venta;
+		const idEstadoVenta = orden.estado_venta?.id_estado_venta || orden.id_estado_venta;
 		return idEstadoVenta === 3;
 	};
 
-	// Función para verificar si una orden puede ser cancelada - MODIFICADA: Permite cancelar órdenes con id_estado_venta = 3, 8 y 9
+	// Función para verificar si una orden puede ser cancelada
 	const puedeCancelarOrden = (orden) => {
-		const idEstadoVenta =
-			orden.estado_venta?.id_estado_venta || orden.id_estado_venta;
-
+		const idEstadoVenta = orden.estado_venta?.id_estado_venta || orden.id_estado_venta;
 		// PERMITIR cancelar órdenes con id_estado_venta = 3 ("Pendiente de Pago"), 8 ("Creada") y 9 ("En Preparación")
 		return idEstadoVenta === 3 || idEstadoVenta === 8 || idEstadoVenta === 9;
-	};
-
-	// Función para obtener la descripción de la prioridad por ID
-	const getDescripcionPrioridad = (idPrioridad) => {
-		const prioridad = prioridades.find((p) => p.id_prioridad === idPrioridad);
-		return prioridad ? prioridad.descripcion : "";
 	};
 
 	// Función para obtener el nombre del cliente
@@ -410,13 +479,6 @@ const Ventas = () => {
 		return estado?.descripcion || "Estado desconocido";
 	};
 
-	// Función para obtener la descripción de la prioridad
-	const getDescripcionPrioridadFromObject = (prioridad) => {
-		if (!prioridad) return "Prioridad no especificada";
-		if (typeof prioridad === "string") return prioridad;
-		return prioridad?.descripcion || "Prioridad no especificada";
-	};
-
 	const getEstadoBadgeClass = (estado) => {
 		const estadoDescripcion = getDescripcionEstado(estado);
 		const clases = {
@@ -431,21 +493,10 @@ const Ventas = () => {
 		return clases[estadoDescripcion] || styles.badgeEstadoDefault;
 	};
 
-	const getPrioridadBadgeClass = (prioridad) => {
-		const prioridadDescripcion = getDescripcionPrioridadFromObject(prioridad);
-		const clases = {
-			Urgente: styles.badgePrioridadUrgente,
-			Alta: styles.badgePrioridadAlta,
-			Media: styles.badgePrioridadMedia,
-			Baja: styles.badgePrioridadBaja,
-		};
-		return clases[prioridadDescripcion] || styles.badgePrioridadDefault;
-	};
-
 	const iniciarEdicion = (orden) => {
 		// Verificar si la orden puede ser editada
 		if (!puedeEditarOrden(orden)) {
-			alert("No se puede editar una orden cancelada o pagada");
+			toast.warn("Solo se pueden editar órdenes en estado 'Creada' o 'En Preparación'");
 			return;
 		}
 
@@ -468,8 +519,6 @@ const Ventas = () => {
 		setFechaEntregaEdit(fechaEditValue);
 		setFechaOriginal(fechaEditValue);
 
-		setPrioridadEdit(orden.prioridad?.id_prioridad?.toString() || "");
-
 		setNuevoProducto({ id_producto: "", cantidad: 1 });
 	};
 
@@ -478,7 +527,6 @@ const Ventas = () => {
 		setProductosEdit([]);
 		setFechaEntregaEdit("");
 		setFechaOriginal("");
-		setPrioridadEdit("");
 		setNuevoProducto({ id_producto: "", cantidad: 1 });
 	};
 
@@ -507,7 +555,7 @@ const Ventas = () => {
 
 	const agregarProducto = () => {
 		if (!nuevoProducto.id_producto) {
-			alert("Por favor selecciona un producto");
+			toast.warn("Por favor selecciona un producto");
 			return;
 		}
 
@@ -516,7 +564,7 @@ const Ventas = () => {
 		);
 
 		if (!productoSeleccionado) {
-			alert("Producto no encontrado");
+			toast.error("Producto no encontrado");
 			return;
 		}
 
@@ -525,7 +573,7 @@ const Ventas = () => {
 		);
 
 		if (yaExiste) {
-			alert("Este producto ya está en la orden");
+			toast.warn("Este producto ya está en la orden");
 			return;
 		}
 
@@ -552,40 +600,25 @@ const Ventas = () => {
 
 			// Validar que la fecha de entrega no esté vacía
 			if (!fechaEntregaEdit.trim()) {
-				alert("La fecha de entrega estimada es obligatoria");
+				toast.error("La fecha de entrega estimada es obligatoria");
 				setGuardando(false);
 				return;
 			}
 
-			// Asegurarnos de que la fecha tenga formato completo para la comparación
-			const fechaEditCompleta = fechaEntregaEdit.includes('T') 
-				? fechaEntregaEdit 
-				: fechaEntregaEdit + 'T00:00';
-			
-			const fechaOriginalCompleta = fechaOriginal.includes('T')
-				? fechaOriginal
-				: fechaOriginal + 'T00:00';
+			// Validar que la fecha sea hábil
+			const fechaObj = new Date(fechaEntregaEdit + 'T00:00:00');
+			if (!esDiaHabil(fechaObj)) {
+				toast.warn("No se pueden seleccionar fines de semana");
+				setGuardando(false);
+				return;
+			}
 
-			// SOLUCIÓN: Solo validar si la fecha fue modificada
-			const fechaModificada = fechaEditCompleta !== fechaOriginalCompleta;
-
-			if (fechaModificada && fechaEditCompleta && fechaOriginalCompleta) {
-				const fechaOriginalObj = new Date(fechaOriginalCompleta);
-				const fechaNuevaObj = new Date(fechaEditCompleta);
-
-				// Solo validar si ambas fechas son válidas
-				if (
-					!isNaN(fechaOriginalObj.getTime()) &&
-					!isNaN(fechaNuevaObj.getTime())
-				) {
-					if (fechaNuevaObj <= fechaOriginalObj) {
-						alert(
-							"La nueva fecha de entrega debe ser mayor a la fecha original"
-						);
-						setGuardando(false);
-						return;
-					}
-				}
+			// Validar que la nueva fecha sea mayor a la original
+			const fechaOriginalObj = new Date(fechaOriginal + 'T00:00:00');
+			if (fechaObj <= fechaOriginalObj) {
+				toast.warn("La nueva fecha de entrega debe ser mayor a la fecha original");
+				setGuardando(false);
+				return;
 			}
 
 			const productosValidos = productosEdit
@@ -596,9 +629,7 @@ const Ventas = () => {
 				.filter((p) => p.cantidad > 0);
 
 			if (productosValidos.length === 0) {
-				alert(
-					"La orden debe tener al menos un producto con cantidad mayor a 0"
-				);
+				toast.error("La orden debe tener al menos un producto con cantidad mayor a 0");
 				setGuardando(false);
 				return;
 			}
@@ -610,21 +641,16 @@ const Ventas = () => {
 			};
 
 			// Agregar fecha_entrega (obligatoria) - mantener formato completo
-			const fechaParaEnviar = fechaEditCompleta.includes('T') 
-				? fechaEditCompleta 
-				: fechaEditCompleta + 'T00:00';
+			const fechaParaEnviar = fechaEntregaEdit.includes('T') 
+				? fechaEntregaEdit 
+				: fechaEntregaEdit + 'T00:00';
 			
-			const fechaObj = new Date(fechaParaEnviar);
-			const fechaFormateada = fechaObj
+			const fechaObjParaEnviar = new Date(fechaParaEnviar);
+			const fechaFormateada = fechaObjParaEnviar
 				.toISOString()
 				.slice(0, 19)
 				.replace("T", " ");
 			datosActualizacion.fecha_entrega = fechaFormateada;
-
-			// Agregar id_prioridad si se seleccionó
-			if (prioridadEdit) {
-				datosActualizacion.id_prioridad = parseInt(prioridadEdit);
-			}
 
 			await api.put("/ventas/ordenes-venta/actualizar/", datosActualizacion, {
 				headers: { "Content-Type": "application/json" },
@@ -634,12 +660,12 @@ const Ventas = () => {
 			await fetchOrdenes(paginaActual);
 
 			cancelarEdicion();
-			alert("Orden actualizada correctamente");
+			toast.success("Orden actualizada correctamente");
 		} catch (err) {
 			const mensaje = err.response?.data
 				? `Error ${err.response.status}: ${JSON.stringify(err.response.data)}`
 				: "Error de conexión";
-			alert(mensaje);
+			toast.error(mensaje);
 			console.error("Error guardando cambios:", err);
 		} finally {
 			setGuardando(false);
@@ -658,7 +684,7 @@ const Ventas = () => {
 
 		// Verificar si la orden puede ser editada antes de iniciar edición
 		if (!puedeEditarOrden(orden)) {
-			alert("No se puede editar una orden cancelada o pagada");
+			toast.warn("Solo se pueden editar órdenes en estado 'Creada' o 'En Preparación'");
 			return;
 		}
 
@@ -672,15 +698,13 @@ const Ventas = () => {
 			cliente.nombre_cliente ||
 			`Cliente ${cliente.id_cliente}`;
 
-		// ----- LÍNEA NUEVA -----
-		// Asumimos que la propiedad se llama 'apellido'. Si no, ajustalo.
 		const apellido = cliente.apellido || "";
 		const cuit = cliente.cuit || cliente.cuil || "";
 		const nombreCompleto = `${nombre} ${apellido}`.trim();
 
 		return {
-			value: nombre, // Mantenemos el 'value' original para tu filtro
-			label: nombreCompleto, // <-- MODIFICADO: Ahora el 'label' es el nombre completo
+			value: nombre,
+			label: nombreCompleto,
 			cuit: cuit,
 		};
 	});
@@ -701,10 +725,7 @@ const Ventas = () => {
 				alignItems: "center",
 			}}
 		>
-			{/* El nombre del cliente */}
 			<span style={{ fontWeight: 500 }}>{label}</span>
-
-			{/* El CUIT, solo si existe, en color gris */}
 			{cuit && (
 				<span style={{ color: "#666", marginLeft: "10px", fontSize: "0.9em" }}>
 					{cuit}
@@ -724,30 +745,19 @@ const Ventas = () => {
 		label: "Todos los estados",
 	});
 
-	// 6. Mapea tus PRIORIDADES al formato de react-select
-	const opcionesPrioridadParaSelect = prioridades.map((prioridad) => ({
-		value: prioridad.id_prioridad,
-		label: prioridad.descripcion,
-	}));
-	// 7. Agregamos "Todas las prioridades" al inicio
-	opcionesPrioridadParaSelect.unshift({
-		value: "todos",
-		label: "Todas las prioridades",
-	});
-
 	// 8. Estilos comunes para TODOS los Select, para que sean idénticos
 	const customSelectStyles = {
 		control: (baseStyles) => {
 			const newStyles = Object.assign({}, baseStyles, {
-				minWidth: "315px", // Puedes ajustar este ancho
-				minHeight: "40px", // Ajusta esta altura
-				height: "40px", // Ajusta esta altura
+				minWidth: "315px",
+				minHeight: "40px",
+				height: "40px",
 			});
 			return newStyles;
 		},
 		indicatorsContainer: (baseStyles) => {
 			const newStyles = Object.assign({}, baseStyles, {
-				height: "34px", // Debe coincidir con la altura del control
+				height: "34px",
 			});
 			return newStyles;
 		},
@@ -799,7 +809,6 @@ const Ventas = () => {
 			</div>
 
 			{/* Controles de Filtrado */}
-
 			<div className={styles.controles}>
 				<div className={styles.filtroGrupo}>
 					<label htmlFor="filtroEstado" className={styles.label}>
@@ -830,21 +839,6 @@ const Ventas = () => {
 						)}
 						onChange={(opcion) => manejarCambioCliente(opcion.value)}
 					/>{" "}
-				</div>
-
-				<div className={styles.filtroGrupo}>
-					<label htmlFor="filtroPrioridad" className={styles.label}>
-						Filtrar por Prioridad:{" "}
-					</label>{" "}
-					<Select
-						id="filtroPrioridad"
-						options={opcionesPrioridadParaSelect}
-						styles={customSelectStyles}
-						value={opcionesPrioridadParaSelect.find(
-							(op) => op.value === filtroPrioridad
-						)}
-						onChange={(opcion) => manejarCambioPrioridad(opcion.value)}
-					/>
 				</div>
 
 				<button onClick={limpiarFiltros} className={styles.btnLimpiar}>
@@ -882,15 +876,6 @@ const Ventas = () => {
 									>
 										{getDescripcionEstado(orden.estado_venta)}
 									</span>
-									{orden.prioridad && (
-										<span
-											className={`${styles.badge} ${getPrioridadBadgeClass(
-												orden.prioridad
-											)}`}
-										>
-											{getDescripcionPrioridadFromObject(orden.prioridad)}
-										</span>
-									)}
 									{!puedeEditarOrden(orden) && (
 										<span
 											className={`${styles.badge} ${styles.badgeNoEditable}`}
@@ -934,9 +919,8 @@ const Ventas = () => {
 								</span>
 							</div>
 
-							{/* BOTONES DE ACCIÓN - INCLUYENDO FACTURAR Y GESTIONAR ENTREGA */}
+							{/* BOTONES DE ACCIÓN */}
 							<div className={styles.botonesAccion}>
-							
 								{puedeFacturarOrden(orden) && (
 									<button
 										onClick={(e) => {
@@ -949,7 +933,7 @@ const Ventas = () => {
 									</button>
 								)} 
 
-								{/* Botón para cancelar orden - SOLO SE MUESTRA SI id_estado_venta = 9 (En Preparación) */}
+								{/* Botón para cancelar orden */}
 								{puedeCancelarOrden(orden) && (
 									<button
 										onClick={(e) => {
@@ -987,59 +971,34 @@ const Ventas = () => {
 						<div className={styles.ordenBody}>
 							{editando === orden.id_orden_venta ? (
 								<div className={styles.edicionContainer}>
-									{/* Sección para editar prioridad */}
-									<div className={styles.prioridadEdicion}>
-										<h4>Prioridad:</h4>
+									{/* Sección para editar fecha de entrega - CON DATE PICKER PERSONALIZADO */}
+									<div className={styles.fechaEntregaEdicion}>
+										<h4>Fecha de Entrega Estimada:</h4>
 										<div className={styles.inputGrupo}>
-											<label htmlFor={`prioridad-${orden.id_orden_venta}`}>
-												Nivel de Prioridad:
+											<label htmlFor={`fecha-entrega-${orden.id_orden_venta}`}>
+												Fecha de Entrega:
 											</label>
-											<select
-												id={`prioridad-${orden.id_orden_venta}`}
-												value={prioridadEdit}
-												onChange={(e) => setPrioridadEdit(e.target.value)}
-												className={styles.selectPrioridad}
-											>
-												<option value="">Seleccionar prioridad</option>
-												{prioridades.map((prioridad) => (
-													<option
-														key={prioridad.id_prioridad}
-														value={prioridad.id_prioridad}
-													>
-														{prioridad.descripcion}
-													</option>
-												))}
-											</select>
+											<DatePickerHabil
+												id={`fecha-entrega-${orden.id_orden_venta}`}
+												value={fechaEntregaEdit.split('T')[0]}
+												min={obtenerFechaMinima()}
+												max={obtenerFechaMaxima()}
+												onChange={(nuevaFecha) => setFechaEntregaEdit(nuevaFecha + 'T00:00')}
+												disabled={guardando}
+												className={styles.inputFecha}
+											/>
+										</div>
+										<div className={styles.fechaInfoContainer}>
+											{fechaEntregaEdit &&
+												fechaEntregaEdit !== fechaOriginal &&
+												fechaOriginal &&
+												new Date(fechaEntregaEdit) <= new Date(fechaOriginal) && (
+												<small className={styles.fechaError}>
+													⚠️ La nueva fecha debe ser mayor a la fecha original
+												</small>
+											)}
 										</div>
 									</div>
-{/* Sección para editar fecha de entrega - SOLO FECHA */}
-<div className={styles.fechaEntregaEdicion}>
-	<h4>Fecha de Entrega Estimada:</h4>
-	<div className={styles.inputGrupo}>
-		<label htmlFor={`fecha-entrega-${orden.id_orden_venta}`}>
-			Fecha de Entrega:
-		</label>
-		<input
-			id={`fecha-entrega-${orden.id_orden_venta}`}
-			type="date"
-			value={fechaEntregaEdit.split('T')[0]}
-			onChange={(e) => setFechaEntregaEdit(e.target.value + 'T00:00')}
-			className={styles.inputFecha}
-			required
-			min={fechaOriginal.split('T')[0]}
-		/>
-	</div>
-	<div className={styles.fechaInfoContainer}>
-		{fechaEntregaEdit &&
-			fechaEntregaEdit !== fechaOriginal &&
-			fechaOriginal &&
-			new Date(fechaEntregaEdit) <= new Date(fechaOriginal) && (
-			<small className={styles.fechaError}>
-				⚠️ La nueva fecha debe ser mayor a la fecha original
-			</small>
-		)}
-	</div>
-</div>
 
 									<h3>Productos:</h3>
 
@@ -1235,7 +1194,7 @@ const Ventas = () => {
 				<div className={styles.sinOrdenes}>No hay órdenes disponibles</div>
 			)}
 
-			{/* ----- INICIO MODAL DE CANCELACIÓN (PEGAR AQUÍ) ----- */}
+			{/* MODAL DE CANCELACIÓN */}
 			{modalCancelar.visible && (
 				<div className={styles.modalOverlay}>
 					<div className={styles.modalContenido}>
@@ -1265,7 +1224,6 @@ const Ventas = () => {
 					</div>
 				</div>
 			)}
-			{/* ----- FIN MODAL DE CANCELACIÓN ----- */}
 		</div>
 	);
 };
