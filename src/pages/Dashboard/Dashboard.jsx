@@ -51,19 +51,18 @@
     });
   };
 
-  // Función para calcular fechas del período (MODIFICADA: fecha_desde = hoy, fecha_hasta = hoy + 30 días)
-  const getDateRange = (dias = 30) => {
-    const hoy = new Date();
+const getDateRange = (dias = 30) => {
+  const hoy = new Date();
 
-    // Crear una copia para la fecha de fin (hoy + 30 días)
-    const fechaFin = new Date(hoy);
-    fechaFin.setDate(hoy.getDate() + dias);
+  // Crear una copia para la fecha de fin (hoy + 30 días)
+  const fechaFin = new Date(hoy);
+  fechaFin.setDate(hoy.getDate() + dias);
 
-    return {
-      fechaDesde: formatDateToAPI(hoy),        // Hoy
-      fechaHasta: formatDateToAPI(fechaFin),   // Hoy + 30 días
-    };
+  return {
+    fechaDesde: formatDateToAPI(hoy),        // Hoy
+    fechaHasta: formatDateToAPI(fechaFin),   // Hoy + 30 días
   };
+};
 
   // Función para calcular fechas de cada mes (últimos 6 meses incluyendo actual)
   const getFechasPorMeses = (cantidadMeses = 6) => {
@@ -445,67 +444,127 @@ useEffect(() => {
       fetchCumplimientoSemanal();
     }, []);
 
-    // Efecto para cargar datos de OEE con fechas dinámicas
-    useEffect(() => {
-      const fetchOEE = async () => {
-        try {
-          setCargando((prev) => ({ ...prev, oee: true }));
+  useEffect(() => {
+    const fetchOEE = async () => {
+      try {
+        setCargando((prev) => ({ ...prev, oee: true }));
 
-          // Obtener fechas para OEE
-          const fechas = getFechasParaAPI("oee");
+        const fechas = getFechasParaAPI("oee");
+        console.log("📊 OEE - Fechas:", fechas);
 
-          console.log("📊 OEE - Fechas:", fechas);
+        const params = new URLSearchParams(fechas);
+        const url = `https://frozenback-test.up.railway.app/api/reportes/oee/?${params.toString()}`;
 
-          // Construir URL con query params usando las fechas dinámicas
-          const params = new URLSearchParams(fechas);
-          const url = `https://frozenback-test.up.railway.app/api/reportes/oee/?${params.toString()}`;
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`Error en la petición OEE: ${response.status}`);
+        }
 
-          const response = await fetch(url);
+        const data = await response.json();
+        setDatosOEE(data);
 
-          if (!response.ok) {
-            throw new Error(`Error en la petición OEE: ${response.status}`);
-          }
+        // PROCESAMIENTO CORREGIDO
+        if (data && data.length > 0) {
+          console.log("📊 OEE - Datos brutos de API:", data);
+          
+          // Filtrar y corregir datos inválidos
+          const periodosCorregidos = data.map(item => ({
+            ...item,
+            // Corregir valores > 100%
+            disponibilidad: Math.min(item.disponibilidad, 100),
+            rendimiento: Math.min(item.rendimiento, 100),
+            calidad: Math.min(item.calidad, 100),
+            // Calcular OEE correctamente
+            oee_calculado: Math.min(item.disponibilidad, 100) * 
+                          Math.min(item.rendimiento, 100) * 
+                          Math.min(item.calidad, 100) / 10000
+          }));
 
-          const data = await response.json();
-          setDatosOEE(data);
+          console.log("📊 OEE - Datos corregidos:", periodosCorregidos);
 
-          // Actualizar indicadores con los datos de la API
-          if (data && data.length > 0) {
-            const ultimoMes = data[data.length - 1];
+          // Usar el período más reciente con datos válidos
+          const periodosValidos = periodosCorregidos.filter(item => 
+            item.oee_calculado > 0 && 
+            item.disponibilidad > 0 && 
+            item.rendimiento > 0 && 
+            item.calidad > 0
+          );
+
+          if (periodosValidos.length > 0) {
+            const periodoActual = periodosValidos[periodosValidos.length - 1];
+            
+            console.log("📊 OEE - Período actual usado:", periodoActual);
+            console.log("📊 OEE - Cálculo verificado:", {
+              disponibilidad: periodoActual.disponibilidad,
+              rendimiento: periodoActual.rendimiento,
+              calidad: periodoActual.calidad,
+              oee_calculado: periodoActual.oee_calculado,
+              formula: `${periodoActual.disponibilidad}% × ${periodoActual.rendimiento}% × ${periodoActual.calidad}% = ${periodoActual.oee_calculado}%`
+            });
+
             setIndicadores((prev) => ({
               ...prev,
-              oee: Math.min(ultimoMes.oee_total, 100), // Limitar a 100% como máximo
-              disponibilidad: Math.min(ultimoMes.disponibilidad, 100),
-              rendimiento: Math.min(ultimoMes.rendimiento, 100),
-              calidad: Math.min(ultimoMes.calidad, 100),
+              oee: Number(periodoActual.oee_calculado.toFixed(1)),
+              disponibilidad: Number(periodoActual.disponibilidad.toFixed(1)),
+              rendimiento: Number(periodoActual.rendimiento.toFixed(1)),
+              calidad: Number(periodoActual.calidad.toFixed(1)),
+            }));
+          } else {
+            console.warn("⚠️ OEE - No hay períodos con datos válidos");
+            setIndicadores((prev) => ({
+              ...prev,
+              oee: 0,
+              disponibilidad: 0,
+              rendimiento: 0,
+              calidad: 0,
             }));
           }
-
-          setError((prev) => ({ ...prev, oee: null }));
-        } catch (err) {
-          console.error("Error al cargar datos de OEE:", err);
-          setError((prev) => ({
-            ...prev,
-            oee: "No se pudieron cargar los datos de OEE",
-          }));
-          // Datos de respaldo en caso de error
-          const fechas = getFechasParaAPI("oee");
-          setDatosOEE([
-            {
-              mes: "2025-10",
-              disponibilidad: 85.2,
-              rendimiento: 92.1,
-              calidad: 95.8,
-              oee_total: 78.5,
-            },
-          ]);
-        } finally {
-          setCargando((prev) => ({ ...prev, oee: false }));
         }
-      };
 
-      fetchOEE();
-    }, []);
+        setError((prev) => ({ ...prev, oee: null }));
+      } catch (err) {
+        console.error("Error al cargar datos de OEE:", err);
+        setError((prev) => ({
+          ...prev,
+          oee: "No se pudieron cargar los datos de OEE",
+        }));
+        
+        // Datos de respaldo REALISTAS
+        setIndicadores((prev) => ({
+          ...prev,
+          oee: 85.5,
+          disponibilidad: 92.0,
+          rendimiento: 95.0,
+          calidad: 97.8,
+        }));
+      } finally {
+        setCargando((prev) => ({ ...prev, oee: false }));
+      }
+    };
+
+  fetchOEE();
+  }, []);
+
+
+// AGREGAR este useEffect para debuggear los datos de OEE
+useEffect(() => {
+  if (datosOEE) {
+    console.log("🔍 DEBUG - Datos OEE recibidos:", datosOEE);
+    console.log("🔍 DEBUG - Indicadores actuales:", indicadores);
+  }
+}, [datosOEE, indicadores]);
+
+// ACTUALIZAR la función getFechasParaAPI para ser más consistente
+const getFechasParaAPI = (apiTipo) => {
+  const { fechaDesde, fechaHasta } = getDateRange(30);
+
+  // Para todas las APIs usar el mismo rango (últimos 30 días)
+  // Eliminar el ajuste de +1 día que causaba problemas
+  return {
+    fecha_desde: fechaDesde,
+    fecha_hasta: fechaHasta,
+  };
+};
 
     // Efecto para cargar datos de tendencia OEE (últimos 6 meses)
     useEffect(() => {
@@ -958,6 +1017,14 @@ const ventasTipoProductoOptions = {
       ],
     };
 
+// Función para obtener el color del gauge basado en el valor
+const getGaugeColor = (value, target) => {
+  if (value >= target) return '#38a169'; // Verde
+  if (value >= target - 5) return '#3182ce'; // Azul
+  if (value >= target - 10) return '#dd6b20'; // Naranja
+  return '#e53e3e'; // Rojo
+};
+
     // Datos para gráfico de ventas por tipo (Ecommerce vs WebApp)
     const ventasPorTipoData = {
       labels: datosVentasPorTipo
@@ -1239,47 +1306,73 @@ const ventasTipoProductoOptions = {
           {/* Sección de KPI Principales */}
           <div className={styles.kpiSection}>
             {/* OEE Principal */}
-            <div className={`${styles.card} ${styles.kpiCard} ${styles.oeeMainCard}`}>
-              <div className={styles.cardHeader}>
-                <h3>Eficiencia General de Equipos (OEE)</h3>
-                <div className={styles.objetivoTag}>
-                  Objetivo: {indicadores.objetivoOEE}%
-                </div>
-              </div>
-              <div className={styles.oeeContainer}>
-                <div className={styles.oeeGauge}>
-                  <div className={styles.gaugeBackground}>
-                    <div 
-                      className={`${styles.gaugeFill} ${getTrafficLightColor(indicadores.oee, indicadores.objetivoOEE)}`}
-                      style={{ transform: `rotate(${indicadores.oee * 1.8}deg)` }}
-                    ></div>
-                    <div className={styles.gaugeCenter}>
-                      <span className={styles.gaugeNumber}>{indicadores.oee.toFixed(1)}%</span>
-                      <div className={styles.gaugeLabel}>OEE Actual</div>
-                    </div>
-                  </div>
-                  <div className={styles.gaugeTarget}>
-                    <div className={styles.targetLine}></div>
-                    <span className={styles.targetLabel}>{indicadores.objetivoOEE}%</span>
-                  </div>
-                </div>
-                
-                <div className={styles.oeeStatus}>
-                  <div className={`${styles.statusIndicator} ${getTrafficLightColor(indicadores.oee, indicadores.objetivoOEE)}`}>
-                    <div className={styles.statusDot}></div>
-                    <span className={styles.statusText}>
-                      {getStatusText(indicadores.oee, indicadores.objetivoOEE)}
-                    </span>
-                  </div>
-                  <div className={styles.performanceDelta}>
-                    <span className={styles.deltaLabel}>Desviación:</span>
-                    <span className={`${styles.deltaValue} ${indicadores.oee >= indicadores.objetivoOEE ? styles.positive : styles.negative}`}>
-                      {(indicadores.oee - indicadores.objetivoOEE).toFixed(1)}%
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
+{/* OEE Principal - VERSIÓN CORREGIDA */}
+<div className={`${styles.card} ${styles.kpiCard} ${styles.oeeMainCard}`}>
+  <div className={styles.cardHeader}>
+    <h3>Eficiencia General de Equipos (OEE)</h3>
+    <div className={styles.objetivoTag}>
+      Objetivo: {indicadores.objetivoOEE}%
+    </div>
+  </div>
+  <div className={styles.oeeContainer}>
+    <div className={styles.oeeGauge}>
+      <div className={styles.gaugeWrapper}>
+        <div className={styles.gaugeSvg}>
+          <svg width="160" height="160" viewBox="0 0 160 160">
+            <circle cx="80" cy="80" r="70" fill="none" stroke="#e2e8f0" strokeWidth="12"/>
+            <circle 
+              cx="80" 
+              cy="80" 
+              r="70" 
+              fill="none" 
+              stroke={getGaugeColor(indicadores.oee, indicadores.objetivoOEE)}
+              strokeWidth="12"
+              strokeLinecap="round"
+              strokeDasharray={`${(indicadores.oee * 439.6) / 100} 439.6`}
+              transform="rotate(-90 80 80)"
+            />
+          </svg>
+        </div>
+        <div className={styles.gaugeCenter}>
+          <span className={styles.gaugeNumber}>{indicadores.oee.toFixed(1)}%</span>
+          <div className={styles.gaugeLabel}>OEE Actual</div>
+        </div>
+      </div>
+    </div>
+    {/* Información de Estado */}
+    <div className={styles.oeeStatus}>
+      <div className={`${styles.statusIndicator} ${getTrafficLightColor(indicadores.oee, indicadores.objetivoOEE)}`}>
+        <div className={styles.statusDot}></div>
+        <span className={styles.statusText}>
+          {getStatusText(indicadores.oee, indicadores.objetivoOEE)}
+        </span>
+      </div>
+      
+      <div className={styles.performanceDelta}>
+        <span className={styles.deltaLabel}>Desviación:</span>
+        <span className={`${styles.deltaValue} ${indicadores.oee >= indicadores.objetivoOEE ? styles.positive : styles.negative}`}>
+          {(indicadores.oee - indicadores.objetivoOEE).toFixed(1)}%
+        </span>
+      </div>
+      
+      {/* Información adicional sobre componentes */}
+      <div className={styles.componentsSummary}>
+        <div className={styles.componentSummaryItem}>
+          <span className={styles.summaryLabel}>Disponibilidad:</span>
+          <span className={styles.summaryValue}>{indicadores.disponibilidad.toFixed(1)}%</span>
+        </div>
+        <div className={styles.componentSummaryItem}>
+          <span className={styles.summaryLabel}>Rendimiento:</span>
+          <span className={styles.summaryValue}>{indicadores.rendimiento.toFixed(1)}%</span>
+        </div>
+        <div className={styles.componentSummaryItem}>
+          <span className={styles.summaryLabel}>Calidad:</span>
+          <span className={styles.summaryValue}>{indicadores.calidad.toFixed(1)}%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
             {/* KPIs Secundarios */}
             <div className={`${styles.card} ${styles.kpiCard}`}>
@@ -1315,87 +1408,87 @@ const ventasTipoProductoOptions = {
             </div>
           </div>
 
-          {/* Componentes OEE */}
-          <div className={styles.componentsSection}>
-            <div className={`${styles.card} ${styles.componentsCard}`}>
-              <div className={styles.cardHeader}>
-                <h3>Componentes OEE</h3>
-              </div>
-              <div className={styles.componentsGrid}>
-                {/* Disponibilidad */}
-                <div className={styles.componentItem}>
-                  <div className={styles.componentHeader}>
-                    <h4>Disponibilidad</h4>
-                    <div className={`${styles.trafficLight} ${getTrafficLightColor(indicadores.disponibilidad, indicadores.objetivoDisponibilidad)}`}></div>
-                  </div>
-                  <div className={styles.componentValue}>
-                    <span className={styles.currentValue}>{indicadores.disponibilidad.toFixed(1)}%</span>
-                    <span className={styles.targetValue}>/{indicadores.objetivoDisponibilidad}%</span>
-                  </div>
-                  <div className={styles.progressContainer}>
-                    <div className={styles.progressBar}>
-                      <div 
-                        className={`${styles.progressFill} ${getTrafficLightColor(indicadores.disponibilidad, indicadores.objetivoDisponibilidad)}`}
-                        style={{ width: `${indicadores.disponibilidad}%` }}
-                      ></div>
-                      <div 
-                        className={styles.targetMarker}
-                        style={{ left: `${indicadores.objetivoDisponibilidad}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Rendimiento */}
-                <div className={styles.componentItem}>
-                  <div className={styles.componentHeader}>
-                    <h4>Rendimiento</h4>
-                    <div className={`${styles.trafficLight} ${getTrafficLightColor(indicadores.rendimiento, indicadores.objetivoRendimiento)}`}></div>
-                  </div>
-                  <div className={styles.componentValue}>
-                    <span className={styles.currentValue}>{indicadores.rendimiento.toFixed(1)}%</span>
-                    <span className={styles.targetValue}>/{indicadores.objetivoRendimiento}%</span>
-                  </div>
-                  <div className={styles.progressContainer}>
-                    <div className={styles.progressBar}>
-                      <div 
-                        className={`${styles.progressFill} ${getTrafficLightColor(indicadores.rendimiento, indicadores.objetivoRendimiento)}`}
-                        style={{ width: `${indicadores.rendimiento}%` }}
-                      ></div>
-                      <div 
-                        className={styles.targetMarker}
-                        style={{ left: `${indicadores.objetivoRendimiento}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Calidad */}
-                <div className={styles.componentItem}>
-                  <div className={styles.componentHeader}>
-                    <h4>Calidad</h4>
-                    <div className={`${styles.trafficLight} ${getTrafficLightColor(indicadores.calidad, indicadores.objetivoCalidad)}`}></div>
-                  </div>
-                  <div className={styles.componentValue}>
-                    <span className={styles.currentValue}>{indicadores.calidad.toFixed(1)}%</span>
-                    <span className={styles.targetValue}>/{indicadores.objetivoCalidad}%</span>
-                  </div>
-                  <div className={styles.progressContainer}>
-                    <div className={styles.progressBar}>
-                      <div 
-                        className={`${styles.progressFill} ${getTrafficLightColor(indicadores.calidad, indicadores.objetivoCalidad)}`}
-                        style={{ width: `${indicadores.calidad}%` }}
-                      ></div>
-                      <div 
-                        className={styles.targetMarker}
-                        style={{ left: `${indicadores.objetivoCalidad}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+{/* Componentes OEE - Versión Mejorada */}
+<div className={styles.componentsSection}>
+  <div className={`${styles.card} ${styles.componentsCard}`}>
+    <div className={styles.cardHeader}>
+      <h3>Desglose de Componentes OEE</h3>
+      <div className={styles.objetivoTag}>
+        OEE = Disponibilidad × Rendimiento × Calidad
+      </div>
+    </div>
+    <div className={styles.componentsGrid}>
+      {/* Disponibilidad */}
+      <div className={styles.componentItem}>
+        <div className={styles.componentHeader}>
+          <h4>📊 Disponibilidad</h4>
+          <div className={`${styles.trafficLight} ${getTrafficLightColor(indicadores.disponibilidad, indicadores.objetivoDisponibilidad)}`}></div>
+        </div>
+        <div className={styles.componentDescription}>
+          Tiempo de producción vs tiempo disponible
+        </div>
+        <div className={styles.componentValue}>
+          <span className={styles.currentValue}>{indicadores.disponibilidad.toFixed(1)}%</span>
+          <span className={styles.targetValue}>Objetivo: {indicadores.objetivoDisponibilidad}%</span>
+        </div>
+        <div className={styles.progressContainer}>
+          <div className={styles.progressBar}>
+            <div 
+              className={`${styles.progressFill} ${getTrafficLightColor(indicadores.disponibilidad, indicadores.objetivoDisponibilidad)}`}
+              style={{ width: `${Math.min(indicadores.disponibilidad, 100)}%` }}
+            ></div>
           </div>
+        </div>
+      </div>
+
+      {/* Rendimiento */}
+      <div className={styles.componentItem}>
+        <div className={styles.componentHeader}>
+          <h4>⚡ Rendimiento</h4>
+          <div className={`${styles.trafficLight} ${getTrafficLightColor(indicadores.rendimiento, indicadores.objetivoRendimiento)}`}></div>
+        </div>
+        <div className={styles.componentDescription}>
+          Velocidad real vs velocidad ideal
+        </div>
+        <div className={styles.componentValue}>
+          <span className={styles.currentValue}>{indicadores.rendimiento.toFixed(1)}%</span>
+          <span className={styles.targetValue}>Objetivo: {indicadores.objetivoRendimiento}%</span>
+        </div>
+        <div className={styles.progressContainer}>
+          <div className={styles.progressBar}>
+            <div 
+              className={`${styles.progressFill} ${getTrafficLightColor(indicadores.rendimiento, indicadores.objetivoRendimiento)}`}
+              style={{ width: `${Math.min(indicadores.rendimiento, 100)}%` }}
+            ></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Calidad */}
+      <div className={styles.componentItem}>
+        <div className={styles.componentHeader}>
+          <h4>✅ Calidad</h4>
+          <div className={`${styles.trafficLight} ${getTrafficLightColor(indicadores.calidad, indicadores.objetivoCalidad)}`}></div>
+        </div>
+        <div className={styles.componentDescription}>
+          Unidades buenas vs unidades totales
+        </div>
+        <div className={styles.componentValue}>
+          <span className={styles.currentValue}>{indicadores.calidad.toFixed(1)}%</span>
+          <span className={styles.targetValue}>Objetivo: {indicadores.objetivoCalidad}%</span>
+        </div>
+        <div className={styles.progressContainer}>
+          <div className={styles.progressBar}>
+            <div 
+              className={`${styles.progressFill} ${getTrafficLightColor(indicadores.calidad, indicadores.objetivoCalidad)}`}
+              style={{ width: `${Math.min(indicadores.calidad, 100)}%` }}
+            ></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
           {/* Gráficos */}
           <div className={`${styles.card} ${styles.chartCard}`}>

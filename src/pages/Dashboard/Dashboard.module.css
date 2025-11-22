@@ -614,3 +614,147 @@
     max-width: 1200px;
   }
 }
+
+/* OEE Gauge Corregido */
+.gaugeWrapper {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gaugeSvg {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.gaugeCenter {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+.gaugeNumber {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2d3748;
+  display: block;
+  line-height: 1;
+}
+
+.gaugeLabel {
+  font-size: 0.8rem;
+  color: #718096;
+  margin-top: 4px;
+}
+
+.targetLabel {
+  position: absolute;
+  bottom: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  color: #718096;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Componentes Summary */
+.componentsSummary {
+  margin-top: 16px;
+  padding: 12px;
+  background: #f7fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.componentSummaryItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.componentSummaryItem:last-child {
+  margin-bottom: 0;
+}
+
+.summaryLabel {
+  font-size: 0.8rem;
+  color: #718096;
+}
+
+.summaryValue {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+/* OEE Container mejorado */
+.oeeContainer {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+}
+
+.oeeGauge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.oeeStatus {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .oeeContainer {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 24px;
+  }
+  
+  .gaugeWrapper {
+    width: 140px;
+    height: 140px;
+  }
+  
+  .gaugeNumber {
+    font-size: 1.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .gaugeWrapper {
+    width: 120px;
+    height: 120px;
+  }
+  
+  .gaugeNumber {
+    font-size: 1.5rem;
+  }
+}
+
+.componentDescription {
+  font-size: 0.8rem;
+  color: #718096;
+  margin-bottom: 12px;
+  line-height: 1.3;
+}
+
+.oeeFormula {
+  font-size: 0.7rem;
+  color: #718096;
+  margin-top: 8px;
+  line-height: 1.2;
+  font-style: italic;
+}
