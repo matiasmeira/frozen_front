@@ -17,10 +17,127 @@
 }
 
 .header {
-	text-align: center;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
 	margin-bottom: 2rem;
+	gap: 1rem;
 }
 
+.botonCuarentena {
+	background-color: #fff;
+	color: #d97706; /* Color ámbar/naranja de advertencia */
+	border: 2px solid #d97706;
+	padding: 0.5rem 1.5rem;
+	font-size: 0.9rem;
+	font-weight: 600;
+	border-radius: 0.5rem;
+	cursor: pointer;
+	transition: all 0.3s ease;
+}
+
+.botonCuarentena:hover {
+	background-color: #d97706;
+	color: white;
+	transform: translateY(-1px);
+	box-shadow: 0 2px 4px rgba(217, 119, 6, 0.2);
+}
+
+.botonCuarentena:disabled {
+	background-color: #f3f4f6;
+	border-color: #d1d5db;
+	color: #9ca3af;
+	cursor: not-allowed;
+	transform: none;
+}
+
+/* --- ACTUALIZAR HEADER --- */
+.header {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	margin-bottom: 2rem;
+	gap: 1rem;
+}
+
+/* --- NUEVO CONTENEDOR PARA LOS BOTONES --- */
+.accionesContainer {
+	display: flex;
+	gap: 1rem;
+	flex-wrap: wrap;
+	justify-content: center;
+}
+
+/* --- BOTÓN CUARENTENA (Naranja) --- */
+.botonCuarentena {
+	background-color: #fff;
+	color: #d97706;
+	border: 2px solid #d97706;
+	padding: 0.5rem 1.5rem;
+	font-size: 0.9rem;
+	font-weight: 600;
+	border-radius: 0.5rem;
+	cursor: pointer;
+	transition: all 0.3s ease;
+}
+
+.botonCuarentena:hover {
+	background-color: #d97706;
+	color: white;
+	transform: translateY(-1px);
+}
+
+.botonCuarentena:disabled {
+	background-color: #f3f4f6;
+	border-color: #d1d5db;
+	color: #9ca3af;
+	cursor: not-allowed;
+	transform: none;
+}
+
+/* --- NUEVO: BOTÓN HABILITAR (Verde) --- */
+.botonHabilitar {
+	background-color: #fff;
+	color: #059669; /* Verde esmeralda */
+	border: 2px solid #059669;
+	padding: 0.5rem 1.5rem;
+	font-size: 0.9rem;
+	font-weight: 600;
+	border-radius: 0.5rem;
+	cursor: pointer;
+	transition: all 0.3s ease;
+}
+
+.botonHabilitar:hover {
+	background-color: #059669;
+	color: white;
+	transform: translateY(-1px);
+	box-shadow: 0 2px 4px rgba(5, 150, 105, 0.2);
+}
+
+.botonHabilitar:disabled {
+	background-color: #f3f4f6;
+	border-color: #d1d5db;
+	color: #9ca3af;
+	cursor: not-allowed;
+	transform: none;
+}
+
+/* --- RESPONSIVE --- */
+@media (min-width: 769px) {
+	.header {
+		flex-direction: row;
+		justify-content: space-between; /* Título a la izq, botones a la der */
+		align-items: center;
+		gap: 2rem;
+	}
+
+	.title {
+		margin-bottom: 0;
+	}
+}
 .title {
 	color: #1f2937;
 	font-size: 2rem;
