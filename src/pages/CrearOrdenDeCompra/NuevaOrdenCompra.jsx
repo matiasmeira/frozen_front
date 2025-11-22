@@ -27,6 +27,68 @@ const NuevaOrdenCompra = () => {
   // Referencia para el timeout del debounce
   const debounceTimeoutRef = useRef(null);
 
+  // Función para obtener todas las materias primas con paginación
+  const obtenerTodasLasMateriasPrimas = async () => {
+    let todasLasMaterias = [];
+    let url = 'https://frozenback-test.up.railway.app/api/materias_primas/materias/';
+    
+    try {
+      while (url) {
+        const response = await axios.get(url);
+        const data = response.data;
+        
+        // Dependiendo de la estructura de la respuesta
+        if (data.results) {
+          // Si usa paginación estándar (results + next)
+          todasLasMaterias = [...todasLasMaterias, ...data.results];
+          url = data.next; // URL de la siguiente página o null
+        } else if (Array.isArray(data)) {
+          // Si devuelve un array directamente (sin paginación)
+          todasLasMaterias = data;
+          url = null;
+        } else {
+          // Otra estructura
+          console.error('Estructura de respuesta inesperada:', data);
+          break;
+        }
+      }
+      
+      return todasLasMaterias;
+    } catch (err) {
+      console.error('Error obteniendo materias primas:', err);
+      throw err;
+    }
+  };
+
+  // Función para obtener todos los proveedores con paginación
+  const obtenerTodosLosProveedores = async () => {
+    let todosLosProveedores = [];
+    let url = 'https://frozenback-test.up.railway.app/api/materias_primas/proveedores/';
+    
+    try {
+      while (url) {
+        const response = await axios.get(url);
+        const data = response.data;
+        
+        if (data.results) {
+          todosLosProveedores = [...todosLosProveedores, ...data.results];
+          url = data.next;
+        } else if (Array.isArray(data)) {
+          todosLosProveedores = data;
+          url = null;
+        } else {
+          console.error('Estructura de respuesta inesperada:', data);
+          break;
+        }
+      }
+      
+      return todosLosProveedores;
+    } catch (err) {
+      console.error('Error obteniendo proveedores:', err);
+      throw err;
+    }
+  };
+
   // Función para obtener la descripción de una unidad por ID
   const obtenerUnidadMedida = async (idUnidad) => {
     if (!idUnidad) return '';
@@ -84,12 +146,14 @@ const NuevaOrdenCompra = () => {
       try {
         setLoading(true);
         
-        const proveedoresResponse = await axios.get('https://frozenback-test.up.railway.app/api/materias_primas/proveedores/');
-        setProveedores(proveedoresResponse.data.results);
+        // Obtener todos los proveedores
+        const todosLosProveedores = await obtenerTodosLosProveedores();
+        setProveedores(todosLosProveedores);
 
-        const materiasListResponse = await axios.get('https://frozenback-test.up.railway.app/api/materias_primas/materias/');
-        const materiasIds = materiasListResponse.data.results || materiasListResponse.data;
+        // Obtener todas las materias primas
+        const materiasIds = await obtenerTodasLasMateriasPrimas();
         
+        console.log('Total de materias primas obtenidas:', materiasIds.length);
         console.log('IDs de materias primas:', materiasIds);
 
         if (Array.isArray(materiasIds) && materiasIds.length > 0) {
@@ -105,6 +169,7 @@ const NuevaOrdenCompra = () => {
           });
 
           const materiasCompletas = (await Promise.all(materiasPromises)).filter(materia => materia !== null);
+          console.log('Materias primas completas cargadas:', materiasCompletas.length);
           setMateriasPrimas(materiasCompletas);
           await cargarUnidadesMedida(materiasCompletas);
         } else {
@@ -125,7 +190,7 @@ const NuevaOrdenCompra = () => {
     fetchData();
   }, []);
 
-  // Función para calcular la cantidad ajustada según la cantidad mínima de pedido
+  // Resto del código permanece igual...
   const calcularCantidadAjustada = (cantidadSolicitada, cantidadMinima) => {
     if (!cantidadMinima || cantidadMinima <= 0) {
       return cantidadSolicitada;
@@ -139,17 +204,14 @@ const NuevaOrdenCompra = () => {
     return multiplos * cantidadMinima;
   };
 
-  // Función debounce para mostrar el toast de ajuste
   const mostrarToastAjuste = (ajustada, cantidadMinimaPedido, unidadMedida) => {
-    // Limpiar timeout anterior si existe
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current);
     }
 
-    // Establecer nuevo timeout
     debounceTimeoutRef.current = setTimeout(() => {
       toast.warning(`La cantidad será ajustada a ${ajustada} ${unidadMedida}`);
-    }, 1000); // 1 segundo de espera
+    }, 1000);
   };
 
   // Preparar opciones para react-select
@@ -187,7 +249,6 @@ const NuevaOrdenCompra = () => {
     setCantidadMinimaPedido(minimaPedido);
     setCantidadAjustada(0);
 
-    // Limpiar timeout al cambiar materia prima
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current);
     }
@@ -227,23 +288,19 @@ const NuevaOrdenCompra = () => {
       cantidad: e.target.value
     }));
 
-    // Calcular cantidad ajustada
     if (cantidadMinimaPedido > 0 && cantidadIngresada > 0) {
       const ajustada = calcularCantidadAjustada(cantidadIngresada, cantidadMinimaPedido);
       setCantidadAjustada(ajustada);
       
-      // Mostrar advertencia con debounce si la cantidad fue ajustada
       if (ajustada !== cantidadIngresada) {
         mostrarToastAjuste(ajustada, cantidadMinimaPedido, unidadMedida);
       } else {
-        // Si no hay ajuste, limpiar el timeout
         if (debounceTimeoutRef.current) {
           clearTimeout(debounceTimeoutRef.current);
         }
       }
     } else {
       setCantidadAjustada(cantidadIngresada);
-      // Limpiar timeout si no hay cantidad mínima
       if (debounceTimeoutRef.current) {
         clearTimeout(debounceTimeoutRef.current);
       }
@@ -267,7 +324,6 @@ const NuevaOrdenCompra = () => {
     try {
       setIsSubmitting(true);
 
-      // Limpiar timeout al enviar el formulario
       if (debounceTimeoutRef.current) {
         clearTimeout(debounceTimeoutRef.current);
       }
@@ -328,7 +384,6 @@ const NuevaOrdenCompra = () => {
     }
   };
 
-  // Cleanup del timeout cuando el componente se desmonta
   useEffect(() => {
     return () => {
       if (debounceTimeoutRef.current) {
@@ -406,6 +461,9 @@ const NuevaOrdenCompra = () => {
             styles={customStyles}
             required
           />
+          <small className={styles.helperText}>
+            {opcionesMateriasPrimas.length} materias primas disponibles
+          </small>
         </div>
 
         <div className={styles.formGroup}>
@@ -449,19 +507,20 @@ const NuevaOrdenCompra = () => {
             )}
           </div>
           
-{cantidadMinimaPedido > 0 && (
-  <div className={styles.cantidadInfo}>
-    <small className={styles.helperText}>
-      Cantidad mínima de pedido: <strong>{cantidadMinimaPedido} {unidadMedida}</strong>
-    </small>
-    <br /> {/* Salto de línea */}
-    {cantidadAjustada > 0 && parseFloat(formData.cantidad) !== cantidadAjustada && (
-      <small className={styles.ajusteText}>
-        Cantidad ajustada a ordenar: <strong>{cantidadAjustada} {unidadMedida}</strong>
-      </small>
-    )}
-  </div>
-)}   </div>
+          {cantidadMinimaPedido > 0 && (
+            <div className={styles.cantidadInfo}>
+              <small className={styles.helperText}>
+                Cantidad mínima de pedido: <strong>{cantidadMinimaPedido} {unidadMedida}</strong>
+              </small>
+              <br />
+              {cantidadAjustada > 0 && parseFloat(formData.cantidad) !== cantidadAjustada && (
+                <small className={styles.ajusteText}>
+                  Cantidad ajustada a ordenar: <strong>{cantidadAjustada} {unidadMedida}</strong>
+                </small>
+              )}
+            </div>
+          )}
+        </div>
 
         <button 
           type="submit" 
