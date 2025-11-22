@@ -179,20 +179,25 @@ const VerLotesProducto = ({ idMateriaPrima }) => {
 												</tr>
 											</thead>
 											<tbody>
-												{ordenesLote.ordenes_venta.map((orden, index) => (
-													<tr key={`${orden.id_orden_venta}-${index}`}>
-														<td>{orden.id_orden_venta}</td>
-														<td>{orden.cliente}</td>
-														<td>{orden.producto}</td>
-														<td>
-															{new Date(
-																orden.fecha_entrega
-															).toLocaleDateString()}
-														</td>
-														<td>{orden.cantidad_asignada}</td>
-														<td>{orden.origen_asignacion}</td>
-													</tr>
-												))}
+												{ordenesLote.ordenes_venta
+													.filter(
+														(orden) =>
+															orden.origen_asignacion === "STOCK (Deposito)"
+													)
+													.map((orden, index) => (
+														<tr key={`${orden.id_orden_venta}-${index}`}>
+															<td>{orden.id_orden_venta}</td>
+															<td>{orden.cliente}</td>
+															<td>{orden.producto}</td>
+															<td>
+																{new Date(
+																	orden.fecha_entrega
+																).toLocaleDateString()}
+															</td>
+															<td>{orden.cantidad_asignada}</td>
+															<td>{orden.origen_asignacion}</td>
+														</tr>
+													))}
 											</tbody>
 										</table>
 									</div>
