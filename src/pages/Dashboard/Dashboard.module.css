@@ -1,592 +1,20 @@
 .dashboard {
-	padding: 20px;
-	background-color: #f8f9fa;
-	min-height: 100vh;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
+  padding: 24px;
+  background-color: #f8fafc;
+  min-height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-/* Estilos para el resumen de ventas */
-.ventasResumen {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-	margin-top: 15px;
-	padding-top: 15px;
-	border-top: 1px solid #e1e8ed;
-}
-
-.ventaItem {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	padding: 5px 0;
-}
-
-.ventaLabel {
-	font-size: 0.9rem;
-	color: #2c3e50;
-	font-weight: 500;
-}
-
-.ventaValue {
-	font-size: 0.9rem;
-	color: #7f8c8d;
-	font-weight: 600;
-}
-
+/* Header */
 .header {
-	margin-bottom: 30px;
-	text-align: center;
-	width: 100%;
-	max-width: 1200px;
+  margin-bottom: 32px;
+  width: 100%;
+  max-width: 1200px;
 }
 
-.header h1 {
-	color: #2c3e50;
-	margin: 0;
-	font-size: 2rem;
-	font-weight: 700;
-}
-
-.header p {
-	color: #7f8c8d;
-	margin: 5px 0 0 0;
-	font-size: 1.1rem;
-	font-weight: 400;
-}
-
-/* ===== GRID MEJORADO Y CENTRADO ===== */
-.grid {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 20px;
-	margin-bottom: 30px;
-	width: 100%;
-	max-width: 1200px;
-}
-
-.leftColumn {
-	grid-column: 1;
-	display: flex;
-	flex-direction: column;
-}
-
-.rightColumn {
-	grid-column: 2;
-	display: grid;
-	grid-template-columns: 1fr;
-	grid-template-rows: repeat(2, auto);
-	gap: 20px;
-	align-content: start;
-}
-
-/* ===== ESTILOS BASE DE CARDS ===== */
-.card {
-	background: white;
-	border-radius: 12px;
-	padding: 20px;
-	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-	border: 1px solid #e1e8ed;
-	transition: transform 0.2s ease, box-shadow 0.2s ease;
-	display: flex;
-	flex-direction: column;
-	width: 100%;
-}
-
-.card:hover {
-	transform: translateY(-2px);
-	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-}
-
-.cardHeader {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	margin-bottom: 15px;
-	flex-shrink: 0;
-}
-
-.cardHeader h3 {
-	margin: 0;
-	color: #2c3e50;
-	font-size: 1.1rem;
-	font-weight: 600;
-	text-align: left;
-}
-
-.cardContent {
-	text-align: center;
-	flex: 1;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-}
-
-/* ===== TARJETA OEE ===== */
-.oeeCard {
-	height: 100%;
-	min-height: 400px;
-	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-	color: white;
-	border: none;
-	position: relative;
-	overflow: hidden;
-}
-
-.oeeCard::before {
-	content: "";
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	background: linear-gradient(
-		45deg,
-		rgba(255, 255, 255, 0.1) 0%,
-		rgba(255, 255, 255, 0.05) 100%
-	);
-	pointer-events: none;
-}
-
-.oeeCard .cardHeader h3 {
-	color: white;
-	font-size: 1.3rem;
-	font-weight: 700;
-	position: relative;
-	z-index: 2;
-	text-align: center;
-	width: 100%;
-}
-
-.oeeCard .cardHeader {
-	border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-	padding-bottom: 15px;
-	margin-bottom: 20px;
-	justify-content: center;
-}
-
-/* Sección principal OEE */
-.oeeMain {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	margin-bottom: 25px;
-	padding: 20px;
-	background: rgba(255, 255, 255, 0.1);
-	border-radius: 12px;
-	border: 1px solid rgba(255, 255, 255, 0.2);
-	position: relative;
-	z-index: 2;
-}
-
-.oeeValueContainer {
-	text-align: center;
-}
-
-.oeeValue {
-	font-size: 3.5rem;
-	font-weight: 800;
-	color: white;
-	text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-	line-height: 1;
-	display: block;
-	margin-bottom: 5px;
-}
-
-.oeeLabel {
-	font-size: 1rem;
-	color: rgba(255, 255, 255, 0.9);
-	font-weight: 500;
-	text-transform: uppercase;
-	letter-spacing: 1px;
-}
-
-/* Componentes OEE */
-.oeeComponents {
-	display: flex;
-	flex-direction: column;
-	gap: 20px;
-	margin-top: 10px;
-	flex: 1;
-	position: relative;
-	z-index: 2;
-}
-
-.oeeComponent {
-	display: flex;
-	align-items: center;
-	gap: 15px;
-}
-
-.oeeCard .componentLabel {
-	min-width: 120px;
-	color: white;
-	font-weight: 600;
-	font-size: 0.95rem;
-	flex-shrink: 0;
-	opacity: 0.9;
-}
-
-.oeeCard .progressBar {
-	flex: 1;
-	height: 24px;
-	background-color: rgba(255, 255, 255, 0.2);
-	border-radius: 12px;
-	overflow: hidden;
-	box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
-	border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.oeeCard .progressFill {
-	height: 100%;
-	border-radius: 12px;
-	transition: width 0.3s ease;
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-	position: relative;
-	overflow: hidden;
-}
-
-.oeeCard .progressFill::after {
-	content: "";
-	position: absolute;
-	top: 0;
-	left: 0;
-	bottom: 0;
-	right: 0;
-	background-image: linear-gradient(
-		45deg,
-		rgba(255, 255, 255, 0.3) 25%,
-		transparent 25%,
-		transparent 50%,
-		rgba(255, 255, 255, 0.3) 50%,
-		rgba(255, 255, 255, 0.3) 75%,
-		transparent 75%,
-		transparent
-	);
-	background-size: 20px 20px;
-	animation: move 2s linear infinite;
-}
-
-.oeeCard .progressFill.excellent {
-	background: linear-gradient(90deg, #2ecc71, #27ae60);
-}
-
-.oeeCard .progressFill.good {
-	background: linear-gradient(90deg, #3498db, #2980b9);
-}
-
-.oeeCard .progressFill.warning {
-	background: linear-gradient(90deg, #f39c12, #e67e22);
-}
-
-.oeeCard .progressFill.poor {
-	background: linear-gradient(90deg, #e74c3c, #c0392b);
-}
-
-.oeeCard .componentValue {
-	min-width: 50px;
-	text-align: right;
-	font-weight: bold;
-	color: white;
-	flex-shrink: 0;
-	font-size: 1rem;
-	text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-}
-
-/* ===== TARJETAS DE INDICADORES COMPACTAS ===== */
-.indicadorCard {
-	min-height: 140px !important;
-	height: auto;
-	background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-	border: 2px solid #e9ecef;
-	text-align: center;
-	transition: all 0.3s ease;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-}
-
-.indicadorCard:hover {
-	border-color: #3498db;
-	transform: translateY(-3px);
-	box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
-}
-
-.indicadorCard .cardHeader {
-	justify-content: center;
-	margin-bottom: 10px;
-	flex-direction: column;
-	gap: 8px;
-}
-
-.indicadorCard .cardHeader h3 {
-	font-size: 1rem;
-	color: #495057;
-	font-weight: 600;
-	text-align: center;
-	width: 100%;
-}
-
-.indicadorCard .cardContent {
-	padding: 5px 0;
-}
-
-.indicadorCard .metric {
-	font-size: 2rem;
-	font-weight: 800;
-	background: linear-gradient(135deg, #2c3e50, #3498db);
-	-webkit-background-clip: text;
-	-webkit-text-fill-color: transparent;
-	background-clip: text;
-	margin: 5px 0;
-	line-height: 1;
-}
-
-.indicadorCard .metricSubtitle {
-	font-size: 0.8rem;
-	color: #6c757d;
-	margin: 0;
-	font-weight: 500;
-}
-
-/* ===== GRÁFICOS ===== */
-.chartCard {
-	grid-column: 1 / -1;
-	min-height: 400px;
-}
-
-.chartCard h3 {
-	text-align: center;
-	margin: 0 0 15px 0;
-	color: #2c3e50;
-	font-weight: 600;
-}
-
-.chartContainer {
-	height: 300px;
-	margin-top: 15px;
-	position: relative;
-	flex: 1;
-}
-
-/* ===== ANÁLISIS ===== */
-.analysisCard {
-	grid-column: span 1;
-	min-height: 280px;
-}
-
-.analysisSubtitle {
-	color: #7f8c8d;
-	font-size: 0.9rem;
-	margin: 5px 0 15px 0;
-	text-align: center;
-}
-
-.analysisList {
-	display: flex;
-	flex-direction: column;
-	gap: 12px;
-	flex: 1;
-}
-
-.analysisItem {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-}
-
-.analysisLabel {
-	min-width: 120px;
-	font-size: 0.9rem;
-	color: #2c3e50;
-	font-weight: 500;
-	flex-shrink: 0;
-}
-
-.analysisBarContainer {
-	flex: 1;
-	height: 25px;
-	background-color: #ecf0f1;
-	border-radius: 12px;
-	overflow: hidden;
-	position: relative;
-	display: flex;
-	align-items: center;
-}
-
-.analysisBarShort {
-	height: 100%;
-	background: linear-gradient(90deg, #3498db, #2980b9);
-	border-radius: 12px;
-	transition: width 0.3s ease;
-	position: absolute;
-	left: 0;
-	top: 0;
-}
-
-.analysisValueExternal {
-	position: absolute;
-	left: 10px;
-	top: 50%;
-	transform: translateY(-50%);
-	font-size: 0.8rem;
-	font-weight: 600;
-	color: #2c3e50;
-	z-index: 2;
-	text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.8);
-}
-
-/* Para barras con suficiente ancho, cambiar el color del texto a blanco */
-.analysisBarContainer:has(.analysisBarShort[style*="width: 40%"])
-	.analysisValueExternal,
-.analysisBarContainer:has(.analysisBarShort[style*="width: 100%"])
-	.analysisValueExternal {
-	color: white;
-	text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-	left: auto;
-	right: 10px;
-}
-
-
-/* ===== ANIMACIONES ===== */
-@keyframes move {
-	0% {
-		background-position: 0 0;
-	}
-	100% {
-		background-position: 20px 20px;
-	}
-}
-
-/* ===== RESPONSIVE ===== */
-@media (min-width: 1200px) {
-	.analysisCard {
-		grid-column: span 1;
-	}
-}
-
-@media (max-width: 1200px) {
-	.grid {
-		grid-template-columns: 1fr;
-		max-width: 900px;
-	}
-
-	.leftColumn,
-	.rightColumn {
-		grid-column: 1;
-	}
-
-	.rightColumn {
-		grid-template-columns: repeat(2, 1fr);
-	}
-
-	.chartContainer {
-		height: 250px;
-	}
-}
-
-@media (max-width: 768px) {
-	.dashboard {
-		padding: 15px;
-	}
-
-	.grid {
-		gap: 15px;
-		max-width: 100%;
-	}
-
-	.rightColumn {
-		grid-template-columns: 1fr;
-	}
-
-	.oeeComponent {
-		flex-direction: column;
-		align-items: flex-start;
-		gap: 8px;
-	}
-
-	.oeeCard .componentLabel {
-		min-width: auto;
-	}
-
-	.oeeCard .progressBar {
-		width: 100%;
-	}
-
-	.chartContainer {
-		height: 250px;
-	}
-
-	.oeeValue {
-		font-size: 3rem;
-	}
-
-	.oeeMain {
-		padding: 15px;
-		margin-bottom: 20px;
-	}
-
-	.header h1 {
-		font-size: 1.8rem;
-	}
-}
-
-@media (max-width: 480px) {
-	.header h1 {
-		font-size: 1.5rem;
-	}
-
-	.header p {
-		font-size: 1rem;
-	}
-
-	.card {
-		padding: 15px;
-	}
-
-	.analysisItem {
-		flex-direction: column;
-		align-items: flex-start;
-		gap: 8px;
-	}
-
-	.analysisLabel {
-		min-width: auto;
-	}
-
-	.analysisBarContainer {
-		width: 100%;
-	}
-
-	.chartContainer {
-		height: 200px;
-	}
-
-	.oeeValue {
-		font-size: 2.5rem;
-	}
-
-	.oeeLabel {
-		font-size: 0.9rem;
-	}
-
-	.indicadorCard .metric {
-		font-size: 1.8rem;
-	}
-
-	.oeeCard .componentValue {
-		font-size: 0.9rem;
-	}
-
-	.chartCard h3 {
-		font-size: 1.1rem;
-	}
-}
-
-
-/* Estilos para el botón de reporte */
 .headerContent {
   display: flex;
   justify-content: space-between;
@@ -594,36 +22,477 @@
   width: 100%;
 }
 
-.reporteButton {
-  background: linear-gradient(135deg, #2c3e50, #34495e);
-  color: white;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 8px;
+.headerTitles {
+  text-align: left;
+}
+
+.headerTitles h1 {
+  color: #1a202c;
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.headerTitles p {
+  color: #718096;
+  margin: 4px 0 0 0;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+/* Grid Principal */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  margin-bottom: 40px;
+  width: 100%;
+  max-width: 1200px;
+}
+
+/* Sección de KPIs */
+.kpiSection {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 20px;
+}
+
+/* Cards Base */
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  transition: box-shadow 0.2s ease;
+  width: 100%;
+}
+
+.card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 40px;
+}
+
+.cardHeader h3 {
+  margin: 0;
+  color: #2d3748;
+  font-size: 1.1rem;
   font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s ease;
+}
+
+/* KPI Cards */
+.kpiCard {
+  display: flex;
+  flex-direction: column;
+  min-height: 180px;
+}
+
+.oeeMainCard {
+  grid-column: 1;
+}
+
+.kpiValue {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.kpiNumber {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #2d3748;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.kpiSubtitle {
+  font-size: 0.9rem;
+  color: #718096;
+  font-weight: 500;
+}
+
+/* OEE Gauge */
+.oeeContainer {
+  display: flex;
+  gap: 32px;
+  align-items: center;
+}
+
+.oeeGauge {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  flex-shrink: 0;
+}
+
+.gaugeBackground {
+  width: 100%;
+  height: 100%;
+  background: #f7fafc;
+  border-radius: 50%;
+  position: relative;
+  border: 8px solid #e2e8f0;
   display: flex;
   align-items: center;
-  gap: 8px;
-  box-shadow: 0 4px 12px rgba(44, 62, 80, 0.3);
+  justify-content: center;
+}
+
+.gaugeFill {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  right: -8px;
+  bottom: -8px;
+  border-radius: 50%;
+  border: 8px solid transparent;
+  border-top: 8px solid;
+  transform-origin: center;
+  transition: transform 0.8s ease;
+}
+
+.gaugeCenter {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+.gaugeNumber {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2d3748;
+  display: block;
+  line-height: 1;
+}
+
+.gaugeLabel {
+  font-size: 0.8rem;
+  color: #718096;
+  margin-top: 4px;
+}
+
+.gaugeTarget {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.targetLine {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%) rotate(153deg); /* 85% * 1.8 = 153deg */
+  width: 2px;
+  height: 20px;
+  background: #2d3748;
+}
+
+.targetLabel {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  color: #718096;
+  font-weight: 500;
+}
+
+/* OEE Status */
+.oeeStatus {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+}
+
+.statusIndicator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #f7fafc;
+  border-radius: 8px;
+  border-left: 4px solid;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.statusText {
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.performanceDelta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #f7fafc;
+  border-radius: 8px;
+}
+
+.deltaLabel {
+  color: #718096;
+  font-size: 0.9rem;
+}
+
+.deltaValue {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.positive {
+  color: #38a169;
+}
+
+.negative {
+  color: #e53e3e;
+}
+
+/* Componentes OEE */
+.componentsSection {
+  grid-column: 1;
+}
+
+.componentsCard {
+  min-height: 200px;
+}
+
+.componentsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.componentItem {
+  padding: 20px;
+  background: #f7fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.componentHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.componentHeader h4 {
+  margin: 0;
+  color: #2d3748;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.componentValue {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.currentValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2d3748;
+}
+
+.targetValue {
+  font-size: 0.9rem;
+  color: #718096;
+}
+
+/* Progress Bars */
+.progressContainer {
+  width: 100%;
+}
+
+.progressBar {
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 3px;
+  position: relative;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.8s ease;
+  position: relative;
+}
+
+.targetMarker {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 2px;
+  background: #2d3748;
+  z-index: 2;
+}
+
+/* Traffic Lights */
+.trafficLight {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.trafficExcellent {
+  color: #38a169;
+}
+
+.trafficGood {
+  color: #3182ce;
+}
+
+.trafficWarning {
+  color: #dd6b20;
+}
+
+.trafficPoor {
+  color: #e53e3e;
+}
+
+.trafficExcellent .progressFill {
+  background: #38a169;
+}
+
+.trafficGood .progressFill {
+  background: #3182ce;
+}
+
+.trafficWarning .progressFill {
+  background: #dd6b20;
+}
+
+.trafficPoor .progressFill {
+  background: #e53e3e;
+}
+
+.trafficExcellent.statusIndicator {
+  border-left-color: #38a169;
+}
+
+.trafficGood.statusIndicator {
+  border-left-color: #3182ce;
+}
+
+.trafficWarning.statusIndicator {
+  border-left-color: #dd6b20;
+}
+
+.trafficPoor.statusIndicator {
+  border-left-color: #e53e3e;
+}
+
+/* Chart Cards */
+.chartCard {
+  grid-column: 1;
+  min-height: 400px;
+}
+
+.chartContainer {
+  height: 300px;
+  margin-top: 15px;
+  position: relative;
+}
+
+/* Objetivo Tag */
+.objetivoTag {
+  background: #edf2f7;
+  color: #4a5568;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* Botón de Reporte */
+.reporteButton {
+  background: #2d3748;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .reporteButton:hover:not(:disabled) {
-  background: linear-gradient(135deg, #34495e, #2c3e50);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(44, 62, 80, 0.4);
+  background: #4a5568;
+  transform: translateY(-1px);
 }
 
 .reporteButton:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  transform: none;
 }
 
 .reporteButton.generando {
-  background: linear-gradient(135deg, #7f8c8d, #95a5a6);
+  background: #718096;
+}
+
+/* Loading */
+.loadingOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.loadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e2e8f0;
+  border-left: 4px solid #3182ce;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+.loadingBadge {
+  background: #edf2f7;
+  color: #4a5568;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* Spinner para el botón */
@@ -634,23 +503,258 @@
   border-top: 2px solid white;
   border-radius: 50%;
   animation: spin 1s linear infinite;
+  margin-right: 8px;
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+/* Responsive */
+@media (max-width: 1200px) {
+  .dashboard {
+    padding: 20px;
+  }
+  
+  .header, .grid {
+    max-width: 1000px;
+  }
+  
+  .kpiSection {
+    grid-template-columns: 1fr;
+  }
+  
+  .componentsGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .oeeContainer {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard {
+    padding: 16px;
+  }
+  
+  .headerContent {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  
+  .headerTitles {
+    text-align: left;
+    width: 100%;
+  }
+  
+  .headerTitles h1 {
+    font-size: 1.5rem;
+  }
+  
+  .reporteButton {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .kpiNumber {
+    font-size: 2rem;
+  }
+  
+  .oeeGauge {
+    width: 120px;
+    height: 120px;
+  }
+  
+  .gaugeNumber {
+    font-size: 1.5rem;
+  }
+  
+  .chartContainer {
+    height: 250px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard {
+    padding: 12px;
+  }
+  
+  .card {
+    padding: 16px;
+  }
+  
+  .kpiNumber {
+    font-size: 1.8rem;
+  }
+  
+  .currentValue {
+    font-size: 1.3rem;
+  }
+  
+  .componentsGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .componentItem {
+    padding: 16px;
+  }
+  
+  .oeeContainer {
+    gap: 20px;
+  }
+}
+
+/* Asegurar que todo esté centrado en pantallas grandes */
+@media (min-width: 1201px) {
+  .dashboard {
+    padding: 32px;
+  }
+  
+  .header, .grid {
+    max-width: 1200px;
+  }
+}
+
+/* OEE Gauge Corregido */
+.gaugeWrapper {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gaugeSvg {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.gaugeCenter {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+.gaugeNumber {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2d3748;
+  display: block;
+  line-height: 1;
+}
+
+.gaugeLabel {
+  font-size: 0.8rem;
+  color: #718096;
+  margin-top: 4px;
+}
+
+.targetLabel {
+  position: absolute;
+  bottom: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  color: #718096;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Componentes Summary */
+.componentsSummary {
+  margin-top: 16px;
+  padding: 12px;
+  background: #f7fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.componentSummaryItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.componentSummaryItem:last-child {
+  margin-bottom: 0;
+}
+
+.summaryLabel {
+  font-size: 0.8rem;
+  color: #718096;
+}
+
+.summaryValue {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+/* OEE Container mejorado */
+.oeeContainer {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+}
+
+.oeeGauge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.oeeStatus {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .headerContent {
+  .oeeContainer {
     flex-direction: column;
-    gap: 15px;
-    align-items: flex-start;
+    align-items: center;
+    text-align: center;
+    gap: 24px;
   }
   
-  .reporteButton {
-    align-self: stretch;
-    justify-content: center;
+  .gaugeWrapper {
+    width: 140px;
+    height: 140px;
   }
+  
+  .gaugeNumber {
+    font-size: 1.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .gaugeWrapper {
+    width: 120px;
+    height: 120px;
+  }
+  
+  .gaugeNumber {
+    font-size: 1.5rem;
+  }
+}
+
+.componentDescription {
+  font-size: 0.8rem;
+  color: #718096;
+  margin-bottom: 12px;
+  line-height: 1.3;
+}
+
+.oeeFormula {
+  font-size: 0.7rem;
+  color: #718096;
+  margin-top: 8px;
+  line-height: 1.2;
+  font-style: italic;
 }

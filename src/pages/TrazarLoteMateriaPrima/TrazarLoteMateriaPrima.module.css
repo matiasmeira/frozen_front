@@ -187,3 +187,578 @@
 		font-size: 24px;
 	}
 }
+/* Estilos para el botón de ver órdenes */
+.botonVerOrdenes {
+	padding: 8px 16px;
+	background-color: #28a745;
+	color: white;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 14px;
+	margin-top: 10px;
+	transition: background-color 0.3s ease;
+}
+
+.botonVerOrdenes:hover {
+	background-color: #218838;
+}
+
+.botonVerOrdenes:disabled {
+	background-color: #6c757d;
+	cursor: not-allowed;
+}
+
+/* Estilos del modal */
+.modalOverlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: rgba(0, 0, 0, 0.5);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 1000;
+	padding: 20px;
+}
+
+.modalContent {
+	background: white;
+	border-radius: 8px;
+	width: 90%;
+	max-width: 1000px;
+	max-height: 80vh;
+	display: flex;
+	flex-direction: column;
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.modalHeader {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 20px;
+	border-bottom: 1px solid #e0e0e0;
+	background-color: #f8f9fa;
+	border-radius: 8px 8px 0 0;
+}
+
+.modalHeader h3 {
+	margin: 0;
+	color: #333;
+}
+
+.botonCerrar {
+	background: none;
+	border: none;
+	font-size: 24px;
+	cursor: pointer;
+	color: #666;
+	padding: 0;
+	width: 30px;
+	height: 30px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.botonCerrar:hover {
+	color: #333;
+	background-color: #e9ecef;
+	border-radius: 50%;
+}
+
+.modalBody {
+	padding: 20px;
+	overflow-y: auto;
+	flex: 1;
+}
+
+.modalFooter {
+	padding: 15px 20px;
+	border-top: 1px solid #e0e0e0;
+	display: flex;
+	justify-content: flex-end;
+	background-color: #f8f9fa;
+	border-radius: 0 0 8px 8px;
+}
+
+.botonSecundario {
+	padding: 8px 16px;
+	background-color: #6c757d;
+	color: white;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+.botonSecundario:hover {
+	background-color: #5a6268;
+}
+
+/* Estilos para la tabla */
+.tablaOrdenes {
+	margin-top: 15px;
+	overflow-x: auto;
+}
+
+.tablaOrdenes table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 14px;
+}
+
+.tablaOrdenes th,
+.tablaOrdenes td {
+	padding: 10px;
+	text-align: left;
+	border-bottom: 1px solid #e0e0e0;
+}
+
+.tablaOrdenes th {
+	background-color: #f8f9fa;
+	font-weight: 600;
+	color: #333;
+}
+
+.tablaOrdenes tr:hover {
+	background-color: #f5f5f5;
+}
+
+.resumen {
+	background-color: #e9ecef;
+	padding: 15px;
+	border-radius: 4px;
+	margin-bottom: 15px;
+}
+
+.resumen p {
+	margin: 5px 0;
+}
+
+/* Responsive para el modal */
+@media (max-width: 768px) {
+	.modalContent {
+		width: 95%;
+		margin: 10px;
+	}
+
+	.tablaOrdenes {
+		font-size: 12px;
+	}
+
+	.tablaOrdenes th,
+	.tablaOrdenes td {
+		padding: 6px;
+	}
+
+	.modalBody {
+		padding: 15px;
+	}
+}
+.estado {
+	padding: 4px 12px;
+	border-radius: 20px;
+	font-size: 0.8em;
+	font-weight: bold;
+	margin-left: 8px;
+	display: inline-block;
+}
+
+.finalizada {
+	background-color: #d4edda;
+	color: #155724;
+}
+/* Estilos para el header con el botón de cuarentena */
+.header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 20px;
+	flex-wrap: wrap;
+	gap: 15px;
+}
+
+/* Botón de cuarentena */
+.botonCuarentena {
+	padding: 12px 24px;
+	background-color: #dc3545;
+	color: white;
+	border: none;
+	border-radius: 6px;
+	cursor: pointer;
+	font-size: 16px;
+	font-weight: 600;
+	transition: all 0.3s ease;
+	min-width: 200px;
+}
+
+.botonCuarentena:hover {
+	background-color: #c82333;
+	transform: translateY(-2px);
+	box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+}
+
+.botonCuarentena:disabled {
+	background-color: #6c757d;
+	cursor: not-allowed;
+	transform: none;
+	box-shadow: none;
+}
+
+/* Mensajes de estado */
+.mensajeExito {
+	background-color: #d4edda;
+	color: #155724;
+	padding: 12px 16px;
+	border-radius: 6px;
+	border: 1px solid #c3e6cb;
+	margin-bottom: 20px;
+	text-align: center;
+	font-weight: 500;
+}
+
+.mensajeError {
+	background-color: #f8d7da;
+	color: #721c24;
+	padding: 12px 16px;
+	border-radius: 6px;
+	border: 1px solid #f5c6cb;
+	margin-bottom: 20px;
+	text-align: center;
+	font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+	.header {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.botonCuarentena {
+		width: 100%;
+		min-width: auto;
+	}
+}
+
+/* Card de información del lote */
+.cardInfoLote {
+	background: white;
+	border: 1px solid #e0e0e0;
+	border-radius: 8px;
+	padding: 20px;
+	margin-bottom: 25px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cardInfoLote h3 {
+	margin-top: 0;
+	margin-bottom: 15px;
+	color: #333;
+	border-bottom: 2px solid #007bff;
+	padding-bottom: 8px;
+}
+
+.infoGrid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 15px;
+}
+
+.infoItem {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+}
+
+.infoItem strong {
+	color: #555;
+	font-size: 14px;
+}
+
+.infoItem span {
+	color: #333;
+	font-weight: 500;
+}
+
+/* Estilos para los estados */
+.estado {
+	padding: 4px 12px;
+	border-radius: 20px;
+	font-size: 0.8em;
+	font-weight: bold;
+	display: inline-block;
+	text-align: center;
+	width: fit-content;
+}
+
+.estado1 {
+	/* Disponible */
+	background-color: #d4edda;
+	color: #155724;
+}
+
+.estado2 {
+	/* Agotado */
+	background-color: #f8d7da;
+	color: #721c24;
+}
+
+.estado3 {
+	/* Cuarentena */
+	background-color: #fff3cd;
+	color: #856404;
+}
+
+/* Estados de carga y error */
+.cargando {
+	text-align: center;
+	padding: 20px;
+	color: #666;
+	font-style: italic;
+}
+
+.error {
+	background-color: #f8d7da;
+	color: #721c24;
+	padding: 12px 16px;
+	border-radius: 6px;
+	border: 1px solid #f5c6cb;
+	text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+	.infoGrid {
+		grid-template-columns: 1fr;
+		gap: 10px;
+	}
+
+	.cardInfoLote {
+		padding: 15px;
+	}
+}
+
+/* Estilos para el header con los botones de acción */
+.header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 20px;
+	flex-wrap: wrap;
+	gap: 15px;
+}
+
+.botonesAccion {
+	display: flex;
+	gap: 15px;
+	flex-wrap: wrap;
+}
+
+/* Botón de habilitar */
+.botonHabilitar {
+	padding: 12px 24px;
+	background-color: #28a745;
+	color: white;
+	border: none;
+	border-radius: 6px;
+	cursor: pointer;
+	font-size: 16px;
+	font-weight: 600;
+	transition: all 0.3s ease;
+	min-width: 150px;
+}
+
+.botonHabilitar:hover {
+	background-color: #218838;
+	transform: translateY(-2px);
+	box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+.botonHabilitar:disabled {
+	background-color: #6c757d;
+	cursor: not-allowed;
+	transform: none;
+	box-shadow: none;
+}
+
+/* Botón de cuarentena */
+.botonCuarentena {
+	padding: 12px 24px;
+	background-color: #dc3545;
+	color: white;
+	border: none;
+	border-radius: 6px;
+	cursor: pointer;
+	font-size: 16px;
+	font-weight: 600;
+	transition: all 0.3s ease;
+	min-width: 200px;
+}
+
+.botonCuarentena:hover {
+	background-color: #c82333;
+	transform: translateY(-2px);
+	box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+}
+
+.botonCuarentena:disabled {
+	background-color: #6c757d;
+	cursor: not-allowed;
+	transform: none;
+	box-shadow: none;
+}
+
+/* Mensajes de estado */
+.mensajeExito {
+	background-color: #d4edda;
+	color: #155724;
+	padding: 12px 16px;
+	border-radius: 6px;
+	border: 1px solid #c3e6cb;
+	margin-bottom: 20px;
+	text-align: center;
+	font-weight: 500;
+}
+
+.mensajeError {
+	background-color: #f8d7da;
+	color: #721c24;
+	padding: 12px 16px;
+	border-radius: 6px;
+	border: 1px solid #f5c6cb;
+	margin-bottom: 20px;
+	text-align: center;
+	font-weight: 500;
+}
+
+/* Card de información del lote */
+.cardInfoLote {
+	background: white;
+	border: 1px solid #e0e0e0;
+	border-radius: 8px;
+	padding: 20px;
+	margin-bottom: 25px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cardInfoLote h3 {
+	margin-top: 0;
+	margin-bottom: 15px;
+	color: #333;
+	border-bottom: 2px solid #007bff;
+	padding-bottom: 8px;
+}
+
+.infoGrid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 15px;
+}
+
+.infoItem {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+}
+
+.infoItem strong {
+	color: #555;
+	font-size: 14px;
+}
+
+.infoItem span {
+	color: #333;
+	font-weight: 500;
+}
+
+/* Estilos para los estados */
+.estado {
+	padding: 4px 12px;
+	border-radius: 20px;
+	font-size: 0.8em;
+	font-weight: bold;
+	display: inline-block;
+	text-align: center;
+	width: fit-content;
+}
+
+.estado1 {
+	/* Disponible */
+	background-color: #d4edda;
+	color: #155724;
+}
+
+.estado2 {
+	/* Agotado */
+	background-color: #f8d7da;
+	color: #721c24;
+}
+
+.estado3 {
+	/* Cuarentena */
+	background-color: #fff3cd;
+	color: #856404;
+}
+
+/* Estados de carga y error */
+.cargando {
+	text-align: center;
+	padding: 20px;
+	color: #666;
+	font-style: italic;
+}
+
+.error {
+	background-color: #f8d7da;
+	color: #721c24;
+	padding: 12px 16px;
+	border-radius: 6px;
+	border: 1px solid #f5c6cb;
+	text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+	.header {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.botonesAccion {
+		flex-direction: column;
+	}
+
+	.botonHabilitar,
+	.botonCuarentena {
+		width: 100%;
+		min-width: auto;
+	}
+
+	.infoGrid {
+		grid-template-columns: 1fr;
+		gap: 10px;
+	}
+
+	.cardInfoLote {
+		padding: 15px;
+	}
+}
+
+.planificada {
+	background-color: #fff3cd;
+	color: #856404;
+}
+
+.enproceso {
+	background-color: #cce7ff;
+	color: #004085;
+}
+
+.pendiente {
+	background-color: #f8d7da;
+	color: #721c24;
+}
