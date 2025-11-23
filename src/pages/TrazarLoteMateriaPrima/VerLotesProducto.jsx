@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // 1. Importar hook
 import styles from "./TrazarLoteMateriaPrima.module.css";
 
 const VerLotesProducto = ({ idMateriaPrima }) => {
+	const navigate = useNavigate(); // 2. Inicializar hook
 	const [datos, setDatos] = useState(null);
 	const [cargando, setCargando] = useState(true);
 	const [error, setError] = useState(null);
@@ -91,43 +93,62 @@ const VerLotesProducto = ({ idMateriaPrima }) => {
 	return (
 		<div className={styles.componente}>
 			<h3>Lotes de Producto Relacionados</h3>
-			<p>
-				<strong>Lote Materia Prima Origen:</strong>{" "}
-				{datos.lote_materia_prima_origen}
-			</p>
-			<p>
-				<strong>Cantidad Encontrada:</strong> {datos.cantidad_encontrada}
-			</p>
+			<div className={styles.infoResumen}>
+				<p>
+					<strong>Lote Materia Prima Origen:</strong>{" "}
+					{datos.lote_materia_prima_origen}
+				</p>
+				<p>
+					<strong>Cantidad Encontrada:</strong> {datos.cantidad_encontrada}
+				</p>
+			</div>
 
 			<div className={styles.lista}>
 				{datos.lotes_produccion.map((lote) => (
 					<div key={lote.id_lote_produccion} className={styles.tarjeta}>
 						<h4>Lote de Producción #{lote.id_lote_produccion}</h4>
-						<p>
-							<strong>Producto:</strong> {lote.producto_nombre}
-						</p>
-						<p>
-							<strong>Cantidad Producida:</strong> {lote.cantidad}
-						</p>
-						<p>
-							<strong>Fecha de Producción:</strong>{" "}
-							{new Date(lote.fecha_produccion).toLocaleDateString()}
-						</p>
-						<p>
-							<strong>ID Producto:</strong> {lote.id_producto}
-						</p>
+						<div className={styles.cardBody}>
+							<p>
+								<strong>Producto:</strong> {lote.producto_nombre}
+							</p>
+							<p>
+								<strong>Cantidad Producida:</strong> {lote.cantidad}
+							</p>
+							<p>
+								<strong>Fecha de Producción:</strong>{" "}
+								{new Date(lote.fecha_produccion).toLocaleDateString()}
+							</p>
+							<p>
+								<strong>ID Producto:</strong> {lote.id_producto}
+							</p>
+						</div>
 
-						<button
-							className={styles.botonVerOrdenes}
-							onClick={() => obtenerOrdenesPorLote(lote.id_lote_produccion)}
-							disabled={
-								cargandoOrdenes && loteSeleccionado === lote.id_lote_produccion
-							}
-						>
-							{cargandoOrdenes && loteSeleccionado === lote.id_lote_produccion
-								? "Cargando..."
-								: "Ver Órdenes Relacionadas"}
-						</button>
+						{/* Contenedor de Botones */}
+						<div className={styles.accionesContainer}>
+							{/* Botón Nuevo: Ver Lote */}
+							<button
+								className={styles.botonVerLote}
+								onClick={() =>
+									navigate(`/trazabilidadLote/${lote.id_lote_produccion}`)
+								}
+							>
+								Ver Trazabilidad
+							</button>
+
+							{/* Botón Existente: Ver Órdenes */}
+							<button
+								className={styles.botonVerOrdenes}
+								onClick={() => obtenerOrdenesPorLote(lote.id_lote_produccion)}
+								disabled={
+									cargandoOrdenes &&
+									loteSeleccionado === lote.id_lote_produccion
+								}
+							>
+								{cargandoOrdenes && loteSeleccionado === lote.id_lote_produccion
+									? "..."
+									: "Ver Órdenes"}
+							</button>
+						</div>
 					</div>
 				))}
 			</div>

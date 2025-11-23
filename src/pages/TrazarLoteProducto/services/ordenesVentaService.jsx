@@ -11,7 +11,11 @@ export const ordenesVentaService = {
 	obtenerOrdenesVentaPorLoteProduccion: async (idLoteProduccion) => {
 		try {
 			const response = await api.get(`/trazabilidad/ordenes-venta-por-lote-mp/${idLoteProduccion}/`);
-			return response.data.ordenes_venta;
+
+			const filtrado = response.data.ordenes_venta.filter((orden) =>{
+				return orden.origen_asignacion === "STOCK (Deposito)";
+			})
+			return filtrado;
 		} catch (error) {
 			console.error("Error obteniendo órdenes de venta:", error);
 			throw error;
