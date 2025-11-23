@@ -14,79 +14,93 @@ const api = axios.create({
 
 // Función para obtener el nombre del día en español
 const obtenerNombreDia = (fecha) => {
-  const opciones = { weekday: 'long' };
-  const formateador = new Intl.DateTimeFormat('es-ES', opciones);
-  return formateador.format(fecha);
+	const opciones = { weekday: "long" };
+	const formateador = new Intl.DateTimeFormat("es-ES", opciones);
+	return formateador.format(fecha);
 };
 
 // Función para verificar si una fecha es día hábil (no sábado ni domingo)
 const esDiaHabil = (fecha) => {
-  const dia = fecha.getDay(); 
-  // 0 = Domingo, 6 = Sábado - estos son los que NO queremos
-  return dia !== 0 && dia !== 6;
+	const dia = fecha.getDay();
+	// 0 = Domingo, 6 = Sábado - estos son los que NO queremos
+	return dia !== 0 && dia !== 6;
 };
 
 // Función para obtener la próxima fecha hábil
 const obtenerProximaFechaHabil = (fecha) => {
-  let fechaTemp = new Date(fecha);
-  while (!esDiaHabil(fechaTemp)) {
-    fechaTemp.setDate(fechaTemp.getDate() + 1);
-  }
-  return fechaTemp;
+	let fechaTemp = new Date(fecha);
+	while (!esDiaHabil(fechaTemp)) {
+		fechaTemp.setDate(fechaTemp.getDate() + 1);
+	}
+	return fechaTemp;
 };
 
 // Función para formatear fecha como YYYY-MM-DD
 const formatearFechaISO = (fecha) => {
-  return fecha.toISOString().split('T')[0];
+	return fecha.toISOString().split("T")[0];
 };
 
 // Componente de Date Picker personalizado
-const DatePickerHabil = ({ value, onChange, min, max, disabled, className }) => {
-  const [fechaSeleccionada, setFechaSeleccionada] = useState(value || '');
-  
-  const handleChange = (e) => {
-    const fecha = e.target.value;
-    if (fecha) {
-      const fechaObj = new Date(fecha + 'T00:00:00'); // Asegurar timezone
-      const nombreDia = obtenerNombreDia(fechaObj);
-      
-      if (esDiaHabil(fechaObj)) {
-        setFechaSeleccionada(fecha);
-        onChange(fecha);
-      } else {
-        toast.warn(`No se pueden seleccionar ${nombreDia.toLowerCase()}s`);
-        // Revertir al valor anterior
-        e.target.value = fechaSeleccionada;
-      }
-    } else {
-      setFechaSeleccionada('');
-      onChange('');
-    }
-  };
+const DatePickerHabil = ({
+	value,
+	onChange,
+	min,
+	max,
+	disabled,
+	className,
+}) => {
+	const [fechaSeleccionada, setFechaSeleccionada] = useState(value || "");
 
-  useEffect(() => {
-    setFechaSeleccionada(value || '');
-  }, [value]);
+	const handleChange = (e) => {
+		const fecha = e.target.value;
+		if (fecha) {
+			const fechaObj = new Date(fecha + "T00:00:00"); // Asegurar timezone
+			const nombreDia = obtenerNombreDia(fechaObj);
 
-  return (
-    <input
-      type="date"
-      value={fechaSeleccionada}
-      min={min}
-      max={max}
-      onChange={handleChange}
-      disabled={disabled}
-      className={className}
-      onKeyDown={(e) => {
-        if (e.key !== 'Tab' && e.key !== 'Escape') {
-          e.preventDefault();
-        }
-      }}
-    />
-  );
+			if (esDiaHabil(fechaObj)) {
+				setFechaSeleccionada(fecha);
+				onChange(fecha);
+			} else {
+				toast.warn(`No se pueden seleccionar ${nombreDia.toLowerCase()}s`);
+				// Revertir al valor anterior
+				e.target.value = fechaSeleccionada;
+			}
+		} else {
+			setFechaSeleccionada("");
+			onChange("");
+		}
+	};
+
+	useEffect(() => {
+		setFechaSeleccionada(value || "");
+	}, [value]);
+
+	return (
+		<input
+			type="date"
+			value={fechaSeleccionada}
+			min={min}
+			max={max}
+			onChange={handleChange}
+			disabled={disabled}
+			className={className}
+			onKeyDown={(e) => {
+				if (e.key !== "Tab" && e.key !== "Escape") {
+					e.preventDefault();
+				}
+			}}
+		/>
+	);
 };
 
 const Ventas = () => {
+	// ESTADOS PARA NOTA DE CRÉDITO
+	const [modalNotaCredito, setModalNotaCredito] = useState({
+		visible: false,
+		id: null,
+	});
+	const [motivoNotaCredito, setMotivoNotaCredito] = useState("");
+	const [generandoNC, setGenerandoNC] = useState(false);
 	const [modalCancelar, setModalCancelar] = useState({
 		visible: false,
 		id: null,
@@ -138,19 +152,19 @@ const Ventas = () => {
 
 		try {
 			// Si la fecha incluye 'Z' (UTC), extraer manualmente la fecha
-			if (fecha.includes('Z')) {
+			if (fecha.includes("Z")) {
 				// Extraer directamente YYYY-MM-DD del string
-				const [fechaPart] = fecha.split('T');
-				const [año, mes, dia] = fechaPart.split('-');
+				const [fechaPart] = fecha.split("T");
+				const [año, mes, dia] = fechaPart.split("-");
 				return `${dia}/${mes}/${año}`;
 			} else {
 				// Para fechas sin Z, usar el método normal
 				const fechaISO = fecha.replace(" ", "T");
 				const fechaObj = new Date(fechaISO);
 				return fechaObj.toLocaleDateString("es-ES", {
-					year: 'numeric',
-					month: '2-digit',
-					day: '2-digit'
+					year: "numeric",
+					month: "2-digit",
+					day: "2-digit",
 				});
 			}
 		} catch (error) {
@@ -163,13 +177,13 @@ const Ventas = () => {
 	const formatFechaParaInput = (fecha) => {
 		if (!fecha) return "";
 		try {
-			if (fecha.includes('Z')) {
+			if (fecha.includes("Z")) {
 				// Para fechas UTC, extraer solo la parte de fecha (sin hora)
-				const [fechaPart] = fecha.split('T');
+				const [fechaPart] = fecha.split("T");
 				return fechaPart; // Retorna solo YYYY-MM-DD
-			} else if (fecha.includes('T')) {
+			} else if (fecha.includes("T")) {
 				// Para fechas que ya tienen formato datetime-local
-				const [fechaPart] = fecha.split('T');
+				const [fechaPart] = fecha.split("T");
 				return fechaPart; // Retorna solo YYYY-MM-DD
 			} else {
 				// Para otros formatos
@@ -182,16 +196,16 @@ const Ventas = () => {
 	};
 
 	// Función para obtener la fecha mínima (2 días después)
-	const obtenerFechaMinima = () => { 
-		const f = new Date(); 
+	const obtenerFechaMinima = () => {
+		const f = new Date();
 		f.setDate(f.getDate() + 2);
 		const fechaHabil = obtenerProximaFechaHabil(f);
 		return formatearFechaISO(fechaHabil);
 	};
 
 	// Función para obtener la fecha máxima (30 días después)
-	const obtenerFechaMaxima = () => { 
-		const f = new Date(); 
+	const obtenerFechaMaxima = () => {
+		const f = new Date();
 		f.setDate(f.getDate() + 30);
 		const fechaHabil = obtenerProximaFechaHabil(f);
 		return formatearFechaISO(fechaHabil);
@@ -199,7 +213,8 @@ const Ventas = () => {
 
 	// Función para verificar si una orden puede ser editada - MODIFICADA
 	const puedeEditarOrden = (orden) => {
-		const idEstadoVenta = orden.estado_venta?.id_estado_venta || orden.id_estado_venta;
+		const idEstadoVenta =
+			orden.estado_venta?.id_estado_venta || orden.id_estado_venta;
 		// Solo permitir editar órdenes en estado "Creada" (8) o "En Preparación" (9)
 		return idEstadoVenta === 8 || idEstadoVenta === 9;
 	};
@@ -209,6 +224,53 @@ const Ventas = () => {
 		navigate("/crearOrdenVenta");
 	};
 
+	// Función para verificar si se puede generar Nota de Crédito
+	const puedeGenerarNotaCredito = (orden) => {
+		const idEstadoVenta =
+			orden.estado_venta?.id_estado_venta || orden.id_estado_venta;
+		// Solo si el estado es 1
+		return idEstadoVenta === 1;
+	};
+
+	// FUNCIÓN PARA GENERAR NOTA DE CRÉDITO
+	const handleGenerarNotaCredito = async () => {
+		if (!motivoNotaCredito.trim()) {
+			toast.warn("Por favor, escribe un motivo para la Nota de Crédito.");
+			return;
+		}
+
+		try {
+			setGenerandoNC(true);
+
+			// Endpoint solicitado
+			await api.post("/ventas/notas-credito/", {
+				id_orden_venta: modalNotaCredito.id,
+				motivo: motivoNotaCredito,
+			});
+
+			toast.success("Nota de Crédito generada exitosamente");
+
+			// Limpiar y cerrar
+			setModalNotaCredito({ visible: false, id: null });
+			setMotivoNotaCredito("");
+
+			// Refrescar la lista
+			await fetchOrdenes(paginaActual);
+		} catch (err) {
+			const mensaje =
+				err.response?.data?.message || "Error al generar la Nota de Crédito";
+			toast.error(mensaje);
+			console.error("Error NC:", err);
+		} finally {
+			setGenerandoNC(false);
+		}
+	};
+
+	// Función para cerrar el modal y limpiar
+	const cerrarModalNC = () => {
+		setModalNotaCredito({ visible: false, id: null });
+		setMotivoNotaCredito("");
+	};
 	// Función para obtener las órdenes con paginación y filtros
 	const fetchOrdenes = async (pagina = 1) => {
 		try {
@@ -416,15 +478,11 @@ const Ventas = () => {
 				id_estado_venta: 6, // ID para estado "Cancelada"
 			};
 
-			await api.put(
-				"/ventas/ordenes_venta/cambiar_estado/",
-				datosCancelacion,
-				{
-					headers: {
-						"Content-Type": "application/json",
-					},
-				}
-			);
+			await api.put("/ventas/ordenes_venta/cambiar_estado/", datosCancelacion, {
+				headers: {
+					"Content-Type": "application/json",
+				},
+			});
 
 			await fetchOrdenes(paginaActual);
 			toast.success("Orden cancelada correctamente");
@@ -449,13 +507,15 @@ const Ventas = () => {
 	// Función para verificar si una orden puede ser facturada - MODIFICADA
 	const puedeFacturarOrden = (orden) => {
 		// Solo permitir facturar órdenes con id_estado_venta = 3 ("pendiente de pago")
-		const idEstadoVenta = orden.estado_venta?.id_estado_venta || orden.id_estado_venta;
+		const idEstadoVenta =
+			orden.estado_venta?.id_estado_venta || orden.id_estado_venta;
 		return idEstadoVenta === 3;
 	};
 
 	// Función para verificar si una orden puede ser cancelada
 	const puedeCancelarOrden = (orden) => {
-		const idEstadoVenta = orden.estado_venta?.id_estado_venta || orden.id_estado_venta;
+		const idEstadoVenta =
+			orden.estado_venta?.id_estado_venta || orden.id_estado_venta;
 		// PERMITIR cancelar órdenes con id_estado_venta = 3 ("Pendiente de Pago"), 8 ("Creada") y 9 ("En Preparación")
 		return idEstadoVenta === 3 || idEstadoVenta === 8 || idEstadoVenta === 9;
 	};
@@ -496,7 +556,9 @@ const Ventas = () => {
 	const iniciarEdicion = (orden) => {
 		// Verificar si la orden puede ser editada
 		if (!puedeEditarOrden(orden)) {
-			toast.warn("Solo se pueden editar órdenes en estado 'Creada' o 'En Preparación'");
+			toast.warn(
+				"Solo se pueden editar órdenes en estado 'Creada' o 'En Preparación'"
+			);
 			return;
 		}
 
@@ -606,7 +668,7 @@ const Ventas = () => {
 			}
 
 			// Validar que la fecha sea hábil
-			const fechaObj = new Date(fechaEntregaEdit + 'T00:00:00');
+			const fechaObj = new Date(fechaEntregaEdit + "T00:00:00");
 			if (!esDiaHabil(fechaObj)) {
 				toast.warn("No se pueden seleccionar fines de semana");
 				setGuardando(false);
@@ -614,9 +676,11 @@ const Ventas = () => {
 			}
 
 			// Validar que la nueva fecha sea mayor a la original
-			const fechaOriginalObj = new Date(fechaOriginal + 'T00:00:00');
+			const fechaOriginalObj = new Date(fechaOriginal + "T00:00:00");
 			if (fechaObj <= fechaOriginalObj) {
-				toast.warn("La nueva fecha de entrega debe ser mayor a la fecha original");
+				toast.warn(
+					"La nueva fecha de entrega debe ser mayor a la fecha original"
+				);
 				setGuardando(false);
 				return;
 			}
@@ -629,7 +693,9 @@ const Ventas = () => {
 				.filter((p) => p.cantidad > 0);
 
 			if (productosValidos.length === 0) {
-				toast.error("La orden debe tener al menos un producto con cantidad mayor a 0");
+				toast.error(
+					"La orden debe tener al menos un producto con cantidad mayor a 0"
+				);
 				setGuardando(false);
 				return;
 			}
@@ -641,10 +707,10 @@ const Ventas = () => {
 			};
 
 			// Agregar fecha_entrega (obligatoria) - mantener formato completo
-			const fechaParaEnviar = fechaEntregaEdit.includes('T') 
-				? fechaEntregaEdit 
-				: fechaEntregaEdit + 'T00:00';
-			
+			const fechaParaEnviar = fechaEntregaEdit.includes("T")
+				? fechaEntregaEdit
+				: fechaEntregaEdit + "T00:00";
+
 			const fechaObjParaEnviar = new Date(fechaParaEnviar);
 			const fechaFormateada = fechaObjParaEnviar
 				.toISOString()
@@ -684,7 +750,9 @@ const Ventas = () => {
 
 		// Verificar si la orden puede ser editada antes de iniciar edición
 		if (!puedeEditarOrden(orden)) {
-			toast.warn("Solo se pueden editar órdenes en estado 'Creada' o 'En Preparación'");
+			toast.warn(
+				"Solo se pueden editar órdenes en estado 'Creada' o 'En Preparación'"
+			);
 			return;
 		}
 
@@ -921,6 +989,23 @@ const Ventas = () => {
 
 							{/* BOTONES DE ACCIÓN */}
 							<div className={styles.botonesAccion}>
+								{/* ... otros botones (Facturar, Cancelar, etc.) ... */}
+
+								{/* NUEVO BOTÓN: Generar Nota de Crédito (Solo estado 1) */}
+								{puedeGenerarNotaCredito(orden) && (
+									<button
+										onClick={(e) => {
+											e.stopPropagation();
+											setModalNotaCredito({
+												visible: true,
+												id: orden.id_orden_venta,
+											});
+										}}
+										className={styles.botonNotaCredito}
+									>
+										Generar Nota de Crédito
+									</button>
+								)}
 								{puedeFacturarOrden(orden) && (
 									<button
 										onClick={(e) => {
@@ -931,7 +1016,7 @@ const Ventas = () => {
 									>
 										Facturar
 									</button>
-								)} 
+								)}
 
 								{/* Botón para cancelar orden */}
 								{puedeCancelarOrden(orden) && (
@@ -980,10 +1065,12 @@ const Ventas = () => {
 											</label>
 											<DatePickerHabil
 												id={`fecha-entrega-${orden.id_orden_venta}`}
-												value={fechaEntregaEdit.split('T')[0]}
+												value={fechaEntregaEdit.split("T")[0]}
 												min={obtenerFechaMinima()}
 												max={obtenerFechaMaxima()}
-												onChange={(nuevaFecha) => setFechaEntregaEdit(nuevaFecha + 'T00:00')}
+												onChange={(nuevaFecha) =>
+													setFechaEntregaEdit(nuevaFecha + "T00:00")
+												}
 												disabled={guardando}
 												className={styles.inputFecha}
 											/>
@@ -992,11 +1079,12 @@ const Ventas = () => {
 											{fechaEntregaEdit &&
 												fechaEntregaEdit !== fechaOriginal &&
 												fechaOriginal &&
-												new Date(fechaEntregaEdit) <= new Date(fechaOriginal) && (
-												<small className={styles.fechaError}>
-													⚠️ La nueva fecha debe ser mayor a la fecha original
-												</small>
-											)}
+												new Date(fechaEntregaEdit) <=
+													new Date(fechaOriginal) && (
+													<small className={styles.fechaError}>
+														⚠️ La nueva fecha debe ser mayor a la fecha original
+													</small>
+												)}
 										</div>
 									</div>
 
@@ -1219,6 +1307,49 @@ const Ventas = () => {
 								{cancelandoOrden === modalCancelar.id
 									? "Cancelando..."
 									: "Sí, cancelar orden"}
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
+
+			{/* ... Modal Cancelar existente ... */}
+
+			{/* MODAL DE NOTA DE CRÉDITO */}
+			{modalNotaCredito.visible && (
+				<div className={styles.modalOverlay}>
+					<div className={styles.modalContenido}>
+						<h4>Generar Nota de Crédito</h4>
+						<p>Orden #{modalNotaCredito.id}</p>
+
+						<div className={styles.inputGrupoNotaCredito}>
+							<label htmlFor="motivoNC" style={{ fontWeight: "500" }}>
+								¿Cuál es la razón?
+							</label>
+							<textarea
+								id="motivoNC"
+								className={styles.textareaMotivo}
+								rows="4"
+								value={motivoNotaCredito}
+								onChange={(e) => setMotivoNotaCredito(e.target.value)}
+								placeholder="Describe el motivo de la devolución o anulación..."
+								disabled={generandoNC}
+							/>
+						</div>
+						<div className={styles.modalBotones}>
+							<button
+								onClick={cerrarModalNC}
+								className={styles.botonCancelarModal}
+								disabled={generandoNC}
+							>
+								Cancelar
+							</button>
+							<button
+								onClick={handleGenerarNotaCredito}
+								className={styles.botonConfirmarModal}
+								disabled={generandoNC}
+							>
+								{generandoNC ? "Generando..." : "Confirmar"}
 							</button>
 						</div>
 					</div>
