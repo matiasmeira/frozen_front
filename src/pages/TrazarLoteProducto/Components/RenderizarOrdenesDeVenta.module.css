@@ -1,5 +1,5 @@
 .container {
-	padding: 2rem;
+	padding: 1rem;
 }
 
 .title {
@@ -10,6 +10,7 @@
 	text-align: center;
 }
 
+/* --- ESTADOS DE CARGA / ERROR --- */
 .cargando {
 	display: flex;
 	flex-direction: column;
@@ -17,11 +18,12 @@
 	justify-content: center;
 	padding: 3rem;
 	text-align: center;
+	color: #6b7280;
 }
 
 .spinner {
 	border: 4px solid #f3f3f3;
-	border-top: 4px solid #3498db;
+	border-top: 4px solid #3b82f6;
 	border-radius: 50%;
 	width: 40px;
 	height: 40px;
@@ -51,258 +53,13 @@
 .sinDatos {
 	text-align: center;
 	padding: 3rem;
-	color: #6b7280;
-}
-
-.estadisticas {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-	gap: 1rem;
-	margin-bottom: 2rem;
-}
-
-.estadisticaItem {
-	background: #f8fafc;
-	padding: 1.5rem;
+	background: #f9fafb;
 	border-radius: 0.5rem;
-	border: 1px solid #e2e8f0;
-	text-align: center;
-}
-
-.estadisticaNumero {
-	display: block;
-	font-size: 1.75rem;
-	font-weight: bold;
-	color: #3b82f6;
-	margin-bottom: 0.5rem;
-}
-
-.estadisticaLabel {
-	color: #6b7280;
-	font-size: 0.875rem;
-	font-weight: 500;
-}
-
-.listaOrdenes {
-	display: flex;
-	flex-direction: column;
-	gap: 1.5rem;
-}
-
-.cardOrden {
-	background: white;
-	border: 1px solid #e5e7eb;
-	border-radius: 0.75rem;
-	padding: 1.5rem;
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-	transition: all 0.3s ease;
-}
-
-.cardOrden:hover {
-	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-	border-color: #3b82f6;
-}
-
-.cardHeader {
-	display: flex;
-	justify-content: space-between;
-	align-items: flex-start;
-	margin-bottom: 1.5rem;
-	padding-bottom: 1rem;
-	border-bottom: 2px solid #f3f4f6;
-}
-
-.infoPrincipal {
-	display: flex;
-	align-items: center;
-	gap: 1rem;
-}
-
-.ordenId {
-	margin: 0;
-	color: #1f2937;
-	font-size: 1.25rem;
-	font-weight: 600;
-}
-
-.estado {
-	color: white;
-	padding: 0.25rem 0.75rem;
-	border-radius: 1rem;
-	font-size: 0.75rem;
-	font-weight: 600;
-	text-transform: uppercase;
-}
-
-.fechas {
-	display: flex;
-	flex-direction: column;
-	gap: 0.25rem;
-	text-align: right;
-}
-
-.fechaItem {
-	font-size: 0.875rem;
+	border: 1px dashed #d1d5db;
 	color: #6b7280;
 }
 
-.seccionCliente,
-.seccionVenta,
-.seccionProductos {
-	margin-bottom: 1.5rem;
-}
-
-.seccionTitulo {
-	color: #374151;
-	font-size: 1rem;
-	font-weight: 600;
-	margin-bottom: 0.75rem;
-	padding-bottom: 0.5rem;
-	border-bottom: 1px solid #f3f4f6;
-}
-
-.infoCliente,
-.infoVenta {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-	gap: 0.75rem;
-}
-
-.clienteItem,
-.ventaItem {
-	font-size: 0.875rem;
-	color: #4b5563;
-}
-
-.prioridad {
-	background: #f3f4f6;
-	padding: 0.25rem 0.5rem;
-	border-radius: 0.25rem;
-	margin-left: 0.5rem;
-	font-weight: 500;
-}
-
-.listaProductos {
-	display: flex;
-	flex-direction: column;
-	gap: 0.75rem;
-}
-
-.cardProducto {
-	background: #f8fafc;
-	border: 1px solid #e2e8f0;
-	border-radius: 0.5rem;
-	padding: 1rem;
-}
-
-.productoInfo {
-	display: flex;
-	flex-direction: column;
-	gap: 0.5rem;
-}
-
-.productoNombre {
-	font-weight: 600;
-	color: #1f2937;
-	font-size: 0.9rem;
-}
-
-.productoDescripcion {
-	color: #6b7280;
-	font-size: 0.8rem;
-	font-style: italic;
-}
-
-.productoDetalles {
-	display: flex;
-	gap: 1rem;
-	flex-wrap: wrap;
-	font-size: 0.8rem;
-	color: #4b5563;
-}
-
-.productoDetalles span {
-	background: white;
-	padding: 0.25rem 0.5rem;
-	border-radius: 0.25rem;
-	border: 1px solid #e5e7eb;
-}
-
-/* Agregar estos estilos al archivo existente */
-
-.controles {
-	display: grid;
-	grid-template-columns: 1fr 1fr auto;
-	gap: 1rem;
-	margin-bottom: 1.5rem;
-	background: white;
-	padding: 1.5rem;
-	border-radius: 0.5rem;
-	border: 1px solid #e1f5fe;
-	box-shadow: 0 2px 4px rgba(33, 150, 243, 0.1);
-	align-items: end;
-}
-
-.filtroGrupo {
-	display: flex;
-	flex-direction: column;
-	gap: 0.5rem;
-}
-
-.label {
-	font-weight: 600;
-	color: #374151;
-	font-size: 0.875rem;
-}
-
-.input {
-	padding: 0.5rem 0.75rem;
-	border: 1px solid #d1d5db;
-	border-radius: 0.375rem;
-	font-size: 0.875rem;
-	transition: all 0.2s;
-}
-
-.input:focus {
-	outline: none;
-	border-color: #3b82f6;
-	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.input::placeholder {
-	color: #9ca3af;
-}
-
-.btnLimpiar {
-	background: #6b7280;
-	color: white;
-	border: none;
-	padding: 0.5rem 1rem;
-	border-radius: 0.375rem;
-	font-weight: 500;
-	cursor: pointer;
-	transition: background-color 0.2s;
-	align-self: end;
-	height: fit-content;
-}
-
-.btnLimpiar:hover {
-	background: #4b5563;
-}
-
-.contador {
-	text-align: center;
-	color: #6b7280;
-	margin-bottom: 1rem;
-	font-size: 0.9rem;
-	background: #f8fafc;
-	padding: 0.75rem;
-	border-radius: 0.375rem;
-	border: 1px solid #e2e8f0;
-}
-
-/* Agregar estos estilos al archivo existente */
-
+/* --- CONTROLES Y FILTROS --- */
 .controles {
 	display: grid;
 	grid-template-columns: 1fr 1fr auto;
@@ -332,106 +89,180 @@
 	width: 100%;
 }
 
+/* Ajustes específicos para React Select para que coincida con el diseño */
 .reactSelect :global(.react-select__control) {
+	border-color: #d1d5db;
 	min-height: 42px;
-	border: 1px solid #d1d5db;
-	border-radius: 0.375rem;
-	font-size: 0.875rem;
-	transition: all 0.2s;
 }
-
 .reactSelect :global(.react-select__control--is-focused) {
 	border-color: #3b82f6;
-	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.reactSelect :global(.react-select__value-container) {
-	padding: 0 12px;
-}
-
-.reactSelect :global(.react-select__placeholder) {
-	color: #6b7280;
-}
-
-.reactSelect :global(.react-select__menu) {
-	z-index: 10;
+	box-shadow: 0 0 0 1px #3b82f6;
 }
 
 .btnLimpiar {
 	background: #6b7280;
 	color: white;
 	border: none;
-	padding: 0.5rem 1rem;
+	padding: 0.6rem 1.2rem;
 	border-radius: 0.375rem;
 	font-weight: 500;
 	cursor: pointer;
 	transition: background-color 0.2s;
-	align-self: end;
-	height: fit-content;
+	height: 42px; /* Para alinear con los inputs */
 }
 
 .btnLimpiar:hover {
 	background: #4b5563;
 }
 
-.contador {
+/* --- ESTADÍSTICAS --- */
+.estadisticas {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 1rem;
+	margin-bottom: 2rem;
+}
+
+.estadisticaItem {
+	background: white;
+	padding: 1rem;
+	border-radius: 0.5rem;
+	border: 1px solid #e5e7eb;
 	text-align: center;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.estadisticaNumero {
+	display: block;
+	font-size: 1.5rem;
+	font-weight: bold;
+	color: #3b82f6;
+}
+
+.estadisticaLabel {
 	color: #6b7280;
-	margin-bottom: 1rem;
+	font-size: 0.875rem;
+	font-weight: 500;
+}
+
+/* --- LISTA DE TARJETAS (NUEVO DISEÑO) --- */
+.listaOrdenes {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+
+.cardOrden {
+	background: white;
+	border: 1px solid #e5e7eb;
+	border-radius: 0.75rem;
+	overflow: hidden; /* Para que el borde no corte esquinas */
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+	transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.cardOrden:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+	border-color: #93c5fd;
+}
+
+.cardHeaderSimple {
+	background-color: #f8fafc;
+	padding: 1rem 1.5rem;
+	border-bottom: 1px solid #e5e7eb;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+}
+
+.headerLeft {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+}
+
+.ordenId {
+	margin: 0;
+	color: #1f2937;
+	font-size: 1.1rem;
+	font-weight: 700;
+}
+
+.tagOrigen {
+	background-color: #dbeafe; /* Azul muy claro */
+	color: #1e40af; /* Azul oscuro */
+	padding: 0.2rem 0.6rem;
+	border-radius: 999px;
+	font-size: 0.75rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	border: 1px solid #bfdbfe;
+}
+
+.fechaEntrega {
 	font-size: 0.9rem;
-	background: #f8fafc;
-	padding: 0.75rem;
-	border-radius: 0.375rem;
-	border: 1px solid #e2e8f0;
+	color: #6b7280;
 }
 
-/* Responsive para controles */
+.cardBodyGrid {
+	padding: 1.5rem;
+	display: grid;
+	grid-template-columns: 1.5fr 1.5fr 1fr; /* Cliente, Producto, Cantidad */
+	gap: 1.5rem;
+	align-items: center;
+}
+
+.dataItem {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+}
+
+.dataLabel {
+	font-size: 0.75rem;
+	text-transform: uppercase;
+	color: #9ca3af;
+	font-weight: 600;
+	letter-spacing: 0.05em;
+}
+
+.dataValue {
+	font-size: 1rem;
+	color: #374151;
+}
+
+.dataValueClient {
+	font-size: 1.1rem;
+	color: #111827;
+	font-weight: 500;
+}
+
+.dataValueDestacado {
+	font-size: 1.2rem;
+	color: #059669; /* Verde esmeralda */
+	font-weight: 700;
+}
+
+/* RESPONSIVE */
 @media (max-width: 768px) {
 	.controles {
 		grid-template-columns: 1fr;
 	}
-}
 
-/* Responsive para controles */
-@media (max-width: 768px) {
-	.controles {
-		grid-template-columns: 1fr;
-	}
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-	.container {
-		padding: 1rem;
-	}
-
-	.cardHeader {
-		flex-direction: column;
+	.cardBodyGrid {
+		grid-template-columns: 1fr; /* Una columna en móvil */
 		gap: 1rem;
+	}
+
+	.cardHeaderSimple {
+		flex-direction: column;
 		align-items: flex-start;
 	}
 
-	.fechas {
-		text-align: left;
-	}
-
-	.infoCliente,
-	.infoVenta {
-		grid-template-columns: 1fr;
-	}
-
-	.estadisticas {
-		grid-template-columns: repeat(2, 1fr);
-	}
-
-	.productoDetalles {
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-}
-
-@media (max-width: 480px) {
-	.estadisticas {
-		grid-template-columns: 1fr;
+	.btnLimpiar {
+		width: 100%;
 	}
 }

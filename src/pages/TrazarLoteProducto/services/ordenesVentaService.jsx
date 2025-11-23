@@ -10,10 +10,20 @@ const api = axios.create({
 export const ordenesVentaService = {
 	obtenerOrdenesVentaPorLoteProduccion: async (idLoteProduccion) => {
 		try {
-			const response = await api.get(`/lotes-produccion/${idLoteProduccion}/ordenes-venta/`);
-			return response.data;
+			const response = await api.get(`/trazabilidad/ordenes-venta-por-lote-mp/${idLoteProduccion}/`);
+			return response.data.ordenes_venta;
 		} catch (error) {
 			console.error("Error obteniendo órdenes de venta:", error);
+			throw error;
+		}
+	},
+
+	obtenerLotesMPPorLoteProduccion: async (idLoteProduccion) => {
+		try {
+			const response = await api.get(`/trazabilidad/lotes-mp-por-lote-pt/${idLoteProduccion}/`);
+			return response.data.materias_primas_utilizadas;
+		} catch (error) {
+			console.error("Error obteniendo lotes de materia prima:", error);
 			throw error;
 		}
 	},

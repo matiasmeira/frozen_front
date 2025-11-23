@@ -1,5 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
+// 1. Importar Toastify y su CSS
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 import RenderizarOrdenesDeVenta from "./Components/RenderizarOrdenesDeVenta";
 import RenderizarLotesMateriaPrima from "./Components/RenderizarLotesMateriaPrima";
 import styles from "./TrazarLoteProducto.module.css";
@@ -7,17 +11,54 @@ import styles from "./TrazarLoteProducto.module.css";
 const TrazarLoteProducto = () => {
 	const { id_lote } = useParams();
 	const [vistaActiva, setVistaActiva] = useState("ordenesVenta");
-	const [loading, setLoading] = useState(false);
+	const [loadingAccion, setLoadingAccion] = useState(false);
+	const [loteInfo, setLoteInfo] = useState(null);
 
-	// Función genérica para cambiar el estado
-	const cambiarEstadoLote = async (nuevoEstadoId, nombreAccion) => {
-		// Confirmación visual para el usuario
-		const confirmacion = window.confirm(
-			`¿Estás seguro de que deseas ${nombreAccion} este lote?`
-		);
-		if (!confirmacion) return;
+	// Estados para el Modal
+	const [modalOpen, setModalOpen] = useState(false);
+	const [accionPendiente, setAccionPendiente] = useState(null);
 
-		setLoading(true);
+	const ID_ESTADO_HABILITADO = 8;
+	const ID_ESTADO_CUARENTENA = 10;
+
+	const obtenerInfoLote = useCallback(async () => {
+		try {
+			const response = await fetch(
+				`https://frozenback-test.up.railway.app/api/stock/lotes-produccion/${id_lote}/`
+			);
+			if (response.ok) {
+				const data = await response.json();
+				setLoteInfo(data);
+			} else {
+				console.error("Error al obtener info del lote");
+				toast.error("No se pudo cargar la información del lote.");
+			}
+		} catch (error) {
+			console.error("Error de red al obtener info:", error);
+			toast.error("Error de conexión al cargar datos.");
+		}
+	}, [id_lote]);
+
+	useEffect(() => {
+		if (id_lote) {
+			obtenerInfoLote();
+		}
+	}, [id_lote, obtenerInfoLote]);
+
+	const solicitarCambioEstado = (nuevoEstadoId, nombreAccion) => {
+		setAccionPendiente({ id: nuevoEstadoId, nombre: nombreAccion });
+		setModalOpen(true);
+	};
+
+	const cerrarModal = () => {
+		setModalOpen(false);
+		setAccionPendiente(null);
+	};
+
+	const confirmarCambioEstado = async () => {
+		if (!accionPendiente) return;
+
+		setLoadingAccion(true);
 		try {
 			const response = await fetch(
 				`https://frozenback-test.up.railway.app/api/stock/lotes-produccion/${id_lote}/cambiar-estado/`,
@@ -27,24 +68,37 @@ const TrazarLoteProducto = () => {
 						"Content-Type": "application/json",
 					},
 					body: JSON.stringify({
-						id_estado_lote_produccion: nuevoEstadoId,
+						id_estado_lote_produccion: accionPendiente.id,
 					}),
 				}
 			);
 
 			if (response.ok) {
-				alert(`Acción "${nombreAccion}" realizada exitosamente.`);
-				// Opcional: Aquí podrías agregar lógica para refrescar los datos
+				cerrarModal();
+				// 2. Notificación de Éxito
+				toast.success(
+					`¡Acción "${accionPendiente.nombre}" realizada con éxito!`
+				);
+				obtenerInfoLote();
 			} else {
-				alert("Hubo un error al intentar actualizar el estado.");
+				cerrarModal();
+				// 2. Notificación de Error
+				toast.error("Hubo un error al intentar actualizar el estado.");
 			}
 		} catch (error) {
 			console.error("Error de red:", error);
-			alert("Error de conexión con el servidor.");
+			cerrarModal();
+			// 2. Notificación de Error de Red
+			toast.error("Error de conexión con el servidor.");
 		} finally {
-			setLoading(false);
+			setLoadingAccion(false);
 		}
 	};
+
+	const idEstadoActual =
+		typeof loteInfo?.id_estado_lote_produccion === "object"
+			? loteInfo?.id_estado_lote_produccion?.id_estado_lote_produccion
+			: loteInfo?.id_estado_lote_produccion;
 
 	if (!id_lote) {
 		return (
@@ -57,37 +111,93 @@ const TrazarLoteProducto = () => {
 
 	return (
 		<div className={styles.container}>
-			{/* Header con título y acciones */}
+			{/* Header */}
 			<div className={styles.header}>
-				<h1 className={styles.title}>
-					Trazabilidad del Lote de Producción #{id_lote}
-				</h1>
+				<h1 className={styles.title}>Trazabilidad del Lote #{id_lote}</h1>
 
 				<div className={styles.accionesContainer}>
-					{/* Botón Habilitar -> ID 8 (CORREGIDO) */}
-					<button
-						className={styles.botonHabilitar}
-						onClick={() => cambiarEstadoLote(8, "habilitar")}
-						disabled={loading}
-					>
-						{loading ? "..." : "Habilitar lote"}
-					</button>
-
-					{/* Botón Cuarentena -> ID 10 */}
 					<button
 						className={styles.botonCuarentena}
-						onClick={() => cambiarEstadoLote(10, "poner en cuarentena")}
-						disabled={loading}
+						onClick={() =>
+							solicitarCambioEstado(ID_ESTADO_CUARENTENA, "poner en cuarentena")
+						}
+						disabled={
+							loadingAccion ||
+							!loteInfo ||
+							idEstadoActual === ID_ESTADO_CUARENTENA
+						}
+						title={
+							idEstadoActual === ID_ESTADO_CUARENTENA
+								? "El lote ya está en cuarentena"
+								: ""
+						}
 					>
-						{loading ? "..." : "Poner en cuarentena"}
+						{loadingAccion && accionPendiente?.id === ID_ESTADO_CUARENTENA
+							? "..."
+							: "Poner en cuarentena"}
 					</button>
 
-					
-
+					<button
+						className={styles.botonHabilitar}
+						onClick={() =>
+							solicitarCambioEstado(ID_ESTADO_HABILITADO, "habilitar")
+						}
+						disabled={
+							loadingAccion ||
+							!loteInfo ||
+							idEstadoActual === ID_ESTADO_HABILITADO
+						}
+						title={
+							idEstadoActual === ID_ESTADO_HABILITADO
+								? "El lote ya está habilitado"
+								: ""
+						}
+					>
+						{loadingAccion && accionPendiente?.id === ID_ESTADO_HABILITADO
+							? "..."
+							: "Habilitar lote"}
+					</button>
 				</div>
 			</div>
 
-			{/* Selector de Vista */}
+			{/* Info Card */}
+			{loteInfo ? (
+				<div className={styles.infoCard}>
+					<h3 className={styles.cardTitle}>Información General</h3>
+					<div className={styles.infoGrid}>
+						<div className={styles.infoItem}>
+							<span className={styles.label}>Producto:</span>
+							<span className={styles.value}>
+								{loteInfo.id_producto?.nombre ||
+									loteInfo.producto_nombre ||
+									"-"}
+							</span>
+						</div>
+						<div className={styles.infoItem}>
+							<span className={styles.label}>Estado Actual:</span>
+							<span className={`${styles.value} ${styles.estadoHighlight}`}>
+								{loteInfo.id_estado_lote_produccion?.descripcion ||
+									loteInfo.estado ||
+									"-"}
+							</span>
+						</div>
+						<div className={styles.infoItem}>
+							<span className={styles.label}>Fecha Producción:</span>
+							<span className={styles.value}>{loteInfo.fecha_produccion}</span>
+						</div>
+						<div className={styles.infoItem}>
+							<span className={styles.label}>Fecha Vencimiento:</span>
+							<span className={styles.value}>{loteInfo.fecha_vencimiento}</span>
+						</div>
+					</div>
+				</div>
+			) : (
+				<div className={styles.loadingInfo}>
+					Cargando información del lote...
+				</div>
+			)}
+
+			{/* Selector */}
 			<div className={styles.selectorVista}>
 				<button
 					className={`${styles.botonVista} ${
@@ -108,7 +218,7 @@ const TrazarLoteProducto = () => {
 				</button>
 			</div>
 
-			{/* Renderizado Condicional */}
+			{/* Contenido */}
 			<div className={styles.contenidoVista}>
 				{vistaActiva === "ordenesVenta" ? (
 					<RenderizarOrdenesDeVenta idLoteProduccion={id_lote} />
@@ -116,6 +226,48 @@ const TrazarLoteProducto = () => {
 					<RenderizarLotesMateriaPrima idLoteProduccion={id_lote} />
 				)}
 			</div>
+
+			{/* Modal */}
+			{modalOpen && (
+				<div className={styles.modalOverlay}>
+					<div className={styles.modalContent}>
+						<h3 className={styles.modalTitle}>Confirmar Acción</h3>
+						<p className={styles.modalText}>
+							¿Estás seguro de que deseas{" "}
+							<strong>{accionPendiente?.nombre}</strong> este lote?
+						</p>
+						<div className={styles.modalActions}>
+							<button
+								className={styles.btnCancelar}
+								onClick={cerrarModal}
+								disabled={loadingAccion}
+							>
+								Cancelar
+							</button>
+							<button
+								className={styles.btnConfirmar}
+								onClick={confirmarCambioEstado}
+								disabled={loadingAccion}
+							>
+								{loadingAccion ? "Procesando..." : "Sí, Confirmar"}
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
+
+			{/* 3. Contenedor de las Notificaciones Toast */}
+			<ToastContainer
+				position="top-right"
+				autoClose={3000}
+				hideProgressBar={false}
+				newestOnTop={false}
+				closeOnClick
+				rtl={false}
+				pauseOnFocusLoss
+				draggable
+				pauseOnHover
+			/>
 		</div>
 	);
 };

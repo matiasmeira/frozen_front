@@ -9,9 +9,9 @@ const RenderizarOrdenesDeVenta = ({ idLoteProduccion }) => {
 	const [cargando, setCargando] = useState(true);
 	const [error, setError] = useState(null);
 
-	// Estados para filtros con react-select
+	// Estados para filtros
 	const [filtroIdOrden, setFiltroIdOrden] = useState(null);
-	const [filtroCuilCliente, setFiltroCuilCliente] = useState(null);
+	const [filtroCliente, setFiltroCliente] = useState(null); // Cambiado de CUIL a Nombre
 
 	useEffect(() => {
 		const cargarOrdenesVenta = async () => {
@@ -19,14 +19,18 @@ const RenderizarOrdenesDeVenta = ({ idLoteProduccion }) => {
 				setCargando(true);
 				setError(null);
 
+				// Asumimos que el servicio devuelve el array plano que me mostraste
 				const datos =
 					await ordenesVentaService.obtenerOrdenesVentaPorLoteProduccion(
 						idLoteProduccion
 					);
+
 				setOrdenesVenta(datos);
 				setOrdenesFiltradas(datos);
 			} catch (err) {
-				setError(err.response.data.message);
+				// Manejo de error seguro
+				const msg = err.response?.data?.message || "Error al cargar los datos";
+				setError(msg);
 				console.error("Error:", err);
 			} finally {
 				setCargando(false);
@@ -38,7 +42,9 @@ const RenderizarOrdenesDeVenta = ({ idLoteProduccion }) => {
 		}
 	}, [idLoteProduccion]);
 
-	// Preparar opciones para react-select
+	// --- PREPARAR OPCIONES PARA FILTROS ---
+
+	// Opciones ID
 	const opcionesIdsOrdenes = [
 		...new Set(ordenesVenta.map((orden) => orden.id_orden_venta)),
 	]
@@ -48,20 +54,17 @@ const RenderizarOrdenesDeVenta = ({ idLoteProduccion }) => {
 			label: `Orden #${id}`,
 		}));
 
-	const opcionesCuilClientes = [
-		...new Set(
-			ordenesVenta
-				.map((orden) => orden.cliente?.cuil)
-				.filter((cuil) => cuil != null)
-		),
+	// Opciones Cliente (Ahora es String "Alan")
+	const opcionesClientes = [
+		...new Set(ordenesVenta.map((orden) => orden.cliente)),
 	]
 		.sort()
-		.map((cuil) => ({
-			value: cuil,
-			label: cuil,
+		.map((cliente) => ({
+			value: cliente,
+			label: cliente,
 		}));
 
-	// Aplicar filtros cuando cambien los valores
+	// --- APLICAR FILTROS ---
 	useEffect(() => {
 		let resultado = [...ordenesVenta];
 
@@ -72,59 +75,42 @@ const RenderizarOrdenesDeVenta = ({ idLoteProduccion }) => {
 			);
 		}
 
-		// Filtro por CUIL de cliente
-		if (filtroCuilCliente) {
+		// Filtro por Nombre de Cliente
+		if (filtroCliente) {
 			resultado = resultado.filter(
-				(orden) => orden.cliente?.cuil === filtroCuilCliente.value
+				(orden) => orden.cliente === filtroCliente.value
 			);
 		}
 
 		setOrdenesFiltradas(resultado);
-	}, [ordenesVenta, filtroIdOrden, filtroCuilCliente]);
+	}, [ordenesVenta, filtroIdOrden, filtroCliente]);
 
-	// Función para limpiar todos los filtros
 	const limpiarFiltros = () => {
 		setFiltroIdOrden(null);
-		setFiltroCuilCliente(null);
+		setFiltroCliente(null);
 	};
 
-	// Función para formatear fecha
+	// Formatear fecha simple
 	const formatearFecha = (fechaISO) => {
 		if (!fechaISO) return "No especificada";
 		const fecha = new Date(fechaISO);
 		return fecha.toLocaleDateString("es-ES", {
 			year: "numeric",
-			month: "2-digit",
-			day: "2-digit",
-			hour: "2-digit",
-			minute: "2-digit",
+			month: "long",
+			day: "numeric",
 		});
 	};
 
-	// Función para obtener el color del estado
-	const getColorEstado = (estado) => {
-		const colores = {
-			Pagada: "#10b981",
-			Cancelada: "#ef4444",
-			Pendiente: "#f59e0b",
-			"En proceso": "#3b82f6",
-		};
-		return colores[estado] || "#6b7280";
-	};
-
-	// Función para formatear precio
-	const formatearPrecio = (precio) => {
-		return new Intl.NumberFormat("es-AR", {
-			style: "currency",
-			currency: "ARS",
-		}).format(precio);
-	};
+	// Calcular total de cantidad asignada en la vista actual
+	const totalCantidadAsignada = ordenesFiltradas.reduce((acc, curr) => {
+		return acc + parseFloat(curr.cantidad_asignada || 0);
+	}, 0);
 
 	if (cargando) {
 		return (
 			<div className={styles.cargando}>
 				<div className={styles.spinner}></div>
-				<p>Cargando órdenes de venta...</p>
+				<p>Cargando asignaciones...</p>
 			</div>
 		);
 	}
@@ -139,38 +125,38 @@ const RenderizarOrdenesDeVenta = ({ idLoteProduccion }) => {
 
 	return (
 		<div className={styles.container}>
-			<button>
-				Volver
-			</button>
+			{/* Botón Volver (opcional si lo usas) */}
+			{/* <button className={styles.btnVolver}>Volver</button> */}
+
 			<h2 className={styles.title}>
-				Órdenes de Venta relacionadas al Lote #{idLoteProduccion}
+				Asignaciones del Lote #{idLoteProduccion}
 			</h2>
 
 			{/* Controles de Filtrado */}
 			<div className={styles.controles}>
 				<div className={styles.filtroGrupo}>
-					<label className={styles.label}>Filtrar por ID de Orden:</label>
+					<label className={styles.label}>Filtrar por ID Orden:</label>
 					<Select
 						value={filtroIdOrden}
 						onChange={setFiltroIdOrden}
 						options={opcionesIdsOrdenes}
 						isClearable
 						isSearchable
-						placeholder="Seleccione una orden..."
+						placeholder="Orden #..."
 						className={styles.reactSelect}
 						classNamePrefix="react-select"
 					/>
 				</div>
 
 				<div className={styles.filtroGrupo}>
-					<label className={styles.label}>Filtrar por CUIL de Cliente:</label>
+					<label className={styles.label}>Filtrar por Cliente:</label>
 					<Select
-						value={filtroCuilCliente}
-						onChange={setFiltroCuilCliente}
-						options={opcionesCuilClientes}
+						value={filtroCliente}
+						onChange={setFiltroCliente}
+						options={opcionesClientes}
 						isClearable
 						isSearchable
-						placeholder="Seleccione un CUIL..."
+						placeholder="Nombre cliente..."
 						className={styles.reactSelect}
 						classNamePrefix="react-select"
 					/>
@@ -181,156 +167,69 @@ const RenderizarOrdenesDeVenta = ({ idLoteProduccion }) => {
 				</button>
 			</div>
 
-			{/* Contador de resultados */}
-			<div className={styles.contador}>
-				Mostrando {ordenesFiltradas.length} de {ordenesVenta.length} órdenes de
-				venta
-			</div>
-
+			{/* Estadísticas Simples */}
 			<div className={styles.estadisticas}>
 				<div className={styles.estadisticaItem}>
 					<span className={styles.estadisticaNumero}>
-						{ordenesVenta.length}
+						{ordenesFiltradas.length}
 					</span>
-					<span className={styles.estadisticaLabel}>Total Órdenes</span>
+					<span className={styles.estadisticaLabel}>Asignaciones</span>
 				</div>
 				<div className={styles.estadisticaItem}>
 					<span className={styles.estadisticaNumero}>
-						{
-							ordenesVenta.filter(
-								(orden) => orden.estado_venta.descripcion === "Pagada"
-							).length
-						}
+						{totalCantidadAsignada}
 					</span>
-					<span className={styles.estadisticaLabel}>Pagadas</span>
-				</div>
-				<div className={styles.estadisticaItem}>
-					<span className={styles.estadisticaNumero}>
-						{
-							ordenesVenta.filter(
-								(orden) => orden.estado_venta.descripcion === "Cancelada"
-							).length
-						}
+					<span className={styles.estadisticaLabel}>
+						Total Unidades Asignadas
 					</span>
-					<span className={styles.estadisticaLabel}>Canceladas</span>
 				</div>
 			</div>
 
+			{/* Lista de Resultados */}
 			{ordenesFiltradas.length === 0 ? (
 				<div className={styles.sinDatos}>
-					<h3>No se encontraron órdenes de venta</h3>
+					<h3>No se encontraron asignaciones</h3>
 					<p>
-						{ordenesVenta.length === 0
-							? "No hay órdenes de venta asociadas a este lote de producción."
-							: "No hay órdenes que coincidan con los filtros aplicados."}
+						No hay registros que coincidan con los filtros o el lote no tiene
+						ventas asignadas.
 					</p>
 				</div>
 			) : (
 				<div className={styles.listaOrdenes}>
-					{ordenesFiltradas.map((orden) => (
-						<div key={orden.id_orden_venta} className={styles.cardOrden}>
-							{/* Header de la orden */}
-							<div className={styles.cardHeader}>
-								<div className={styles.infoPrincipal}>
+					{ordenesFiltradas.map((item, index) => (
+						// Usamos index como key fallback si id_orden_venta se repite en pegging
+						<div
+							key={`${item.id_orden_venta}-${index}`}
+							className={styles.cardOrden}
+						>
+							{/* Header de la Card */}
+							<div className={styles.cardHeaderSimple}>
+								<div className={styles.headerLeft}>
 									<h3 className={styles.ordenId}>
-										Orden #{orden.id_orden_venta}
+										Orden #{item.id_orden_venta}
 									</h3>
-									<span
-										className={styles.estado}
-										style={{
-											backgroundColor: getColorEstado(
-												orden.estado_venta.descripcion
-											),
-										}}
-									>
-										{orden.estado_venta.descripcion}
+
+								</div>
+								<div className={styles.fechaEntrega}>
+									Entrega: <strong>{formatearFecha(item.fecha_entrega)}</strong>
+								</div>
+							</div>
+
+							{/* Cuerpo de la Card (Grid) */}
+							<div className={styles.cardBodyGrid}>
+								<div className={styles.dataItem}>
+									<span className={styles.dataLabel}>Cliente</span>
+									<span className={styles.dataValueClient}>{item.cliente}</span>
+								</div>
+								<div className={styles.dataItem}>
+									<span className={styles.dataLabel}>Producto Asignado</span>
+									<span className={styles.dataValue}>{item.producto}</span>
+								</div>
+								<div className={styles.dataItem}>
+									<span className={styles.dataLabel}>Cantidad</span>
+									<span className={styles.dataValueDestacado}>
+										{parseInt(item.cantidad_asignada)}
 									</span>
-								</div>
-								<div className={styles.fechas}>
-									<div className={styles.fechaItem}>
-										<strong>Fecha:</strong> {formatearFecha(orden.fecha)}
-									</div>
-									<div className={styles.fechaItem}>
-										<strong>Entrega:</strong>{" "}
-										{formatearFecha(orden.fecha_entrega)}
-									</div>
-								</div>
-							</div>
-
-							{/* Información del cliente */}
-							<div className={styles.seccionCliente}>
-								<h4 className={styles.seccionTitulo}>Cliente</h4>
-								<div className={styles.infoCliente}>
-									<div className={styles.clienteItem}>
-										<strong>Nombre:</strong> {orden.cliente.nombre}{" "}
-										{orden.cliente.apellido}
-									</div>
-									<div className={styles.clienteItem}>
-										<strong>Email:</strong> {orden.cliente.email}
-									</div>
-									<div className={styles.clienteItem}>
-										<strong>CUIL:</strong> {orden.cliente.cuil}
-									</div>
-									<div className={styles.clienteItem}>
-										<strong>Prioridad Cliente:</strong>
-										<span className={styles.prioridad}>
-											{orden.cliente.prioridad.descripcion}
-										</span>
-									</div>
-								</div>
-							</div>
-
-							{/* Información de la venta */}
-							<div className={styles.seccionVenta}>
-								<h4 className={styles.seccionTitulo}>Información de Venta</h4>
-								<div className={styles.infoVenta}>
-									<div className={styles.ventaItem}>
-										<strong>Tipo de Venta:</strong> {orden.tipo_venta_display}
-									</div>
-									<div className={styles.ventaItem}>
-										<strong>Prioridad Orden:</strong>
-										<span className={styles.prioridad}>
-											{orden.prioridad.descripcion}
-										</span>
-									</div>
-								</div>
-							</div>
-
-							{/* Productos */}
-							<div className={styles.seccionProductos}>
-								<h4 className={styles.seccionTitulo}>
-									Productos ({orden.productos.length})
-								</h4>
-								<div className={styles.listaProductos}>
-									{orden.productos.map((producto) => (
-										<div
-											key={producto.id_orden_venta_producto}
-											className={styles.cardProducto}
-										>
-											<div className={styles.productoInfo}>
-												<div className={styles.productoNombre}>
-													{producto.producto.nombre}
-												</div>
-												<div className={styles.productoDescripcion}>
-													{producto.producto.descripcion}
-												</div>
-												<div className={styles.productoDetalles}>
-													<span>
-														<strong>Cantidad:</strong> {producto.cantidad}{" "}
-														{producto.producto.unidad.descripcion}
-													</span>
-													<span>
-														<strong>Precio:</strong>{" "}
-														{formatearPrecio(producto.producto.precio)}
-													</span>
-													<span>
-														<strong>Tipo:</strong>{" "}
-														{producto.producto.tipo_producto.descripcion}
-													</span>
-												</div>
-											</div>
-										</div>
-									))}
 								</div>
 							</div>
 						</div>
