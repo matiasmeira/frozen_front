@@ -5,6 +5,7 @@ import styles from "./Ventas.module.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Select from "react-select";
+import TutorialModal from "../TutorialModal/TutorialModal";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -130,6 +131,9 @@ const Ventas = () => {
 	const [paginaActual, setPaginaActual] = useState(1);
 	const [totalPaginas, setTotalPaginas] = useState(1);
 	const [totalOrdenes, setTotalOrdenes] = useState(0);
+	const [tutorialActivo, setTutorialActivo] = useState(false);
+	const [pasoTutorial, setPasoTutorial] = useState(0);
+	const [tutorialCompletado, setTutorialCompletado] = useState(false);
 
 	// Estados para filtros - INICIALIZAR CON VALORES DE URL
 	const [filtroEstado, setFiltroEstado] = useState(
@@ -348,6 +352,103 @@ const Ventas = () => {
 			console.error("Error fetching clientes:", err);
 		}
 	};
+
+	const pasosTutorial = [
+		{
+			titulo: "¡Bienvenido al Módulo de Ventas!",
+			descripcion: "Te guiaremos por las principales funcionalidades del sistema de órdenes de venta.",
+			posicion: "center"
+		},
+		{
+			titulo: "Crear Nueva Orden",
+			descripcion: "Haz clic aquí para crear una nueva orden de venta desde cero.",
+			elemento: "botonCrearOrden",
+			posicion: "left"
+		},
+		{
+			titulo: "Filtrar Órdenes",
+			descripcion: "Usa estos filtros para encontrar órdenes específicas por estado, cliente o prioridad.",
+			elemento: "controlesFiltros",
+			posicion: "bottom"
+		},
+		{
+			titulo: "Información de Paginación",
+			descripcion: "Aquí puedes ver cuántas órdenes hay y navegar entre las páginas.",
+			elemento: "paginacionInfo",
+			posicion: "bottom"
+		},
+		{
+			titulo: "Lista de Órdenes",
+			descripcion: "Cada tarjeta representa una orden. Haz clic en una orden para editarla (si está en estado 'Creada' o 'En Preparación').",
+			elemento: "primeraOrden",
+			posicion: "bottom"
+		},
+		{
+			titulo: "Estados de las Órdenes",
+			descripcion: "Los badges de colores indican el estado actual de cada orden. Solo las órdenes en estado 'Creada' o 'En Preparación' pueden ser editadas.",
+			elemento: "badgesEstado",
+			posicion: "bottom"
+		},
+		{
+			titulo: "Acciones Disponibles",
+			descripcion: "Dependiendo del estado de la orden, podrás: Facturar, Cancelar, Generar Nota de Crédito o ver la Trazabilidad.",
+			elemento: "botonesAccion",
+			posicion: "top"
+		},
+		{
+			titulo: "¡Listo para Comenzar!",
+			descripcion: "Ya conoces las funciones principales. Puedes volver a ver este tutorial en cualquier momento desde el botón de ayuda.",
+			posicion: "center"
+		}
+	];
+
+	const iniciarTutorial = () => {
+		setTutorialActivo(true);
+		setPasoTutorial(0);
+	};
+
+	// Función para avanzar en el tutorial
+	const avanzarTutorial = () => {
+		if (pasoTutorial < pasosTutorial.length - 1) {
+			setPasoTutorial(pasoTutorial + 1);
+		} else {
+			completarTutorial();
+		}
+	};
+
+	// Función para retroceder en el tutorial
+	const retrocederTutorial = () => {
+		if (pasoTutorial > 0) {
+			setPasoTutorial(pasoTutorial - 1);
+		}
+	};
+
+	// Función para completar el tutorial
+	const completarTutorial = () => {
+		setTutorialActivo(false);
+		setTutorialCompletado(true);
+		localStorage.setItem('tutorialVentasCompletado', 'true');
+		toast.success("¡Tutorial completado! Ya puedes usar todas las funciones.");
+	};
+
+	// Función para saltar el tutorial
+	const saltarTutorial = () => {
+		setTutorialActivo(false);
+	};
+
+
+useEffect(() => {
+		const tutorialVisto = localStorage.getItem('tutorialVentasCompletado');
+		if (!tutorialVisto) {
+			// Si es la primera vez, mostrar el tutorial después de un breve delay
+			const timer = setTimeout(() => {
+				setTutorialActivo(true);
+			}, 1000);
+			return () => clearTimeout(timer);
+		} else {
+			setTutorialCompletado(true);
+		}
+	}, []);
 
 	// Cargar datos iniciales
 	useEffect(() => {
@@ -852,206 +953,242 @@ const Ventas = () => {
 			</div>
 		);
 
-	return (
-		<div className={styles.container}>
-			<ToastContainer
-				position="top-right"
-				autoClose={3000}
-				hideProgressBar={false}
-				newestOnTop={false}
-				closeOnClick
-				rtl={false}
-				pauseOnFocusLoss
-				draggable
-				pauseOnHover
-				theme="colored"
-			/>
-			<div className={styles.headerContainer}>
-				<h1 className={styles.title}>Órdenes de Venta</h1>
-				<button
-					onClick={handleCrearNuevaOrden}
-					className={styles.botonCrearOrden}
-				>
-					Crear Nueva Orden
-				</button>
-			</div>
+return (
+    <div className={styles.container}>
+        <ToastContainer
+            position="top-right"
+            autoClose={3000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="colored"
+        />
 
-			{/* Controles de Filtrado */}
-			<div className={styles.controles}>
-				<div className={styles.filtroGrupo}>
-					<label htmlFor="filtroEstado" className={styles.label}>
-						Filtrar por Estado:{" "}
-					</label>{" "}
-					<Select
-						id="filtroEstado"
-						options={opcionesEstadoParaSelect}
-						styles={customSelectStyles}
-						value={opcionesEstadoParaSelect.find(
-							(op) => op.value === filtroEstado
-						)}
-						onChange={(opcion) => manejarCambioEstado(opcion.value)}
-					/>
-				</div>
+        {/* Overlay del tutorial */}
+        {tutorialActivo && (
+            <TutorialModal
+                pasoActual={pasoTutorial}
+                pasos={pasosTutorial}
+                onAvanzar={avanzarTutorial}
+                onRetroceder={retrocederTutorial}
+                onSaltar={saltarTutorial}
+                onCompletar={completarTutorial}
+            />
+        )}
 
-				<div className={styles.filtroGrupo}>
-					<label htmlFor="filtroCliente" className={styles.label}>
-						Filtrar por Cliente:{" "}
-					</label>{" "}
-					<Select
-						id="filtroCliente"
-						options={opcionesClienteParaSelect}
-						formatOptionLabel={formatOptionLabel}
-						styles={customSelectStyles}
-						value={opcionesClienteParaSelect.find(
-							(op) => op.value === filtroCliente
-						)}
-						onChange={(opcion) => manejarCambioCliente(opcion.value)}
-					/>{" "}
-				</div>
+        <div className={styles.headerContainer}>
+            <div className={styles.titleContainer}>
+                <h1 className={styles.title}>Órdenes de Venta</h1>
+                {!tutorialActivo && (
+                    <button
+                        onClick={iniciarTutorial}
+                        className={styles.botonTutorial}
+                        title="Ver tutorial"
+                    >
+                        ?
+                    </button>
+                )}
+            </div>
+            <button
+                onClick={handleCrearNuevaOrden}
+                className={styles.botonCrearOrden}
+                data-tutorial-element="botonCrearOrden"
+            >
+                Crear Nueva Orden
+            </button>
+        </div>
 
-				<button onClick={limpiarFiltros} className={styles.btnLimpiar}>
-					Limpiar Filtros
-				</button>
-			</div>
+        {/* Controles de Filtrado */}
+        <div 
+            className={styles.controles}
+            data-tutorial-element="controlesFiltros"
+        >
+            <div className={styles.filtroGrupo}>
+                <label htmlFor="filtroEstado" className={styles.label}>
+                    Filtrar por Estado:{" "}
+                </label>{" "}
+                <Select
+                    id="filtroEstado"
+                    options={opcionesEstadoParaSelect}
+                    styles={customSelectStyles}
+                    value={opcionesEstadoParaSelect.find(
+                        (op) => op.value === filtroEstado
+                    )}
+                    onChange={(opcion) => manejarCambioEstado(opcion.value)}
+                />
+            </div>
 
-			{/* Información de paginación */}
-			<div className={styles.paginacionInfo}>
-				<p>
-					Mostrando {ordenes.length} de {totalOrdenes} órdenes (Página{" "}
-					{paginaActual} de {totalPaginas})
-				</p>
-			</div>
+            <div className={styles.filtroGrupo}>
+                <label htmlFor="filtroCliente" className={styles.label}>
+                    Filtrar por Cliente:{" "}
+                </label>{" "}
+                <Select
+                    id="filtroCliente"
+                    options={opcionesClienteParaSelect}
+                    formatOptionLabel={formatOptionLabel}
+                    styles={customSelectStyles}
+                    value={opcionesClienteParaSelect.find(
+                        (op) => op.value === filtroCliente
+                    )}
+                    onChange={(opcion) => manejarCambioCliente(opcion.value)}
+                />{" "}
+            </div>
 
-			<div className={styles.ordenesList}>
-				{ordenes.map((orden) => (
-					<div
-						key={orden.id_orden_venta}
-						className={`${styles.ordenItem} ${
-							editando === orden.id_orden_venta ? styles.ordenEditando : ""
-						} ${!puedeEditarOrden(orden) ? styles.ordenNoEditable : ""}`}
-						onClick={(e) => handleOrdenClick(orden, e)}
-					>
-						<div className={styles.ordenHeader}>
-							<div className={styles.headerTop}>
-								<span className={styles.ordenId}>
-									Orden #{orden.id_orden_venta}
-								</span>
-								<div className={styles.badgesContainer}>
-									<span
-										className={`${styles.badge} ${getEstadoBadgeClass(
-											orden.estado_venta
-										)}`}
-									>
-										{getDescripcionEstado(orden.estado_venta)}
-									</span>
-									{!puedeEditarOrden(orden) && (
-										<span
-											className={`${styles.badge} ${styles.badgeNoEditable}`}
-										>
-											No Editable
-										</span>
-									)}
-								</div>
-							</div>
+            <button onClick={limpiarFiltros} className={styles.btnLimpiar}>
+                Limpiar Filtros
+            </button>
+        </div>
 
-							<div className={styles.headerBottom}>
-								<div className={styles.clienteInfo}>
-									<span className={styles.clienteLabel}>Cliente:</span>
-									<span className={styles.clienteNombre}>
-										{" "}
-										{getNombreCliente(orden.cliente)}
-									</span>
-								</div>
+        {/* Información de paginación */}
+        <div 
+            className={styles.paginacionInfo}
+            data-tutorial-element="paginacionInfo"
+        >
+            <p>
+                Mostrando {ordenes.length} de {totalOrdenes} órdenes (Página{" "}
+                {paginaActual} de {totalPaginas})
+            </p>
+        </div>
 
-								{/* Contenedor para agrupar fecha y creador */}
-								<div className={styles.metaInfoContainer}>
-									<div className={styles.fechaInfo}>
-										Creada: {formatFecha(orden.fecha)}
-									</div>
+        <div className={styles.ordenesList}>
+            {ordenes.map((orden, index) => (
+                <div
+                    key={orden.id_orden_venta}
+                    className={`${styles.ordenItem} ${
+                        editando === orden.id_orden_venta ? styles.ordenEditando : ""
+                    } ${!puedeEditarOrden(orden) ? styles.ordenNoEditable : ""}`}
+                    onClick={(e) => handleOrdenClick(orden, e)}
+                    data-tutorial-element={index === 0 ? "primeraOrden" : undefined}
+                >
+                    <div className={styles.ordenHeader}>
+                        <div className={styles.headerTop}>
+                            <span className={styles.ordenId}>
+                                Orden #{orden.id_orden_venta}
+                            </span>
+                            <div 
+                                className={styles.badgesContainer}
+                                data-tutorial-element={index === 0 ? "badgesEstado" : undefined}
+                            >
+                                <span
+                                    className={`${styles.badge} ${getEstadoBadgeClass(
+                                        orden.estado_venta
+                                    )}`}
+                                >
+                                    {getDescripcionEstado(orden.estado_venta)}
+                                </span>
+                                {!puedeEditarOrden(orden) && (
+                                    <span
+                                        className={`${styles.badge} ${styles.badgeNoEditable}`}
+                                    >
+                                        No Editable
+                                    </span>
+                                )}
+                            </div>
+                        </div>
 
-									{orden.empleado_usuario && (
-										<div className={styles.creadorInfo}>
-											Empleado: {orden.empleado_usuario}
-										</div>
-									)}
-								</div>
-							</div>
+                        <div className={styles.headerBottom}>
+                            <div className={styles.clienteInfo}>
+                                <span className={styles.clienteLabel}>Cliente:</span>
+                                <span className={styles.clienteNombre}>
+                                    {" "}
+                                    {getNombreCliente(orden.cliente)}
+                                </span>
+                            </div>
 
-							<div className={styles.fechaEntregaInfo}>
-								<span className={styles.fechaEntregaLabel}>
-									Entrega estimada:
-								</span>
-								<span className={styles.fechaEntregaValor}>
-									{" "}
-									{formatFecha(orden.fecha_entrega)}
-								</span>
-							</div>
+                            {/* Contenedor para agrupar fecha y creador */}
+                            <div className={styles.metaInfoContainer}>
+                                <div className={styles.fechaInfo}>
+                                    Creada: {formatFecha(orden.fecha)}
+                                </div>
 
-							{/* BOTONES DE ACCIÓN */}
-							<div className={styles.botonesAccion}>
-								{/* ... otros botones (Facturar, Cancelar, etc.) ... */}
+                                {orden.empleado_usuario && (
+                                    <div className={styles.creadorInfo}>
+                                        Empleado: {orden.empleado_usuario}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
 
-								{/* NUEVO BOTÓN: Generar Nota de Crédito (Solo estado 1) */}
-								{puedeGenerarNotaCredito(orden) && (
-									<button
-										onClick={(e) => {
-											e.stopPropagation();
-											setModalNotaCredito({
-												visible: true,
-												id: orden.id_orden_venta,
-											});
-										}}
-										className={styles.botonNotaCredito}
-									>
-										Generar Nota de Crédito
-									</button>
-								)}
-								{puedeFacturarOrden(orden) && (
-									<button
-										onClick={(e) => {
-											e.stopPropagation();
-											handleGenerarFactura(orden.id_orden_venta);
-										}}
-										className={styles.botonFacturar}
-									>
-										Facturar
-									</button>
-								)}
+                        <div className={styles.fechaEntregaInfo}>
+                            <span className={styles.fechaEntregaLabel}>
+                                Entrega estimada:
+                            </span>
+                            <span className={styles.fechaEntregaValor}>
+                                {" "}
+                                {formatFecha(orden.fecha_entrega)}
+                            </span>
+                        </div>
 
-								{/* Botón para cancelar orden */}
-								{puedeCancelarOrden(orden) && (
-									<button
-										onClick={(e) => {
-											e.stopPropagation();
-											setModalCancelar({
-												visible: true,
-												id: orden.id_orden_venta,
-											});
-										}}
-										disabled={cancelandoOrden === orden.id_orden_venta}
-										className={styles.botonCancelarOrden}
-									>
-										{cancelandoOrden === orden.id_orden_venta
-											? "Cancelando..."
-											: "Cancelar Orden"}
-									</button>
-								)}
-								{orden.estado_venta?.id_estado_venta !== 6 &&
-									orden.id_estado_venta !== 6 && (
-										<button
-											onClick={(e) => {
-												e.stopPropagation();
-												navigate(
-													`/trazabilidadordenventa?id_ov=${orden.id_orden_venta}`
-												);
-											}}
-											className={styles.botonTrazabilidad}
-										>
-											Ver Trazabilidad
-										</button>
-									)}
-							</div>
-						</div>
+                        {/* BOTONES DE ACCIÓN */}
+                        <div 
+                            className={styles.botonesAccion}
+                            data-tutorial-element={index === 0 ? "botonesAccion" : undefined}
+                        >
+                            {/* NUEVO BOTÓN: Generar Nota de Crédito (Solo estado 1) */}
+                            {puedeGenerarNotaCredito(orden) && (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setModalNotaCredito({
+                                            visible: true,
+                                            id: orden.id_orden_venta,
+                                        });
+                                    }}
+                                    className={styles.botonNotaCredito}
+                                >
+                                    Generar Nota de Crédito
+                                </button>
+                            )}
+                            {puedeFacturarOrden(orden) && (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleGenerarFactura(orden.id_orden_venta);
+                                    }}
+                                    className={styles.botonFacturar}
+                                >
+                                    Facturar
+                                </button>
+                            )}
+
+                            {/* Botón para cancelar orden */}
+                            {puedeCancelarOrden(orden) && (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setModalCancelar({
+                                            visible: true,
+                                            id: orden.id_orden_venta,
+                                        });
+                                    }}
+                                    disabled={cancelandoOrden === orden.id_orden_venta}
+                                    className={styles.botonCancelarOrden}
+                                >
+                                    {cancelandoOrden === orden.id_orden_venta
+                                        ? "Cancelando..."
+                                        : "Cancelar Orden"}
+                                </button>
+                            )}
+                            {orden.estado_venta?.id_estado_venta !== 6 &&
+                                orden.id_estado_venta !== 6 && (
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            navigate(
+                                                `/trazabilidadordenventa?id_ov=${orden.id_orden_venta}`
+                                            );
+                                        }}
+                                        className={styles.botonTrazabilidad}
+                                    >
+                                        Ver Trazabilidad
+                                    </button>
+                                )}
+                        </div>
+                    </div>
 
 						<div className={styles.ordenBody}>
 							{editando === orden.id_orden_venta ? (
@@ -1312,8 +1449,6 @@ const Ventas = () => {
 					</div>
 				</div>
 			)}
-
-			{/* ... Modal Cancelar existente ... */}
 
 			{/* MODAL DE NOTA DE CRÉDITO */}
 			{modalNotaCredito.visible && (

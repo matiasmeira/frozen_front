@@ -1,0 +1,160 @@
+/* ===== ESTILOS DEL TUTORIAL ===== */
+.tutorialOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 9999;
+}
+
+.tutorialHighlight {
+    position: fixed;
+    border: 3px solid #007bff;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+    z-index: 10000;
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.tutorialModal {
+    position: fixed;
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    max-width: 400px;
+    z-index: 10001;
+    animation: fadeIn 0.3s ease;
+}
+
+.tutorialModal.centered {
+    transform: translate(-50%, -50%);
+}
+
+.tutorialModal.positioned {
+    transform: translate(-50%, 0);
+}
+
+.tutorialContent h3 {
+    margin: 0 0 12px 0;
+    color: #333;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.tutorialContent p {
+    margin: 0 0 20px 0;
+    color: #666;
+    line-height: 1.5;
+    font-size: 0.95rem;
+}
+
+.tutorialProgress {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.progressDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #e0e0e0;
+    transition: background-color 0.3s ease;
+}
+
+.progressDot.active {
+    background-color: #007bff;
+}
+
+.tutorialButtons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.tutorialSkip {
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 8px 12px;
+    border-radius: 4px;
+    transition: color 0.2s ease;
+}
+
+.tutorialSkip:hover {
+    color: #333;
+    background-color: #f5f5f5;
+}
+
+.tutorialNav {
+    display: flex;
+    gap: 8px;
+}
+
+.tutorialPrev,
+.tutorialNext {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.tutorialPrev {
+    background-color: #6c757d;
+    color: white;
+}
+
+.tutorialPrev:hover:not(:disabled) {
+    background-color: #5a6268;
+}
+
+.tutorialPrev:disabled {
+    background-color: #adb5bd;
+    cursor: not-allowed;
+}
+
+.tutorialNext {
+    background-color: #007bff;
+    color: white;
+}
+
+.tutorialNext:hover {
+    background-color: #0056b3;
+}
+
+
+
+/* Animación */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .tutorialModal {
+        margin: 20px;
+        max-width: calc(100vw - 40px);
+        left: 50% !important;
+        top: 50% !important;
+        transform: translate(-50%, -50%) !important;
+    }
+}
