@@ -63,7 +63,7 @@ const TrazarLoteProducto = () => {
 			const response = await fetch(
 				`https://frozenback-test.up.railway.app/api/stock/lotes-produccion/${id_lote}/cambiar-estado/`,
 				{
-					method: "PUT", // Corregido a PUT que es lo estándar para updates, si tu back usa POST cambialo
+					method: "POST", // Corregido a PUT que es lo estándar para updates, si tu back usa POST cambialo
 					headers: {
 						"Content-Type": "application/json",
 					},
