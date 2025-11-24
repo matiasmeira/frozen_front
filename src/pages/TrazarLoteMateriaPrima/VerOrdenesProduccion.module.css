@@ -1,0 +1,422 @@
+/* =========================================
+   1. ESTILOS GENERALES (PADRE)
+   ========================================= */
+
+.container {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 2rem;
+	background-color: #f9fafb;
+	min-height: 100vh;
+	font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* Header */
+.header {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	margin-bottom: 2rem;
+	gap: 1.5rem;
+	text-align: center;
+}
+
+.title {
+	color: #111827;
+	font-size: 2rem;
+	font-weight: 800;
+	margin: 0;
+}
+
+/* Botones Header */
+.accionesContainer {
+	display: flex;
+	gap: 1rem;
+	flex-wrap: wrap;
+	justify-content: center;
+}
+
+.botonCuarentena {
+	background-color: white;
+	color: #d97706;
+	border: 2px solid #d97706;
+	padding: 0.6rem 1.5rem;
+	font-size: 0.95rem;
+	font-weight: 600;
+	border-radius: 0.5rem;
+	cursor: pointer;
+	transition: all 0.2s;
+}
+
+.botonCuarentena:hover:not(:disabled) {
+	background-color: #d97706;
+	color: white;
+}
+
+.botonHabilitar {
+	background-color: white;
+	color: #059669;
+	border: 2px solid #059669;
+	padding: 0.6rem 1.5rem;
+	font-size: 0.95rem;
+	font-weight: 600;
+	border-radius: 0.5rem;
+	cursor: pointer;
+	transition: all 0.2s;
+}
+
+.botonHabilitar:hover:not(:disabled) {
+	background-color: #059669;
+	color: white;
+}
+
+.botonCuarentena:disabled,
+.botonHabilitar:disabled {
+	background-color: #f3f4f6;
+	border-color: #d1d5db;
+	color: #9ca3af;
+	cursor: not-allowed;
+}
+
+/* Info Card Principal */
+.infoCard {
+	background: white;
+	border-radius: 0.75rem;
+	border: 1px solid #e5e7eb;
+	padding: 1.5rem;
+	margin-bottom: 2rem;
+}
+
+.cardTitle {
+	font-size: 1.2rem;
+	color: #374151;
+	margin-top: 0;
+	margin-bottom: 1rem;
+	padding-bottom: 0.5rem;
+	border-bottom: 1px solid #f3f4f6;
+}
+
+.infoGrid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 1.5rem;
+}
+
+.infoItem {
+	display: flex;
+	flex-direction: column;
+}
+
+.label {
+	font-size: 0.75rem;
+	color: #6b7280;
+	font-weight: 700;
+	text-transform: uppercase;
+}
+
+.value {
+	font-size: 1rem;
+	color: #111827;
+	font-weight: 600;
+}
+
+.estadoHighlight {
+	color: #2563eb;
+}
+
+/* Tabs Selector */
+.selectorVista {
+	display: flex;
+	justify-content: center;
+	gap: 0.5rem;
+	margin-bottom: 2rem;
+	background: #e5e7eb;
+	padding: 0.25rem;
+	border-radius: 0.5rem;
+	width: fit-content;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.botonVista {
+	padding: 0.6rem 1.5rem;
+	border: none;
+	border-radius: 0.375rem;
+	background: transparent;
+	color: #4b5563;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.botonActivo {
+	background-color: white;
+	color: #2563eb;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* =========================================
+   2. ESTILOS DE COMPONENTES HIJOS (CARDS)
+   ========================================= */
+
+.componente {
+	padding: 1.5rem;
+	background-color: #fff;
+	border-radius: 0.75rem;
+	border: 1px solid #e5e7eb;
+	margin-top: 1rem;
+}
+
+.componente h3 {
+	margin-top: 0;
+	color: #1f2937;
+	font-size: 1.5rem;
+	margin-bottom: 1.5rem;
+	border-left: 4px solid #3b82f6;
+	padding-left: 1rem;
+}
+
+/* Resumen azul */
+.infoResumen {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 2rem;
+	background-color: #f0f9ff;
+	padding: 1rem;
+	border-radius: 0.5rem;
+	border: 1px solid #bae6fd;
+	margin-bottom: 2rem;
+}
+
+.infoResumen p {
+	margin: 0;
+	color: #0369a1;
+}
+
+/* Grid Layout */
+.lista {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+	gap: 1.5rem;
+}
+
+/* Estilo de la Tarjeta */
+.tarjeta {
+	background: white;
+	border: 1px solid #e5e7eb;
+	border-radius: 0.75rem;
+	padding: 1.5rem;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	transition: transform 0.2s;
+}
+
+.tarjeta:hover {
+	transform: translateY(-4px);
+	box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+	border-color: #93c5fd;
+}
+
+.tarjeta h4 {
+	margin-top: 0;
+	color: #111827;
+	font-size: 1.1rem;
+	padding-bottom: 0.75rem;
+	border-bottom: 1px solid #f3f4f6;
+}
+
+/* Cuerpo de tarjeta (Flex para empujar botón abajo) */
+.cardBody {
+	flex-grow: 1;
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	margin-bottom: 1.5rem;
+}
+
+.cardBody p {
+	margin: 0;
+	color: #4b5563;
+	font-size: 0.9rem;
+	display: flex;
+	justify-content: space-between;
+	border-bottom: 1px dashed #f3f4f6;
+	padding-bottom: 0.25rem;
+}
+
+.cardBody p:last-child {
+	border-bottom: none;
+}
+
+.cardBody strong {
+	color: #374151;
+}
+
+/* Botón dentro de la tarjeta */
+/* OJO: Esto aplica a los botones dentro de .accionesContainer en las cards */
+.botonVerLote {
+	width: 100%;
+	background-color: #3b82f6;
+	color: white;
+	border: 1px solid #3b82f6;
+	padding: 0.7rem;
+	border-radius: 0.5rem;
+	cursor: pointer;
+	font-weight: 600;
+	font-size: 0.9rem;
+	transition: background 0.2s;
+	text-align: center;
+}
+
+.botonVerLote:hover:not(:disabled) {
+	background-color: #2563eb;
+}
+
+.botonVerLote:disabled {
+	background-color: #f3f4f6;
+	border-color: #d1d5db;
+	color: #9ca3af;
+	cursor: not-allowed;
+}
+
+.botonVerOrdenes {
+	width: 100%;
+	background-color: white;
+	color: #059669;
+	border: 1px solid #059669;
+	padding: 0.7rem;
+	border-radius: 0.5rem;
+	cursor: pointer;
+	font-weight: 600;
+	font-size: 0.9rem;
+	text-align: center;
+	transition: all 0.2s;
+}
+
+.botonVerOrdenes:hover:not(:disabled) {
+	background-color: #059669;
+	color: white;
+}
+
+/* =========================================
+   3. ESTADOS (COLORES DINÁMICOS)
+   ========================================= */
+/* Clases usadas dinámicamente con styles[orden.estado.toLowerCase()] */
+
+.estado {
+	padding: 0.2rem 0.6rem;
+	border-radius: 999px;
+	font-size: 0.75rem !important;
+	text-transform: uppercase;
+}
+
+/* Estados posibles (Asegúrate que coincidan con tu backend) */
+.finalizada {
+	background-color: #dcfce7;
+	color: #15803d !important;
+}
+
+.cancelada {
+	background-color: #fee2e2;
+	color: #b91c1c !important;
+}
+
+.en_proceso,
+.enproceso,
+.pendiente {
+	background-color: #fef3c7;
+	color: #b45309 !important;
+}
+
+.planificada {
+	background-color: #e0f2fe;
+	color: #0369a1 !important;
+}
+
+/* =========================================
+   4. CARGANDO Y ERROR
+   ========================================= */
+
+.cargando,
+.error {
+	text-align: center;
+	padding: 3rem;
+	font-weight: 500;
+}
+
+.error {
+	color: #dc2626;
+	background: #fef2f2;
+	border-radius: 0.5rem;
+}
+
+/* --- RESPONSIVE --- */
+@media (min-width: 768px) {
+	.header {
+		flex-direction: row;
+		justify-content: space-between;
+	}
+	.title {
+		text-align: left;
+	}
+}
+
+@media (max-width: 640px) {
+	.accionesContainer {
+		flex-direction: column;
+		width: 100%;
+	}
+	.botonCuarentena,
+	.botonHabilitar {
+		width: 100%;
+		justify-content: center;
+	}
+	.infoResumen {
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+}
+/* --- ESTILOS DE LA BARRA DE RESUMEN --- */
+
+.infoResumen {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 2rem; /* Espacio entre los elementos */
+	background-color: #eff6ff; /* Fondo azul muy suave */
+	border: 1px solid #dbeafe; /* Borde azul sutil */
+	padding: 1rem 1.5rem;
+	border-radius: 0.5rem;
+	margin-bottom: 2rem;
+	align-items: center;
+}
+
+.resumenItem {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.resumenLabel {
+	font-size: 0.85rem;
+	color: #64748b; /* Gris azulado */
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+
+.resumenValue {
+	font-size: 1.1rem;
+	color: #1e3a8a; /* Azul oscuro fuerte */
+	font-weight: 600;
+}
+
+/* Responsive para móviles: uno debajo del otro */
+@media (max-width: 640px) {
+	.infoResumen {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 1rem;
+	}
+}

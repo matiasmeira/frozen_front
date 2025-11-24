@@ -1,179 +1,110 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
-import VerOrdenesProduccion from "./VerLotesProducto";
-import VerLotesProducto from "./VerOrdenesProduccion";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+import VerOrdenesProduccion from "./VerOrdenesProduccion"; // Ajusta ruta si es necesario
+import VerLotesProducto from "./VerLotesProducto"; // Ajusta ruta si es necesario
 import styles from "./TrazarLoteMateriaPrima.module.css";
 
 const TrazarLoteMateriaPrima = () => {
 	const { id_Materia_Prima } = useParams();
-	const [componenteActivo, setComponenteActivo] = useState("ordenes");
-	const [cargandoCuarentena, setCargandoCuarentena] = useState(false);
-	const [cargandoHabilitar, setCargandoHabilitar] = useState(false);
-	const [mensajeCuarentena, setMensajeCuarentena] = useState(null);
-	const [mensajeHabilitar, setMensajeHabilitar] = useState(null);
-	const [errorCuarentena, setErrorCuarentena] = useState(null);
-	const [errorHabilitar, setErrorHabilitar] = useState(null);
-	const [infoLote, setInfoLote] = useState(null);
-	const [estadosLote, setEstadosLote] = useState([]);
-	const [cargandoInfo, setCargandoInfo] = useState(true);
-	const [errorInfo, setErrorInfo] = useState(null);
+	const [vistaActiva, setVistaActiva] = useState("ordenes");
+	const [loadingAccion, setLoadingAccion] = useState(false);
+	const [loteInfo, setLoteInfo] = useState(null);
 
-	// Obtener información del lote y estados
-	useEffect(() => {
-		const obtenerInformacionLote = async () => {
-			if (!id_Materia_Prima) return;
+	// Estados para el Modal
+	const [modalOpen, setModalOpen] = useState(false);
+	const [accionPendiente, setAccionPendiente] = useState(null);
 
-			setCargandoInfo(true);
-			setErrorInfo(null);
+	// CONSTANTES DE ESTADO
+	const ID_ESTADO_HABILITADO = 1;
+	const ID_ESTADO_CUARENTENA = 3;
 
-			try {
-				// Obtener información del lote
-				const responseLote = await fetch(
-					`https://frozenback-test.up.railway.app/api/stock/lotes-materias/${id_Materia_Prima}/`
-				);
-
-				if (!responseLote.ok) {
-					throw new Error("Error al obtener la información del lote");
-				}
-				const dataLote = await responseLote.json();
-				setInfoLote(dataLote);
-
-				// Obtener estados disponibles
-				const responseEstados = await fetch(
-					`https://frozenback-test.up.railway.app/api/stock/estado-lotes-materias/`
-				);
-
-				if (!responseEstados.ok) {
-					throw new Error("Error al obtener los estados del lote");
-				}
-				const dataEstados = await responseEstados.json();
-				setEstadosLote(dataEstados.results);
-			} catch (err) {
-				setErrorInfo(err.message);
-			} finally {
-				setCargandoInfo(false);
+	const obtenerInfoLote = useCallback(async () => {
+		try {
+			const response = await fetch(
+				`https://frozenback-test.up.railway.app/api/stock/lotes-materias/${id_Materia_Prima}/`
+			);
+			if (response.ok) {
+				const data = await response.json();
+				setLoteInfo(data);
+			} else {
+				console.error("Error al obtener info del lote");
+				toast.error("No se pudo cargar la información del lote.");
 			}
-		};
-
-		obtenerInformacionLote();
+		} catch (error) {
+			console.error("Error de red al obtener info:", error);
+			toast.error("Error de conexión al cargar datos.");
+		}
 	}, [id_Materia_Prima]);
 
-	// Función para obtener la descripción del estado
-	const obtenerDescripcionEstado = (idEstado) => {
-		const estado = estadosLote.find(
-			(estado) => estado.id_estado_lote_materia_prima === idEstado
+	useEffect(() => {
+		if (id_Materia_Prima) {
+			obtenerInfoLote();
+		}
+	}, [id_Materia_Prima, obtenerInfoLote]);
+
+	const solicitarCambioEstado = (nuevoEstadoId, nombreAccion) => {
+		setAccionPendiente({ id: nuevoEstadoId, nombre: nombreAccion });
+		setModalOpen(true);
+	};
+
+	const cerrarModal = () => {
+		setModalOpen(false);
+		setAccionPendiente(null);
+	};
+
+	const confirmarCambioEstado = async () => {
+		if (!accionPendiente) return;
+
+		setLoadingAccion(true);
+		try {
+			const response = await fetch(
+				`https://frozenback-test.up.railway.app/api/stock/lotes-materias/${id_Materia_Prima}/cambiar-estado/`,
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({
+						id_estado_lote_materia_prima: accionPendiente.id,
+					}),
+				}
+			);
+
+			if (response.ok) {
+				cerrarModal();
+				toast.success(
+					`¡Acción "${accionPendiente.nombre}" realizada con éxito!`
+				);
+				obtenerInfoLote();
+			} else {
+				cerrarModal();
+				toast.error("Hubo un error al intentar actualizar el estado.");
+			}
+		} catch (error) {
+			console.error("Error de red:", error);
+			cerrarModal();
+			toast.error("Error de conexión con el servidor.");
+		} finally {
+			setLoadingAccion(false);
+		}
+	};
+
+	const idEstadoActual = loteInfo?.id_estado_lote_materia_prima;
+
+	if (!id_Materia_Prima) {
+		return (
+			<div className={styles.errorContainer}>
+				<h2>Error</h2>
+				<p>No se encontró el ID del lote de materia prima en la URL</p>
+			</div>
 		);
-		return estado ? estado.descripcion : "Desconocido";
-	};
-
-	const ponerEnCuarentena = async () => {
-		if (!id_Materia_Prima) return;
-
-		setCargandoCuarentena(true);
-		setMensajeCuarentena(null);
-		setErrorCuarentena(null);
-
-		try {
-			const response = await fetch(
-				`https://frozenback-test.up.railway.app/api/stock/lotes-materias/${id_Materia_Prima}/cambiar-estado/`,
-				{
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({
-						id_estado_lote_materia_prima: 3,
-					}),
-				}
-			);
-
-			if (!response.ok) {
-				throw new Error("Error al cambiar el estado a cuarentena");
-			}
-
-			const data = await response.json();
-			setMensajeCuarentena("Lote puesto en cuarentena exitosamente");
-
-			// Actualizar la información del lote después del cambio
-			const responseActualizado = await fetch(
-				`https://frozenback-test.up.railway.app/api/stock/lotes-materias/${id_Materia_Prima}/`
-			);
-			if (responseActualizado.ok) {
-				const dataActualizado = await responseActualizado.json();
-				setInfoLote(dataActualizado);
-			}
-
-			// Limpiar el mensaje después de 3 segundos
-			setTimeout(() => {
-				setMensajeCuarentena(null);
-			}, 3000);
-		} catch (err) {
-			setErrorCuarentena(err.message);
-
-			// Limpiar el error después de 5 segundos
-			setTimeout(() => {
-				setErrorCuarentena(null);
-			}, 5000);
-		} finally {
-			setCargandoCuarentena(false);
-		}
-	};
-
-	const habilitarLote = async () => {
-		if (!id_Materia_Prima) return;
-
-		setCargandoHabilitar(true);
-		setMensajeHabilitar(null);
-		setErrorHabilitar(null);
-
-		try {
-			const response = await fetch(
-				`https://frozenback-test.up.railway.app/api/stock/lotes-materias/${id_Materia_Prima}/cambiar-estado/`,
-				{
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({
-						id_estado_lote_materia_prima: 1,
-					}),
-				}
-			);
-
-			if (!response.ok) {
-				throw new Error("Error al habilitar el lote");
-			}
-
-			const data = await response.json();
-			setMensajeHabilitar("Lote habilitado exitosamente");
-
-			// Actualizar la información del lote después del cambio
-			const responseActualizado = await fetch(
-				`https://frozenback-test.up.railway.app/api/stock/lotes-materias/${id_Materia_Prima}/`
-			);
-			if (responseActualizado.ok) {
-				const dataActualizado = await responseActualizado.json();
-				setInfoLote(dataActualizado);
-			}
-
-			// Limpiar el mensaje después de 3 segundos
-			setTimeout(() => {
-				setMensajeHabilitar(null);
-			}, 3000);
-		} catch (err) {
-			setErrorHabilitar(err.message);
-
-			// Limpiar el error después de 5 segundos
-			setTimeout(() => {
-				setErrorHabilitar(null);
-			}, 5000);
-		} finally {
-			setCargandoHabilitar(false);
-		}
-	};
+	}
 
 	const renderizarComponente = () => {
-		switch (componenteActivo) {
+		switch (vistaActiva) {
 			case "ordenes":
 				return <VerOrdenesProduccion idMateriaPrima={id_Materia_Prima} />;
 			case "lotes":
@@ -184,123 +115,168 @@ const TrazarLoteMateriaPrima = () => {
 	};
 
 	return (
-		<div className={styles.contenedor}>
+		<div className={styles.container}>
+			{/* Header */}
 			<div className={styles.header}>
-				<h2>Lote de materia prima {id_Materia_Prima}</h2>
-				<div className={styles.botonesAccion}>
-					<button
-						className={styles.botonHabilitar}
-						onClick={habilitarLote}
-						disabled={
-							cargandoHabilitar ||
-							(infoLote && infoLote.id_estado_lote_materia_prima === 1)
-						}
-					>
-						{cargandoHabilitar
-							? "Procesando..."
-							: infoLote && infoLote.id_estado_lote_materia_prima === 1
-							? "Habilitado"
-							: "Habilitar lote"}
-					</button>
+				<h1 className={styles.title}>
+					Lote de Materia Prima #{id_Materia_Prima}
+				</h1>
+
+				<div className={styles.accionesContainer}>
+					{/* BOTÓN: PONER EN CUARENTENA 
+                        Solo activo si estado actual es HABILITADO (1) */}
 					<button
 						className={styles.botonCuarentena}
-						onClick={ponerEnCuarentena}
+						onClick={() =>
+							solicitarCambioEstado(ID_ESTADO_CUARENTENA, "poner en cuarentena")
+						}
 						disabled={
-							cargandoCuarentena ||
-							(infoLote && infoLote.id_estado_lote_materia_prima === 3)
+							loadingAccion ||
+							!loteInfo ||
+							idEstadoActual !== ID_ESTADO_HABILITADO
+						}
+						title={
+							idEstadoActual !== ID_ESTADO_HABILITADO
+								? "Solo se puede poner en cuarentena si el lote está Habilitado"
+								: ""
 						}
 					>
-						{cargandoCuarentena
-							? "Procesando..."
-							: infoLote && infoLote.id_estado_lote_materia_prima === 3
-							? "En Cuarentena"
+						{loadingAccion && accionPendiente?.id === ID_ESTADO_CUARENTENA
+							? "..."
 							: "Poner en cuarentena"}
+					</button>
+
+					{/* BOTÓN: HABILITAR LOTE 
+                        Solo activo si estado actual es CUARENTENA (3) */}
+					<button
+						className={styles.botonHabilitar}
+						onClick={() =>
+							solicitarCambioEstado(ID_ESTADO_HABILITADO, "habilitar")
+						}
+						disabled={
+							loadingAccion ||
+							!loteInfo ||
+							idEstadoActual !== ID_ESTADO_CUARENTENA
+						}
+						title={
+							idEstadoActual !== ID_ESTADO_CUARENTENA
+								? "Solo se puede habilitar si el lote está en Cuarentena"
+								: ""
+						}
+					>
+						{loadingAccion && accionPendiente?.id === ID_ESTADO_HABILITADO
+							? "..."
+							: "Habilitar lote"}
 					</button>
 				</div>
 			</div>
 
-			{/* Mensajes de estado */}
-			{mensajeHabilitar && (
-				<div className={styles.mensajeExito}>{mensajeHabilitar}</div>
-			)}
-			{mensajeCuarentena && (
-				<div className={styles.mensajeExito}>{mensajeCuarentena}</div>
-			)}
-			{errorHabilitar && (
-				<div className={styles.mensajeError}>Error: {errorHabilitar}</div>
-			)}
-			{errorCuarentena && (
-				<div className={styles.mensajeError}>Error: {errorCuarentena}</div>
-			)}
-
-			{/* Card de información del lote */}
-			<div className={styles.cardInfoLote}>
-				<h3>Información del Lote</h3>
-				{cargandoInfo ? (
-					<div className={styles.cargando}>
-						Cargando información del lote...
-					</div>
-				) : errorInfo ? (
-					<div className={styles.error}>Error: {errorInfo}</div>
-				) : infoLote ? (
+			{/* Info Card */}
+			{loteInfo ? (
+				<div className={styles.infoCard}>
+					<h3 className={styles.cardTitle}>Información General</h3>
 					<div className={styles.infoGrid}>
 						<div className={styles.infoItem}>
-							<strong>ID Lote:</strong>
-							<span>{infoLote.id_lote_materia_prima}</span>
-						</div>
-						<div className={styles.infoItem}>
-							<strong>Fecha Vencimiento:</strong>
-							<span>
-								{new Date(infoLote.fecha_vencimiento).toLocaleDateString()}
+							<span className={styles.label}>ID Lote:</span>
+							<span className={styles.value}>
+								{loteInfo.id_lote_materia_prima || "-"}
 							</span>
 						</div>
 						<div className={styles.infoItem}>
-							<strong>Cantidad:</strong>
-							<span>{infoLote.cantidad}</span>
-						</div>
-						<div className={styles.infoItem}>
-							<strong>ID Materia Prima:</strong>
-							<span>{infoLote.id_materia_prima}</span>
-						</div>
-						<div className={styles.infoItem}>
-							<strong>Estado:</strong>
-							<span
-								className={`${styles.estado} ${
-									styles[`estado${infoLote.id_estado_lote_materia_prima}`]
-								}`}
-							>
-								{obtenerDescripcionEstado(
-									infoLote.id_estado_lote_materia_prima
-								)}
+							<span className={styles.label}>Estado Actual:</span>
+							<span className={`${styles.value} ${styles.estadoHighlight}`}>
+								{idEstadoActual === 1
+									? "Disponible"
+									: idEstadoActual === 3
+									? "Cuarentena"
+									: idEstadoActual === 2
+									? "Agotado"
+									: "-"}
 							</span>
+						</div>
+						<div className={styles.infoItem}>
+							<span className={styles.label}>Fecha Vencimiento:</span>
+							<span className={styles.value}>
+								{new Date(loteInfo.fecha_vencimiento).toLocaleDateString()}
+							</span>
+						</div>
+						<div className={styles.infoItem}>
+							<span className={styles.label}>Cantidad:</span>
+							<span className={styles.value}>{loteInfo.cantidad}</span>
 						</div>
 					</div>
-				) : (
-					<p>No se pudo cargar la información del lote</p>
-				)}
-			</div>
+				</div>
+			) : (
+				<div className={styles.loadingInfo}>
+					Cargando información del lote...
+				</div>
+			)}
 
-			<div className={styles.botones}>
+			{/* Selector */}
+			<div className={styles.selectorVista}>
 				<button
-					className={`${styles.boton} ${
-						componenteActivo === "lotes" ? styles.botonActivo : ""
+					className={`${styles.botonVista} ${
+						vistaActiva === "ordenes" ? styles.botonActivo : ""
 					}`}
-					onClick={() => setComponenteActivo("lotes")}
+					onClick={() => setVistaActiva("ordenes")}
 				>
-					Ver Ordenes de produccion relacionadas
+					Órdenes de Producción
 				</button>
 
 				<button
-					className={`${styles.boton} ${
-						componenteActivo === "ordenes" ? styles.botonActivo : ""
+					className={`${styles.botonVista} ${
+						vistaActiva === "lotes" ? styles.botonActivo : ""
 					}`}
-					onClick={() => setComponenteActivo("ordenes")}
+					onClick={() => setVistaActiva("lotes")}
 				>
-					Ver Lotes de Productos terminados relacionados
+					Lotes de Producto
 				</button>
 			</div>
 
-			<div className={styles.areaRenderizado}>{renderizarComponente()}</div>
+			{/* Contenido */}
+			<div className={styles.contenidoVista}>{renderizarComponente()}</div>
+
+			{/* Modal */}
+			{modalOpen && (
+				<div className={styles.modalOverlay}>
+					<div className={styles.modalContent}>
+						<h3 className={styles.modalTitle}>Confirmar Acción</h3>
+						<p className={styles.modalText}>
+							¿Estás seguro de que deseas{" "}
+							<strong>{accionPendiente?.nombre}</strong> este lote?
+						</p>
+						<div className={styles.modalActions}>
+							<button
+								className={styles.btnCancelar}
+								onClick={cerrarModal}
+								disabled={loadingAccion}
+							>
+								Cancelar
+							</button>
+							<button
+								className={styles.btnConfirmar}
+								onClick={confirmarCambioEstado}
+								disabled={loadingAccion}
+							>
+								{loadingAccion ? "Procesando..." : "Sí, Confirmar"}
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
+
+			{/* Contenedor de las Notificaciones Toast */}
+			<ToastContainer
+				position="top-right"
+				autoClose={3000}
+				hideProgressBar={false}
+				newestOnTop={false}
+				closeOnClick
+				rtl={false}
+				pauseOnFocusLoss
+				draggable
+				pauseOnHover
+			/>
 		</div>
 	);
 };

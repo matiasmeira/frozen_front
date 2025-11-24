@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import styles from "./TrazarLoteMateriaPrima.module.css";
+import styles from "./VerOrdenesProduccion.module.css";
 
 const VerOrdenesProduccion = ({ idMateriaPrima }) => {
 	const [datos, setDatos] = useState(null);
@@ -57,13 +57,21 @@ const VerOrdenesProduccion = ({ idMateriaPrima }) => {
 
 	return (
 		<div className={styles.componente}>
+
 			<h3>Órdenes de Producción Relacionadas</h3>
-			<p>
-				<strong>Lote Consultado:</strong> {datos.lote_consultado}
-			</p>
-			<p>
-				<strong>Total de Órdenes:</strong> {datos.total_ordenes}
-			</p>
+			
+			<div className={styles.infoResumen}>
+				<div className={styles.resumenItem}>
+					<span className={styles.resumenLabel}>Lote Consultado:</span>
+					<span className={styles.resumenValue}>{datos.lote_consultado}</span>
+				</div>
+				<div className={styles.resumenItem}>
+					<span className={styles.resumenLabel}>Total de Órdenes:</span>
+					<span className={styles.resumenValue}>{datos.total_ordenes}</span>
+				</div>
+			</div>
+
+			{/* ... resto del código (lista de cards) ... */}
 
 			<div className={styles.lista}>
 				{datos.resultados.map((orden) => (

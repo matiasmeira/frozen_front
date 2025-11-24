@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom"; // 1. Importar hook
-import styles from "./TrazarLoteMateriaPrima.module.css";
+import styles from "./VerLotesProducto.module.css";
 
 const VerLotesProducto = ({ idMateriaPrima }) => {
 	const navigate = useNavigate(); // 2. Inicializar hook

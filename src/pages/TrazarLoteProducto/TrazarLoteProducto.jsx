@@ -63,7 +63,7 @@ const TrazarLoteProducto = () => {
 			const response = await fetch(
 				`https://frozenback-test.up.railway.app/api/stock/lotes-produccion/${id_lote}/cambiar-estado/`,
 				{
-					method: "POST",
+					method: "PUT", // Corregido a PUT que es lo estándar para updates, si tu back usa POST cambialo
 					headers: {
 						"Content-Type": "application/json",
 					},
@@ -113,9 +113,11 @@ const TrazarLoteProducto = () => {
 		<div className={styles.container}>
 			{/* Header */}
 			<div className={styles.header}>
-				<h1 className={styles.title}>Trazabilidad del Lote #{id_lote}</h1>
+				<h1 className={styles.title}>Lote de Producto #{id_lote}</h1>
 
 				<div className={styles.accionesContainer}>
+					{/* BOTÓN: PONER EN CUARENTENA 
+                        Solo habilitado si el estado actual es HABILITADO (8) */}
 					<button
 						className={styles.botonCuarentena}
 						onClick={() =>
@@ -124,11 +126,11 @@ const TrazarLoteProducto = () => {
 						disabled={
 							loadingAccion ||
 							!loteInfo ||
-							idEstadoActual === ID_ESTADO_CUARENTENA
+							idEstadoActual !== ID_ESTADO_HABILITADO
 						}
 						title={
-							idEstadoActual === ID_ESTADO_CUARENTENA
-								? "El lote ya está en cuarentena"
+							idEstadoActual !== ID_ESTADO_HABILITADO
+								? "Solo se puede poner en cuarentena si el lote está Habilitado"
 								: ""
 						}
 					>
@@ -137,6 +139,8 @@ const TrazarLoteProducto = () => {
 							: "Poner en cuarentena"}
 					</button>
 
+					{/* BOTÓN: HABILITAR LOTE 
+                        Solo habilitado si el estado actual es CUARENTENA (10) */}
 					<button
 						className={styles.botonHabilitar}
 						onClick={() =>
@@ -145,11 +149,11 @@ const TrazarLoteProducto = () => {
 						disabled={
 							loadingAccion ||
 							!loteInfo ||
-							idEstadoActual === ID_ESTADO_HABILITADO
+							idEstadoActual !== ID_ESTADO_CUARENTENA
 						}
 						title={
-							idEstadoActual === ID_ESTADO_HABILITADO
-								? "El lote ya está habilitado"
+							idEstadoActual !== ID_ESTADO_CUARENTENA
+								? "Solo se puede habilitar si el lote está en Cuarentena"
 								: ""
 						}
 					>
