@@ -261,3 +261,542 @@
 		padding: 20px;
 	}
 }
+
+
+/* ===== ESTILOS DEL TUTORIAL ===== */
+.tutorialOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 9999;
+}
+
+.tutorialHighlight {
+    position: fixed;
+    border: 3px solid #007bff;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+    z-index: 10000;
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.tutorialModal {
+    position: fixed;
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    max-width: 400px;
+    z-index: 10001;
+    animation: fadeIn 0.3s ease;
+}
+
+.tutorialModal.centered {
+    transform: translate(-50%, -50%);
+}
+
+.tutorialModal.positioned {
+    transform: translate(-50%, 0);
+}
+
+.tutorialContent h3 {
+    margin: 0 0 12px 0;
+    color: #333;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.tutorialContent p {
+    margin: 0 0 20px 0;
+    color: #666;
+    line-height: 1.5;
+    font-size: 0.95rem;
+}
+
+.tutorialProgress {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.progressDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #e0e0e0;
+    transition: background-color 0.3s ease;
+}
+
+.progressDot.active {
+    background-color: #007bff;
+}
+
+.tutorialButtons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.tutorialSkip {
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 8px 12px;
+    border-radius: 4px;
+    transition: color 0.2s ease;
+}
+
+.tutorialSkip:hover {
+    color: #333;
+    background-color: #f5f5f5;
+}
+
+.tutorialNav {
+    display: flex;
+    gap: 8px;
+}
+
+.tutorialPrev,
+.tutorialNext {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.tutorialPrev {
+    background-color: #6c757d;
+    color: white;
+}
+
+.tutorialPrev:hover:not(:disabled) {
+    background-color: #5a6268;
+}
+
+.tutorialPrev:disabled {
+    background-color: #adb5bd;
+    cursor: not-allowed;
+}
+
+.tutorialNext {
+    background-color: #007bff;
+    color: white;
+}
+
+.tutorialNext:hover {
+    background-color: #0056b3;
+}
+
+/* Botón de tutorial en el header */
+.titleContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.botonTutorial {
+    width: 32px;
+    height: 32px;
+    border: 2px solid #007bff;
+    background-color: white;
+    color: #007bff;
+    border-radius: 50%;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.botonTutorial:hover {
+    background-color: #007bff;
+    color: white;
+    transform: scale(1.1);
+}
+
+/* Animación */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .tutorialModal {
+        margin: 20px;
+        max-width: calc(100vw - 40px);
+        left: 50% !important;
+        top: 50% !important;
+        transform: translate(-50%, -50%) !important;
+    }
+}
+
+/* Estilos existentes del componente */
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #ffffff;
+    min-height: 100vh;
+}
+
+/* Header Principal - ACTUALIZADO */
+.header {
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.header h1 {
+    color: #2c3e50;
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0 0 10px 0;
+    border-bottom: 3px solid #3498db;
+    padding-bottom: 15px;
+}
+
+/* Botones de Acción */
+.accionesContainer {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin: 25px 0;
+    flex-wrap: wrap;
+}
+
+.botonCuarentena {
+    padding: 10px 20px;
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 140px;
+}
+
+.botonCuarentena:hover:not(:disabled) {
+    background-color: #c0392b;
+}
+
+.botonCuarentena:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.botonHabilitar {
+    padding: 10px 20px;
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 120px;
+}
+
+.botonHabilitar:hover:not(:disabled) {
+    background-color: #229954;
+}
+
+.botonHabilitar:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Card de Información */
+.infoCard {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 25px;
+    margin-bottom: 30px;
+}
+
+.cardTitle {
+    color: #2c3e50;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0 0 20px 0;
+    text-align: center;
+}
+
+.infoGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 15px;
+}
+
+.infoItem {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.label {
+    font-size: 14px;
+    color: #6c757d;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.value {
+    font-size: 16px;
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.estadoHighlight {
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: #d4edda;
+    color: #155724;
+    font-size: 14px;
+    font-weight: 600;
+    width: fit-content;
+    border: 1px solid #c3e6cb;
+}
+
+/* Selector de Vista */
+.selectorVista {
+    display: flex;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 8px;
+    margin-bottom: 25px;
+    gap: 8px;
+}
+
+.botonVista {
+    flex: 1;
+    padding: 12px 20px;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #6c757d;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.botonVista:hover {
+    background: #e9ecef;
+    color: #495057;
+}
+
+.botonActivo {
+    background: #3498db;
+    color: white;
+}
+
+.botonActivo:hover {
+    background: #3498db;
+    color: white;
+}
+
+/* Área de Contenido */
+.contenidoVista {
+    background: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 20px;
+    min-height: 300px;
+}
+
+/* Estados */
+.estado1 {
+    /* Disponible */
+    background: #d4edda;
+    color: #155724;
+    border-color: #c3e6cb;
+}
+
+.estado2 {
+    /* Agotado */
+    background: #f8d7da;
+    color: #721c24;
+    border-color: #f5c6cb;
+}
+
+.estado3 {
+    /* Cuarentena */
+    background: #fff3cd;
+    color: #856404;
+    border-color: #ffeaa7;
+}
+
+/* Estados de carga */
+.loadingInfo {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6c757d;
+    font-style: italic;
+}
+
+.errorContainer {
+    background: #f8d9da;
+    color: #721c24;
+    padding: 15px;
+    border-radius: 6px;
+    text-align: center;
+    margin: 20px 0;
+}
+
+/* Modal */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modalContent {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.modalTitle {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 1.5em;
+    font-weight: 600;
+    text-align: center;
+}
+
+.modalText {
+    color: #555;
+    margin-bottom: 25px;
+    text-align: center;
+    line-height: 1.5;
+}
+
+.modalActions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.btnCancelar {
+    background-color: #95a5a6;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btnCancelar:hover {
+    background-color: #7f8c8d;
+}
+
+.btnConfirmar {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btnConfirmar:hover:not(:disabled) {
+    background-color: #2980b9;
+}
+
+.btnConfirmar:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+
+    .header h1 {
+        font-size: 2rem;
+    }
+
+    .accionesContainer {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .botonCuarentena,
+    .botonHabilitar {
+        width: 100%;
+        max-width: 200px;
+    }
+
+    .infoGrid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .selectorVista {
+        flex-direction: column;
+    }
+
+    .infoCard {
+        padding: 20px;
+    }
+
+    .modalActions {
+        flex-direction: column;
+    }
+
+    .btnCancelar,
+    .btnConfirmar {
+        width: 100%;
+    }
+}
