@@ -8,6 +8,7 @@ import OrdenProduccionService from "../../classes/DTOS/OrdenProduccionService";
 // --- NUEVO: Importar React Toastify ---
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import TutorialModal from "../TutorialModal/TutorialModal";
 
 // Configurar el modal para accesibilidad
 Modal.setAppElement("#root");
@@ -63,6 +64,105 @@ const VerOrdenesProduccion = () => {
   const [filtroEstado, setFiltroEstado] = useState("todos");
   const [filtroOperario, setFiltroOperario] = useState("todos");
 
+  // --- NUEVO: Estados para el tutorial ---
+  const [tutorialActivo, setTutorialActivo] = useState(false);
+  const [pasoTutorial, setPasoTutorial] = useState(0);
+  const [tutorialCompletado, setTutorialCompletado] = useState(false);
+
+  // Pasos del tutorial para producción
+  const pasosTutorial = [
+    {
+      titulo: "¡Bienvenido al Módulo de Producción!",
+      descripcion: "Te guiaremos por las principales funcionalidades del sistema de órdenes de producción.",
+      posicion: "center"
+    },
+    {
+      titulo: "Crear Nueva Orden",
+      descripcion: "Haz clic aquí para crear una nueva orden de producción desde cero.",
+      elemento: "botonCrearOrden",
+      posicion: "left"
+    },
+    {
+      titulo: "Filtrar Órdenes",
+      descripcion: "Usa estos filtros para encontrar órdenes específicas por producto, estado u operario.",
+      elemento: "controlesFiltros",
+      posicion: "bottom"
+    },
+    {
+      titulo: "Información de Resultados",
+      descripcion: "Aquí puedes ver cuántas órdenes hay y navegar entre las páginas.",
+      elemento: "contadorResultados",
+      posicion: "bottom"
+    },
+    {
+      titulo: "Lista de Órdenes",
+      descripcion: "Cada tarjeta representa una orden de producción con toda su información relevante.",
+      elemento: "primeraOrden",
+      posicion: "bottom"
+    },
+    {
+      titulo: "Estados de las Órdenes",
+      descripcion: "Los colores indican el estado actual de cada orden. Los estados disponibles son: Pendiente de inicio, En proceso, Finalizada, etc.",
+      elemento: "badgesEstado",
+      posicion: "top"
+    },
+    {
+      titulo: "Acciones Disponibles",
+      descripcion: "Dependiendo del estado y tus permisos, podrás: Cancelar órdenes o ver las órdenes de trabajo asociadas.",
+      elemento: "botonesAccion",
+      posicion: "top"
+    },
+    {
+      titulo: "¡Listo para Comenzar!",
+      descripcion: "Ya conoces las funciones principales. Puedes volver a ver este tutorial en cualquier momento desde el botón de ayuda.",
+      posicion: "center"
+    }
+  ];
+
+  // Verificar si el usuario ya completó el tutorial
+  useEffect(() => {
+    const tutorialVisto = localStorage.getItem('tutorialProduccionCompletado');
+    if (!tutorialVisto) {
+      const timer = setTimeout(() => {
+        setTutorialActivo(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else {
+      setTutorialCompletado(true);
+    }
+  }, []);
+
+  // Funciones del tutorial
+  const iniciarTutorial = () => {
+    setTutorialActivo(true);
+    setPasoTutorial(0);
+  };
+
+  const avanzarTutorial = () => {
+    if (pasoTutorial < pasosTutorial.length - 1) {
+      setPasoTutorial(pasoTutorial + 1);
+    } else {
+      completarTutorial();
+    }
+  };
+
+  const retrocederTutorial = () => {
+    if (pasoTutorial > 0) {
+      setPasoTutorial(pasoTutorial - 1);
+    }
+  };
+
+  const completarTutorial = () => {
+    setTutorialActivo(false);
+    setTutorialCompletado(true);
+    localStorage.setItem('tutorialProduccionCompletado', 'true');
+    toast.success("¡Tutorial completado! Ya puedes usar todas las funciones del módulo de producción.");
+  };
+
+  const saltarTutorial = () => {
+    setTutorialActivo(false);
+  };
+
   // Cargar estados, operarios y productos al inicializar
   useEffect(() => {
     const cargarDatosIniciales = async () => {
@@ -78,7 +178,6 @@ const VerOrdenesProduccion = () => {
       } catch (err) {
         console.error("Error al cargar datos iniciales:", err);
       }
-
     };
 
     cargarDatosIniciales();
@@ -90,7 +189,6 @@ const VerOrdenesProduccion = () => {
     };
     fetchData();
   }, [filtroProducto, filtroEstado, filtroOperario]);
-
 
   const redirigirACrearOrden = () => {
     navigate("/crearOrdenProduccion");
@@ -112,7 +210,6 @@ const VerOrdenesProduccion = () => {
         filtros
       );
 
-
       setOrdenes(response.ordenes);
       setOrdenesFiltradas(response.ordenes);
       setPaginacion({
@@ -124,7 +221,6 @@ const VerOrdenesProduccion = () => {
         pageSize: 10,
       });
 
-      console.log(ordenes)
     } catch (err) {
       setError("Error al cargar las órdenes");
       console.error("Error:", err);
@@ -480,13 +576,37 @@ const VerOrdenesProduccion = () => {
         theme="colored"
       />
 
+      {/* --- NUEVO: Overlay del tutorial --- */}
+      {tutorialActivo && (
+        <TutorialModal
+          pasoActual={pasoTutorial}
+          pasos={pasosTutorial}
+          onAvanzar={avanzarTutorial}
+          onRetroceder={retrocederTutorial}
+          onSaltar={saltarTutorial}
+          onCompletar={completarTutorial}
+        />
+      )}
+
       <div className={styles.headerContainer}>
-        <h2 className={styles.titulo}>Órdenes de Producción</h2>
+        <div className={styles.titleContainer}>
+          <h2 className={styles.titulo}>Órdenes de Producción</h2>
+          {!tutorialActivo && (
+            <button
+              onClick={iniciarTutorial}
+              className={styles.botonTutorial}
+              title="Ver tutorial"
+            >
+              ?
+            </button>
+          )}
+        </div>
         
         <div className={styles.headerButtons}>
           <button
             className={styles.btnCrearOrden}
             onClick={redirigirACrearOrden}
+            data-tutorial-element="botonCrearOrden"
           >
             Crear Nueva Orden
           </button>
@@ -494,7 +614,10 @@ const VerOrdenesProduccion = () => {
       </div>
 
       {/* Controles de Filtrado */}
-      <div className={styles.controles}>
+      <div 
+        className={styles.controles}
+        data-tutorial-element="controlesFiltros"
+      >
         <div className={styles.filtroGrupo}>
           <label htmlFor="filtroProducto" className={styles.label}>
             Filtrar por Producto:
@@ -558,7 +681,10 @@ const VerOrdenesProduccion = () => {
       </div>
 
       {/* Contador de resultados */}
-      <div className={styles.contador}>
+      <div 
+        className={styles.contador}
+        data-tutorial-element="contadorResultados"
+      >
         Mostrando {ordenesFiltradas.length} de {paginacion.count} órdenes
         {paginacion.totalPages > 1 &&
           ` (Página ${paginacion.currentPage} de ${paginacion.totalPages})`}
@@ -566,15 +692,19 @@ const VerOrdenesProduccion = () => {
 
       {/* Lista de órdenes */}
       <div className={styles.listaOrdenes}>
-        {console.log(ordenesFiltradas)}
         {ordenesFiltradas.length > 0 ? (
-          ordenesFiltradas.map((orden) => (
-            <div key={orden.id} className={styles.cardOrden}>
+          ordenesFiltradas.map((orden, index) => (
+            <div 
+              key={orden.id} 
+              className={styles.cardOrden}
+              data-tutorial-element={index === 0 ? "primeraOrden" : undefined}
+            >
               <div className={styles.cardHeader}>
                 <h3>Orden #{orden.id}</h3>
                 <span
                   className={styles.estado}
                   style={{ backgroundColor: getColorEstado(orden.estado) }}
+                  data-tutorial-element={index === 0 ? "badgesEstado" : undefined}
                 >
                   {orden.estado.toUpperCase()}
                 </span>
@@ -591,13 +721,11 @@ const VerOrdenesProduccion = () => {
                   <span>{orden.cantidad} unidades</span>
                 </div>
 
-
                 {/* NUEVO: Campo de Fecha Planificada - REEMPLAZA Orden de Venta */}
                 <div className={styles.infoGrupo}>
                   <strong>Fecha Planificada:</strong>
                   <span>
                     {orden.fecha_planificada 
-                    
                       ? formatearFecha(orden.fecha_planificada) 
                       : "No planificada" 
                     }
@@ -605,7 +733,10 @@ const VerOrdenesProduccion = () => {
                 </div>
               </div>
 
-              <div className={styles.cardFooter}>
+              <div 
+                className={styles.cardFooter}
+                data-tutorial-element={index === 0 ? "botonesAccion" : undefined}
+              >
                 {orden.estado === "Pendiente de inicio" || orden.estado === "En espera" ? (
                   <>
                     {puedeCancelar() ? (
