@@ -6,6 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 import VerOrdenesProduccion from "./VerOrdenesProduccion"; // Ajusta ruta si es necesario
 import VerLotesProducto from "./VerLotesProducto"; // Ajusta ruta si es necesario
 import styles from "./TrazarLoteMateriaPrima.module.css";
+import TutorialModal from "../TutorialModal/TutorialModal"; // Ajusta la ruta según tu estructura
 
 const TrazarLoteMateriaPrima = () => {
 	const { id_Materia_Prima } = useParams();
@@ -16,6 +17,99 @@ const TrazarLoteMateriaPrima = () => {
 	// Estados para el Modal
 	const [modalOpen, setModalOpen] = useState(false);
 	const [accionPendiente, setAccionPendiente] = useState(null);
+
+	// --- NUEVO: Estados para el tutorial ---
+	const [tutorialActivo, setTutorialActivo] = useState(false);
+	const [pasoTutorial, setPasoTutorial] = useState(0);
+	const [tutorialCompletado, setTutorialCompletado] = useState(false);
+
+	// Pasos del tutorial para trazabilidad
+	const pasosTutorial = [
+		{
+			titulo: "¡Bienvenido al Módulo de Trazabilidad!",
+			descripcion: "Te guiaremos por las funcionalidades de seguimiento de lotes de materia prima.",
+			posicion: "center"
+		},
+		{
+			titulo: "Información del Lote",
+			descripcion: "Aquí puedes ver todos los detalles del lote de materia prima seleccionado.",
+			elemento: "infoCard",
+			posicion: "bottom"
+		},
+		{
+			titulo: "Acciones del Lote",
+			descripcion: "Puedes poner el lote en cuarentena o habilitarlo según su estado actual.",
+			elemento: "accionesContainer",
+			posicion: "bottom"
+		},
+		{
+			titulo: "Cambiar Vista",
+			descripcion: "Alterna entre ver las órdenes de producción o los lotes de producto relacionados.",
+			elemento: "selectorVista",
+			posicion: "bottom"
+		},
+		{
+			titulo: "Órdenes de Producción",
+			descripcion: "Visualiza todas las órdenes de producción que utilizan esta materia prima.",
+			elemento: "contenidoVista",
+			posicion: "top"
+		},
+		{
+			titulo: "Lotes de Producto",
+			descripcion: "Consulta los lotes de producto final generados con esta materia prima.",
+			elemento: "contenidoVista",
+			posicion: "top"
+		},
+		{
+			titulo: "¡Listo para Trazar!",
+			descripcion: "Ya conoces todas las funciones de trazabilidad. Puedes volver a ver este tutorial desde el botón de ayuda.",
+			posicion: "center"
+		}
+	];
+
+	// Verificar si el usuario ya completó el tutorial
+	useEffect(() => {
+		const tutorialVisto = localStorage.getItem('tutorialTrazabilidadCompletado');
+		if (!tutorialVisto) {
+			const timer = setTimeout(() => {
+				setTutorialActivo(true);
+			}, 1000);
+			return () => clearTimeout(timer);
+		} else {
+			setTutorialCompletado(true);
+		}
+	}, []);
+
+	// Funciones del tutorial
+	const iniciarTutorial = () => {
+		setTutorialActivo(true);
+		setPasoTutorial(0);
+	};
+
+	const avanzarTutorial = () => {
+		if (pasoTutorial < pasosTutorial.length - 1) {
+			setPasoTutorial(pasoTutorial + 1);
+		} else {
+			completarTutorial();
+		}
+	};
+
+	const retrocederTutorial = () => {
+		if (pasoTutorial > 0) {
+			setPasoTutorial(pasoTutorial - 1);
+		}
+	};
+
+	const completarTutorial = () => {
+		setTutorialActivo(false);
+		setTutorialCompletado(true);
+		localStorage.setItem('tutorialTrazabilidadCompletado', 'true');
+		toast.success("¡Tutorial completado! Ya puedes usar todas las funciones de trazabilidad.");
+	};
+
+	const saltarTutorial = () => {
+		setTutorialActivo(false);
+	};
 
 	// CONSTANTES DE ESTADO
 	const ID_ESTADO_HABILITADO = 1;
@@ -34,7 +128,7 @@ const TrazarLoteMateriaPrima = () => {
 				toast.error("No se pudo cargar la información del lote.");
 			}
 		} catch (error) {
-			console.error("Error de red al obtener info:", error);
+			console.error("Error de net al obtener info:", error);
 			toast.error("Error de conexión al cargar datos.");
 		}
 	}, [id_Materia_Prima]);
@@ -116,13 +210,39 @@ const TrazarLoteMateriaPrima = () => {
 
 	return (
 		<div className={styles.container}>
+			{/* --- NUEVO: Overlay del tutorial --- */}
+			{tutorialActivo && (
+				<TutorialModal
+					pasoActual={pasoTutorial}
+					pasos={pasosTutorial}
+					onAvanzar={avanzarTutorial}
+					onRetroceder={retrocederTutorial}
+					onSaltar={saltarTutorial}
+					onCompletar={completarTutorial}
+				/>
+			)}
+
 			{/* Header */}
 			<div className={styles.header}>
-				<h1 className={styles.title}>
-					Lote de Materia Prima #{id_Materia_Prima}
-				</h1>
+				<div className={styles.titleContainer}>
+					<h1 className={styles.title}>
+						Lote de Materia Prima #{id_Materia_Prima}
+					</h1>
+					{!tutorialActivo && (
+						<button
+							onClick={iniciarTutorial}
+							className={styles.botonTutorial}
+							title="Ver tutorial"
+						>
+							?
+						</button>
+					)}
+				</div>
 
-				<div className={styles.accionesContainer}>
+				<div 
+					className={styles.accionesContainer}
+					data-tutorial-element="accionesContainer"
+				>
 					{/* BOTÓN: PONER EN CUARENTENA 
                         Solo activo si estado actual es HABILITADO (1) */}
 					<button
@@ -173,7 +293,10 @@ const TrazarLoteMateriaPrima = () => {
 
 			{/* Info Card */}
 			{loteInfo ? (
-				<div className={styles.infoCard}>
+				<div 
+					className={styles.infoCard}
+					data-tutorial-element="infoCard"
+				>
 					<h3 className={styles.cardTitle}>Información General</h3>
 					<div className={styles.infoGrid}>
 						<div className={styles.infoItem}>
@@ -213,7 +336,10 @@ const TrazarLoteMateriaPrima = () => {
 			)}
 
 			{/* Selector */}
-			<div className={styles.selectorVista}>
+			<div 
+				className={styles.selectorVista}
+				data-tutorial-element="selectorVista"
+			>
 				<button
 					className={`${styles.botonVista} ${
 						vistaActiva === "ordenes" ? styles.botonActivo : ""
@@ -234,7 +360,12 @@ const TrazarLoteMateriaPrima = () => {
 			</div>
 
 			{/* Contenido */}
-			<div className={styles.contenidoVista}>{renderizarComponente()}</div>
+			<div 
+				className={styles.contenidoVista}
+				data-tutorial-element="contenidoVista"
+			>
+				{renderizarComponente()}
+			</div>
 
 			{/* Modal */}
 			{modalOpen && (

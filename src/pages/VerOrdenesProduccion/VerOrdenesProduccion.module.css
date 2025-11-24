@@ -5,14 +5,17 @@
 	min-height: 100vh;
 }
 
+
 .headerContainer {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	margin-bottom: 20px;
-	flex-wrap: wrap;
-	gap: 15px;
-} /* NUEVO: Modal de Confirmación Simple para Cancelar */
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start; /* Cambiar de center a flex-start */
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+
 .modalAdvertencia {
 	background: #fff3cd;
 	border: 1px solid #ffeaa7;
@@ -116,12 +119,14 @@
 }
 
 .titulo {
-	color: #2c3e50;
-	margin-bottom: 30px;
-	text-align: center;
-	font-size: 2rem;
-	font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0; /* Quitar margen inferior del título */
+    text-align: left; /* Alinear a la izquierda */
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1.2; /* Ajustar altura de línea */
 }
+
 
 .btnCrearOrden {
 	background-color: #007bff;
@@ -704,4 +709,36 @@
 		flex: 1;
 		min-width: 0;
 	}
+}
+
+
+.titleContainer {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 0; /* Asegurar que no tenga margen inferior */
+}
+
+.botonTutorial {
+    width: 32px;
+    height: 32px;
+    border: 2px solid #007bff;
+    background-color: white;
+    color: #007bff;
+    border-radius: 50%;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    margin-top: 0; /* Eliminar cualquier margen superior */
+    align-self: flex-start; /* Alinear con la parte superior del título */
+}
+
+.botonTutorial:hover {
+    background-color: #007bff;
+    color: white;
+    transform: scale(1.1);
 }
