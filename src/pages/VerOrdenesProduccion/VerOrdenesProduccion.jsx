@@ -64,7 +64,7 @@ const VerOrdenesProduccion = () => {
   const [filtroEstado, setFiltroEstado] = useState("todos");
   const [filtroOperario, setFiltroOperario] = useState("todos");
 
-  // --- NUEVO: Estados para el tutorial ---
+  // --- MODIFICADO: Estados para el tutorial ---
   const [tutorialActivo, setTutorialActivo] = useState(false);
   const [pasoTutorial, setPasoTutorial] = useState(0);
   const [tutorialCompletado, setTutorialCompletado] = useState(false);
@@ -119,15 +119,10 @@ const VerOrdenesProduccion = () => {
     }
   ];
 
-  // Verificar si el usuario ya completó el tutorial
+  // MODIFICADO: Solo verificar si el tutorial fue completado, no auto-iniciarlo
   useEffect(() => {
     const tutorialVisto = localStorage.getItem('tutorialProduccionCompletado');
-    if (!tutorialVisto) {
-      const timer = setTimeout(() => {
-        setTutorialActivo(true);
-      }, 1000);
-      return () => clearTimeout(timer);
-    } else {
+    if (tutorialVisto) {
       setTutorialCompletado(true);
     }
   }, []);
@@ -161,6 +156,7 @@ const VerOrdenesProduccion = () => {
 
   const saltarTutorial = () => {
     setTutorialActivo(false);
+    // MODIFICADO: No marcar como completado si se salta
   };
 
   // Cargar estados, operarios y productos al inicializar
@@ -576,7 +572,7 @@ const VerOrdenesProduccion = () => {
         theme="colored"
       />
 
-      {/* --- NUEVO: Overlay del tutorial --- */}
+      {/* --- MODIFICADO: Overlay del tutorial --- */}
       {tutorialActivo && (
         <TutorialModal
           pasoActual={pasoTutorial}
@@ -591,15 +587,14 @@ const VerOrdenesProduccion = () => {
       <div className={styles.headerContainer}>
         <div className={styles.titleContainer}>
           <h2 className={styles.titulo}>Órdenes de Producción</h2>
-          {!tutorialActivo && (
-            <button
-              onClick={iniciarTutorial}
-              className={styles.botonTutorial}
-              title="Ver tutorial"
-            >
-              ?
-            </button>
-          )}
+          {/* MODIFICADO: El botón de tutorial siempre visible */}
+          <button
+            onClick={iniciarTutorial}
+            className={styles.botonTutorial}
+            title="Ver tutorial"
+          >
+            ?
+          </button>
         </div>
         
         <div className={styles.headerButtons}>

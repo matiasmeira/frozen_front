@@ -18,7 +18,7 @@ const TrazarLoteMateriaPrima = () => {
 	const [modalOpen, setModalOpen] = useState(false);
 	const [accionPendiente, setAccionPendiente] = useState(null);
 
-	// --- NUEVO: Estados para el tutorial ---
+	// --- MODIFICADO: Estados para el tutorial ---
 	const [tutorialActivo, setTutorialActivo] = useState(false);
 	const [pasoTutorial, setPasoTutorial] = useState(0);
 	const [tutorialCompletado, setTutorialCompletado] = useState(false);
@@ -67,15 +67,10 @@ const TrazarLoteMateriaPrima = () => {
 		}
 	];
 
-	// Verificar si el usuario ya completó el tutorial
+	// MODIFICADO: Solo verificar si el tutorial fue completado, no auto-iniciarlo
 	useEffect(() => {
 		const tutorialVisto = localStorage.getItem('tutorialTrazabilidadCompletado');
-		if (!tutorialVisto) {
-			const timer = setTimeout(() => {
-				setTutorialActivo(true);
-			}, 1000);
-			return () => clearTimeout(timer);
-		} else {
+		if (tutorialVisto) {
 			setTutorialCompletado(true);
 		}
 	}, []);
@@ -210,7 +205,7 @@ const TrazarLoteMateriaPrima = () => {
 
 	return (
 		<div className={styles.container}>
-			{/* --- NUEVO: Overlay del tutorial --- */}
+			{/* --- MODIFICADO: Overlay del tutorial --- */}
 			{tutorialActivo && (
 				<TutorialModal
 					pasoActual={pasoTutorial}
@@ -228,15 +223,14 @@ const TrazarLoteMateriaPrima = () => {
 					<h1 className={styles.title}>
 						Lote de Materia Prima #{id_Materia_Prima}
 					</h1>
-					{!tutorialActivo && (
-						<button
-							onClick={iniciarTutorial}
-							className={styles.botonTutorial}
-							title="Ver tutorial"
-						>
-							?
-						</button>
-					)}
+					{/* MODIFICADO: El botón de tutorial siempre visible */}
+					<button
+						onClick={iniciarTutorial}
+						className={styles.botonTutorial}
+						title="Ver tutorial"
+					>
+						?
+					</button>
 				</div>
 
 				<div 
