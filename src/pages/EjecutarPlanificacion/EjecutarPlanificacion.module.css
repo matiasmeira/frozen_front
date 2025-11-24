@@ -1,172 +1,214 @@
 /* PlanificarMRP.module.css */
 
 .container {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	min-height: 100vh;
-	padding: 20px;
-	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 .card {
-	background: white;
-	border-radius: 12px;
-	padding: 40px;
-	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-	width: 100%;
-	max-width: 500px;
-	text-align: center;
+    background: white;
+    border-radius: 12px;
+    padding: 40px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 500px;
+    text-align: center;
 }
 
 .title {
-	color: #2c3e50;
-	font-size: 2rem;
-	font-weight: 700;
-	margin-bottom: 10px;
+    color: #2c3e50;
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 10px;
 }
 
 .description {
-	color: #6c757d;
-	font-size: 1rem;
-	line-height: 1.5;
-	margin-bottom: 30px;
+    color: #6c757d;
+    font-size: 1rem;
+    line-height: 1.5;
+    margin-bottom: 30px;
 }
 
 .formGroup {
-	margin-bottom: 25px;
-	text-align: left;
+    margin-bottom: 25px;
+    text-align: left;
 }
 
 .label {
-	display: block;
-	margin-bottom: 8px;
-	font-weight: 600;
-	color: #2c3e50;
-	font-size: 1rem;
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 1rem;
 }
 
 .dateInput {
-	width: 100%;
-	padding: 12px 16px;
-	border: 2px solid #e1e8ed;
-	border-radius: 8px;
-	font-size: 1rem;
-	transition: all 0.3s ease;
-	background-color: white;
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e1e8ed;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background-color: white;
 }
 
 .dateInput:focus {
-	outline: none;
-	border-color: #667eea;
-	box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .dateInput:disabled {
-	background-color: #f8f9fa;
-	cursor: not-allowed;
-	opacity: 0.7;
+    background-color: #f8f9fa;
+    cursor: not-allowed;
+    opacity: 0.7;
 }
 
+/* Grupo de botones */
+.buttonGroup {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+/* Botón Planificar */
 .planificarButton {
-	width: 100%;
-	padding: 15px 20px;
-	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-	color: white;
-	border: none;
-	border-radius: 8px;
-	font-size: 1.1rem;
-	font-weight: 600;
-	cursor: pointer;
-	transition: all 0.3s ease;
-	margin-bottom: 20px;
+    flex: 1;
+    padding: 15px 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
 
 .planificarButton:hover:not(:disabled) {
-	background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
-	transform: translateY(-2px);
-	box-shadow: 0 6px 15px rgba(102, 126, 234, 0.4);
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(102, 126, 234, 0.4);
 }
 
 .planificarButton:active:not(:disabled) {
-	transform: translateY(0);
+    transform: translateY(0);
 }
 
-.planificarButton:disabled {
-	background: #6c757d;
-	cursor: not-allowed;
-	transform: none;
-	box-shadow: none;
+/* Botón Replanificar */
+.replanificarButton {
+    flex: 1;
+    padding: 15px 20px;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
 
-.planificarButton.loading {
-	background: #6c757d;
+.replanificarButton:hover:not(:disabled) {
+    background: linear-gradient(135deg, #218838 0%, #1ba87e 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(40, 167, 69, 0.4);
 }
 
+.replanificarButton:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+/* Estados deshabilitados para ambos botones */
+.planificarButton:disabled,
+.replanificarButton:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.planificarButton.loading,
+.replanificarButton.loading {
+    background: #6c757d;
+}
+
+/* Contenido de botones con spinner */
 .buttonContent {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
 }
 
 .spinner {
-	width: 20px;
-	height: 20px;
-	border: 2px solid transparent;
-	border-top: 2px solid white;
-	border-radius: 50%;
-	animation: spin 1s linear infinite;
+    width: 20px;
+    height: 20px;
+    border: 2px solid transparent;
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-	0% {
-		transform: rotate(0deg);
-	}
-	100% {
-		transform: rotate(360deg);
-	}
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 .fechaSeleccionada {
-	padding: 12px;
-	background-color: #e8f5e8;
-	border: 1px solid #c3e6cb;
-	border-radius: 6px;
-	color: #155724;
-	font-size: 0.95rem;
+    padding: 12px;
+    background-color: #e8f5e8;
+    border: 1px solid #c3e6cb;
+    border-radius: 6px;
+    color: #155724;
+    font-size: 0.95rem;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-	.container {
-		padding: 15px;
-	}
+    .container {
+        padding: 15px;
+    }
 
-	.card {
-		padding: 30px 25px;
-	}
+    .card {
+        padding: 30px 25px;
+    }
 
-	.title {
-		font-size: 1.7rem;
-	}
+    .title {
+        font-size: 1.7rem;
+    }
 
-	.description {
-		font-size: 0.95rem;
-	}
+    .description {
+        font-size: 0.95rem;
+    }
 }
 
 @media (max-width: 480px) {
-	.card {
-		padding: 25px 20px;
-	}
+    .card {
+        padding: 25px 20px;
+    }
 
-	.title {
-		font-size: 1.5rem;
-	}
+    .title {
+        font-size: 1.5rem;
+    }
 
-	.planificarButton {
-		padding: 12px 16px;
-		font-size: 1rem;
-	}
+    .buttonGroup {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .planificarButton,
+    .replanificarButton {
+        padding: 12px 16px;
+        font-size: 1rem;
+        width: 100%;
+    }
 }

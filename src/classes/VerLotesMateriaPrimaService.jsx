@@ -84,16 +84,38 @@ static async obtenerLotesMateriaPrima(pagina = 1, queryParams = {}) {
 			estado_id: loteBackend.id_estado_lote_materia_prima,
 		};
 	}
-	static async obtenerMateriasPrimas() {
-		try {
-			// Este endpoint deberías ajustarlo según tu API
-			const response = await api.get("/materias_primas/materias/");
-			return response.data;
-		} catch (error) {
-			console.error("Error obteniendo materias primas:", error);
-			throw error;
-		}
-	}
+// En LotesMateriaPrimaService.js
+static async obtenerMateriasPrimas() {
+  try {
+    let allMateriasPrimas = [];
+    let nextPage = "https://frozenback-test.up.railway.app/api/materias_primas/materias/";
+    
+    while (nextPage) {
+      // Usar fetch en lugar de axios para evitar problemas con baseURL
+      const response = await fetch(nextPage);
+      if (!response.ok) {
+        throw new Error(`Error HTTP: ${response.status}`);
+      }
+      const data = await response.json();
+      
+      // Agregar los resultados al array acumulativo
+      if (data.results && Array.isArray(data.results)) {
+        allMateriasPrimas = allMateriasPrimas.concat(data.results);
+      }
+      
+      // Verificar si hay más páginas
+      nextPage = data.next;
+    }
+    
+    console.log("Total materias primas obtenidas:", allMateriasPrimas.length);
+    console.log("IDs de materias primas:", allMateriasPrimas.map(mp => mp.id_materia_prima));
+    
+    return allMateriasPrimas;
+  } catch (error) {
+    console.error("Error obteniendo materias primas:", error);
+    throw error;
+  }
+}
 }
 
 export { LotesMateriaPrimaService };

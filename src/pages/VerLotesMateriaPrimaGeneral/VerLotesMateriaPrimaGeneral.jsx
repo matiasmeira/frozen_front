@@ -57,38 +57,42 @@ const ListaLotesMateriaPrima = () => {
 		return queryParams;
 	};
 
-	// Cargar datos con filtros aplicados
-	const cargarDatosConFiltros = async (pagina = 1) => {
-		try {
-			setCargando(true);
-			setError(null);
+const cargarDatosConFiltros = async (pagina = 1) => {
+  try {
+    setCargando(true);
+    setError(null);
 
-			const queryParams = construirQueryParams();
+    const queryParams = construirQueryParams();
 
-			const [lotesData, estadosData, materiasData] = await Promise.all([
-				LotesMateriaPrimaService.obtenerLotesMateriaPrima(pagina, queryParams),
-				LotesMateriaPrimaService.obtenerEstadosLotes(),
-				LotesMateriaPrimaService.obtenerMateriasPrimas(),
-			]);
+    const [lotesData, estadosData, materiasData] = await Promise.all([
+      LotesMateriaPrimaService.obtenerLotesMateriaPrima(pagina, queryParams),
+      LotesMateriaPrimaService.obtenerEstadosLotes(),
+      LotesMateriaPrimaService.obtenerMateriasPrimas(),
+    ]);
 
-			setLotes(lotesData.results || []);
-			setTotalLotes(lotesData.count || 0);
+    setLotes(lotesData.results || []);
+    setTotalLotes(lotesData.count || 0);
 
-			// Calcular total de páginas basado en la respuesta del servidor
-			const pageSize = lotesData.results?.length || 10;
-			const totalPages = Math.ceil((lotesData.count || 0) / pageSize);
-			setTotalPaginas(totalPages);
+    const pageSize = lotesData.results?.length || 10;
+    const totalPages = Math.ceil((lotesData.count || 0) / pageSize);
+    setTotalPaginas(totalPages);
 
-			setEstadosLotes(estadosData.results || estadosData);
-			setMateriasPrimas(materiasData.results || materiasData);
-		} catch (err) {
-			setError("Error al cargar los lotes de materia prima");
-			console.error("Error:", err);
-		} finally {
-			setCargando(false);
-		}
-	};
-
+    setEstadosLotes(estadosData.results || estadosData);
+    
+    // ✅ Ahora materiasData debería ser un array completo con todas las materias primas
+    setMateriasPrimas(materiasData);
+    
+    // Debug: verificar que tenemos todas las materias primas
+    console.log("Materias primas cargadas:", materiasData.length);
+    console.log("IDs únicos en lotes:", [...new Set(lotesData.results?.map(l => l.id_materia_prima))]);
+    
+  } catch (err) {
+    setError("Error al cargar los lotes de materia prima");
+    console.error("Error:", err);
+  } finally {
+    setCargando(false);
+  }
+};
 	// Cargar datos iniciales y cuando cambien los filtros o página
 	useEffect(() => {
 		cargarDatosConFiltros(paginaActual);
@@ -175,13 +179,21 @@ const ListaLotesMateriaPrima = () => {
 		return estado?.descripcion || "Desconocido";
 	};
 
-	// Función para obtener el nombre de la materia prima
-	const obtenerNombreMateriaPrima = (idMateriaPrima) => {
-		const materia = materiasPrimas.find(
-			(mp) => mp.id_materia_prima === idMateriaPrima
-		);
-		return materia?.nombre || `Materia Prima #${idMateriaPrima}`;
-	};
+const obtenerNombreMateriaPrima = (idMateriaPrima) => {
+  if (!idMateriaPrima || !Array.isArray(materiasPrimas)) {
+    return `Materia Prima #${idMateriaPrima}`;
+  }
+  
+  const materia = materiasPrimas.find(
+    (mp) => mp.id_materia_prima === idMateriaPrima
+  );
+  
+  if (!materia) {
+    console.warn(`Materia prima con ID ${idMateriaPrima} no encontrada`);
+  }
+  
+  return materia?.nombre || `Materia Prima #${idMateriaPrima}`;
+};
 
 	// Función para formatear fecha
 	const formatearFecha = (fechaISO) => {
