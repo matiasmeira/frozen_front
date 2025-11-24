@@ -34,7 +34,102 @@ const VerLineasDeProduccion = () => {
 		cant_por_hora: "",
 	});
 	const [guardando, setGuardando] = useState(false);
+// Agregar estos estados al componente
+const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
+const [productoAEditar, setProductoAEditar] = useState(null);
+const [cambioPeligroso, setCambioPeligroso] = useState(false);
 
+// Nueva función para verificar cambios peligrosos
+const verificarCambioPeligroso = (productoLinea, nuevosValores) => {
+  const capacidadActual = productoLinea.cant_por_hora;
+  const capacidadNueva = parseInt(nuevosValores.cant_por_hora);
+  
+  return capacidadNueva < capacidadActual;
+};
+
+
+
+// Nueva función para ejecutar el guardado
+const ejecutarGuardado = async (productoEditando) => {
+  try {
+    setGuardando(true);
+
+    const datosActualizacion = {
+      id_producto: productoEditando.id_producto,
+      id_linea_produccion: lineaSeleccionada.id_linea,
+      cantidad_minima: parseInt(valoresEditados.cantidad_minima),
+      cant_por_hora: parseInt(valoresEditados.cant_por_hora),
+    };
+
+    console.log("Enviando datos de actualización:", datosActualizacion);
+
+    const response = await api.post(
+      "/recetas/actualizar_capacidad/",
+      datosActualizacion
+    );
+
+    // Actualizar el estado local
+    const productosActualizados = productosFabricables.map((pl) => {
+      if (pl.id_producto_linea === editandoProducto) {
+        return {
+          ...pl,
+          cantidad_minima: datosActualizacion.cantidad_minima,
+          cant_por_hora: datosActualizacion.cant_por_hora,
+        };
+      }
+      return pl;
+    });
+
+    setProductosFabricables(productosActualizados);
+
+    // Actualizar también el estado global de productosLinea
+    const productosLineaActualizados = productosLinea.map((pl) => {
+      if (pl.id_producto_linea === editandoProducto) {
+        return {
+          ...pl,
+          cantidad_minima: datosActualizacion.cantidad_minima,
+          cant_por_hora: datosActualizacion.cant_por_hora,
+        };
+      }
+      return pl;
+    });
+
+    setProductosLinea(productosLineaActualizados);
+
+    // Cerrar modo edición
+    setEditandoProducto(null);
+    setValoresEditados({
+      cantidad_minima: "",
+      cant_por_hora: "",
+    });
+
+    toast.success("¡Capacidades actualizadas correctamente!");
+    
+  } catch (err) {
+    console.error("Error al actualizar capacidades:", err);
+    const errorMessage =
+      err.response?.data?.message || "Error al guardar los cambios";
+    toast.error(errorMessage);
+  } finally {
+    setGuardando(false);
+    setMostrarConfirmacion(false);
+    setProductoAEditar(null);
+    setCambioPeligroso(false);
+  }
+};
+
+// Funciones para manejar la confirmación
+const confirmarGuardado = () => {
+  if (productoAEditar) {
+    ejecutarGuardado(productoAEditar);
+  }
+};
+
+const cancelarGuardado = () => {
+  setMostrarConfirmacion(false);
+  setProductoAEditar(null);
+  setCambioPeligroso(false);
+};
 	useEffect(() => {
 		obtenerDatosIniciales();
 	}, []);
@@ -119,15 +214,14 @@ const VerLineasDeProduccion = () => {
 		setProductosFabricables([]);
 		setEditandoProducto(null);
 	};
-
-	// Función para iniciar edición
-	const iniciarEdicion = (productoLinea) => {
-		setEditandoProducto(productoLinea.id_producto_linea);
-		setValoresEditados({
-			cantidad_minima: productoLinea.cantidad_minima,
-			cant_por_hora: productoLinea.cant_por_hora,
-		});
-	};
+// Modificar la función iniciarEdicion
+const iniciarEdicion = (productoLinea) => {
+  setEditandoProducto(productoLinea.id_producto_linea);
+  setValoresEditados({
+    cantidad_minima: productoLinea.cantidad_minima,
+    cant_por_hora: productoLinea.cant_por_hora,
+  });
+};
 
 	// Función para cancelar edición
 	const cancelarEdicion = () => {
@@ -138,84 +232,33 @@ const VerLineasDeProduccion = () => {
 		});
 	};
 
-	// Función para guardar cambios
-	const guardarCambios = async () => {
-		if (!editandoProducto) return;
+// Modificar la función guardarCambios
+const guardarCambios = async () => {
+  if (!editandoProducto) return;
 
-		try {
-			setGuardando(true);
+  // Encontrar el producto que se está editando
+  const productoEditando = productosFabricables.find(
+    (pl) => pl.id_producto_linea === editandoProducto
+  );
 
-			// Encontrar el producto que se está editando
-			const productoEditando = productosFabricables.find(
-				(pl) => pl.id_producto_linea === editandoProducto
-			);
+  if (!productoEditando) {
+    toast.error("No se encontró el producto a editar.");
+    return;
+  }
 
-			if (!productoEditando) {
-				toast.error("No se encontró el producto a editar.");
-				return;
-			}
+  // Verificar si es un cambio peligroso
+  const esCambioPeligroso = verificarCambioPeligroso(productoEditando, valoresEditados);
+  
+  if (esCambioPeligroso) {
+    setProductoAEditar(productoEditando);
+    setCambioPeligroso(true);
+    setMostrarConfirmacion(true);
+    return;
+  }
 
-			// Preparar datos para enviar
-			const datosActualizacion = {
-				id_producto: productoEditando.id_producto,
-				id_linea_produccion: lineaSeleccionada.id_linea,
-				cantidad_minima: parseInt(valoresEditados.cantidad_minima),
-				cant_por_hora: parseInt(valoresEditados.cant_por_hora),
-			};
-
-			console.log("Enviando datos de actualización:", datosActualizacion);
-
-			// Hacer la petición PUT al endpoint
-			const response = await api.post(
-				"/recetas/actualizar_capacidad/",
-				datosActualizacion
-			);
-
-			// Actualizar el estado local
-			const productosActualizados = productosFabricables.map((pl) => {
-				if (pl.id_producto_linea === editandoProducto) {
-					return {
-						...pl,
-						cantidad_minima: datosActualizacion.cantidad_minima,
-						cant_por_hora: datosActualizacion.cant_por_hora,
-					};
-				}
-				return pl;
-			});
-
-			setProductosFabricables(productosActualizados);
-
-			// Actualizar también el estado global de productosLinea
-			const productosLineaActualizados = productosLinea.map((pl) => {
-				if (pl.id_producto_linea === editandoProducto) {
-					return {
-						...pl,
-						cantidad_minima: datosActualizacion.cantidad_minima,
-						cant_por_hora: datosActualizacion.cant_por_hora,
-					};
-				}
-				return pl;
-			});
-
-			setProductosLinea(productosLineaActualizados);
-
-			// Cerrar modo edición
-			setEditandoProducto(null);
-			setValoresEditados({
-				cantidad_minima: "",
-				cant_por_hora: "",
-			});
-
-			toast.success("¡Capacidades actualizadas correctamente!");
-		} catch (err) {
-			console.error("Error al actualizar capacidades:", err);
-			const errorMessage =
-				err.response?.data?.message || "Error al guardar los cambios";
-			toast.error(errorMessage);
-		} finally {
-			setGuardando(false);
-		}
-	};
+  // Si no es cambio peligroso, proceder directamente
+  await ejecutarGuardado(productoEditando);
+};
 
 	// Manejar cambios en los inputs de edición
 	const manejarCambioInput = (campo, valor) => {
@@ -515,6 +558,58 @@ const VerLineasDeProduccion = () => {
 					</div>
 				</div>
 			</Modal>
+
+			{/* Agregar este modal después del modal principal */}
+{mostrarConfirmacion && productoAEditar && (
+  <>
+    <div className={styles.overlayConfirmacion} onClick={cancelarGuardado} />
+    <div className={styles.modalConfirmacion}>
+      <div className={styles.modalConfirmacionHeader}>
+        <span className={styles.iconoAdvertencia}>⚠️</span>
+        <h3>Confirmar Cambio de Capacidad</h3>
+      </div>
+      
+      <div className={styles.modalConfirmacionBody}>
+        <div className={styles.mensajeAdvertencia}>
+          <p><strong>Advertencia: Reducción de Capacidad Detectada</strong></p>
+          <p>
+            Estás intentando reducir la capacidad de producción de esta línea. 
+            Si reduces la capacidad sin realizar la planificación diaria primero, 
+            podrías afectar los pedidos en curso.
+          </p>
+        </div>
+        
+        <div className={styles.detallesCambio}>
+          <p><strong>Producto:</strong> {productoAEditar.producto.nombre}</p>
+          <p><strong>Capacidad Actual:</strong> {productoAEditar.cant_por_hora} unidades/hora</p>
+          <p><strong>Nueva Capacidad:</strong> {valoresEditados.cant_por_hora} unidades/hora</p>
+          <p><strong>Reducción:</strong> {productoAEditar.cant_por_hora - parseInt(valoresEditados.cant_por_hora)} unidades/hora</p>
+        </div>
+        
+        <p style={{ fontSize: '0.9rem', color: '#6c757d' }}>
+          <strong>Recomendación:</strong> Realiza la planificación diaria antes de confirmar este cambio.
+        </p>
+      </div>
+      
+      <div className={styles.modalConfirmacionFooter}>
+        <button 
+          className={styles.botonCancelarConfirmacion}
+          onClick={cancelarGuardado}
+          disabled={guardando}
+        >
+          Cancelar
+        </button>
+        <button 
+          className={styles.botonConfirmar}
+          onClick={confirmarGuardado}
+          disabled={guardando}
+        >
+          {guardando ? "Procesando..." : "Confirmar Cambio"}
+        </button>
+      </div>
+    </div>
+  </>
+)}
 		</div>
 	);
 };

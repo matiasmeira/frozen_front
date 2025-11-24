@@ -743,3 +743,125 @@
 	width: 120px;
 	text-align: center;
 }
+
+
+/* Agregar estos estilos al CSS existente */
+
+/* Estilos para el modal de confirmación */
+.modalConfirmacion {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  z-index: 1001;
+}
+
+.modalConfirmacionHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e1e8ed;
+}
+
+.iconoAdvertencia {
+  font-size: 2rem;
+  margin-right: 15px;
+  color: #ffc107;
+}
+
+.modalConfirmacion h3 {
+  color: #2c3e50;
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.modalConfirmacionBody {
+  margin-bottom: 20px;
+}
+
+.mensajeAdvertencia {
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+}
+
+.mensajeAdvertencia p {
+  margin: 0 0 10px 0;
+  color: #856404;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.mensajeAdvertencia p:last-child {
+  margin-bottom: 0;
+}
+
+.detallesCambio {
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 15px;
+}
+
+.detallesCambio p {
+  margin: 5px 0;
+  font-size: 0.9rem;
+  color: #495057;
+}
+
+.modalConfirmacionFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.botonConfirmar {
+  padding: 10px 20px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.botonConfirmar:hover {
+  background: #c82333;
+  transform: translateY(-1px);
+}
+
+.botonCancelarConfirmacion {
+  padding: 10px 20px;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.botonCancelarConfirmacion:hover {
+  background: #5a6268;
+}
+
+/* Overlay para el modal de confirmación */
+.overlayConfirmacion {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+}
