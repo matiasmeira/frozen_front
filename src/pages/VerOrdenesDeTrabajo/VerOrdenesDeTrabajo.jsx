@@ -994,17 +994,6 @@ const VerOrdenesDeTrabajo = () => {
 										{orden.id_estado_orden_trabajo === 2 && (
 											<>
 												<button
-													className={`${styles.btnAccion} ${styles.btnPausar} ${
-														estaProcesando ? styles.btnDeshabilitado : ""
-													}`}
-													onClick={() =>
-														abrirModalPausa(orden.id_orden_trabajo)
-													}
-													disabled={estaProcesando}
-												>
-													Pausar
-												</button>
-												<button
 													className={`${styles.btnAccion} ${
 														styles.btnFinalizar
 													} ${estaProcesando ? styles.btnDeshabilitado : ""}`}
