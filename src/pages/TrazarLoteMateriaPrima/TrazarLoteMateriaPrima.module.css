@@ -399,3 +399,47 @@
 		padding: 0.9rem; /* Dedos más grandes en móvil */
 	}
 }
+
+
+
+
+/* Botón de tutorial en el header */
+.titleContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Centra el contenido */
+    gap: 12px;
+    margin-bottom: 10px; /* Espacio debajo del título */
+}
+
+.title {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #374151;
+    margin: 0;
+    line-height: 1.2; /* Mejor control de altura */
+}
+
+.botonTutorial {
+    width: 32px;
+    height: 32px;
+    border: 2px solid #007bff;
+    background-color: white;
+    color: #007bff;
+    border-radius: 50%;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0; /* Evita que se reduzca */
+    margin-top: 4px; /* Ajuste fino de alineación vertical */
+}
+
+.botonTutorial:hover {
+    background-color: #007bff;
+    color: white;
+    transform: scale(1.1);
+}
