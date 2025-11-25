@@ -1,17 +1,23 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom"; // 1. Importar hook
-import styles from "./VerLotesProducto.module.css";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify"; // Importamos toast para feedback
+import styles from "./VerLotesProducto.module.css"; // Asegúrate de usar el CSS correcto
 
 const VerLotesProducto = ({ idMateriaPrima }) => {
-	const navigate = useNavigate(); // 2. Inicializar hook
+	const navigate = useNavigate();
 	const [datos, setDatos] = useState(null);
 	const [cargando, setCargando] = useState(true);
 	const [error, setError] = useState(null);
+
+	// Estados del Modal y Órdenes
 	const [modalAbierto, setModalAbierto] = useState(false);
 	const [ordenesLote, setOrdenesLote] = useState(null);
 	const [cargandoOrdenes, setCargandoOrdenes] = useState(false);
 	const [errorOrdenes, setErrorOrdenes] = useState(null);
 	const [loteSeleccionado, setLoteSeleccionado] = useState(null);
+
+	// Estado para el botón de alerta
+	const [enviandoAlerta, setEnviandoAlerta] = useState(false);
 
 	useEffect(() => {
 		const obtenerLotesProducto = async () => {
@@ -56,6 +62,71 @@ const VerLotesProducto = ({ idMateriaPrima }) => {
 			setErrorOrdenes(err.message);
 		} finally {
 			setCargandoOrdenes(false);
+		}
+	};
+
+	// --- NUEVA FUNCIÓN: ENVIAR ALERTA ---
+	const enviarAlertaRiesgo = async () => {
+		// 1. Validación básica
+		if (!ordenesLote || !ordenesLote.ordenes_venta) return;
+
+		// 2. Filtramos las órdenes igual que en la tabla (Solo STOCK)
+		const ordenesAfectadas = ordenesLote.ordenes_venta.filter(
+			(orden) => orden.origen_asignacion === "STOCK (Deposito)"
+		);
+
+		if (ordenesAfectadas.length === 0) {
+			toast.warning("No hay órdenes directas de stock para notificar.");
+			return;
+		}
+
+		// 3. Confirmación de usuario
+		const confirmar = window.confirm(
+			`Se enviará una alerta a ${ordenesAfectadas.length} clientes. ¿Estás seguro?`
+		);
+		if (!confirmar) return;
+
+		setEnviandoAlerta(true);
+
+		try {
+			// 4. Obtenemos los datos necesarios
+			const idsOrdenes = ordenesAfectadas.map((o) => o.id_orden_venta);
+
+			// Buscamos el nombre del producto en los datos originales del lote seleccionado
+			const loteActual = datos.lotes_produccion.find(
+				(l) => l.id_lote_produccion === loteSeleccionado
+			);
+			const nombreProducto = loteActual
+				? loteActual.producto_nombre
+				: "Producto Desconocido";
+
+			// 5. Llamada al Endpoint
+			const response = await fetch(
+				`https://frozenback-test.up.railway.app/api/trazabilidad/notificar-riesgo-lote/`,
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({
+						ids_ordenes: idsOrdenes,
+						nombre_producto: nombreProducto,
+					}),
+				}
+			);
+
+			if (response.ok) {
+				const resData = await response.json();
+				toast.success(`Alertas enviadas: ${resData.alertas_enviadas}`);
+				cerrarModal(); // Opcional: cerrar modal al terminar
+			} else {
+				toast.error("Hubo un error al enviar las alertas.");
+			}
+		} catch (error) {
+			console.error("Error envío alerta:", error);
+			toast.error("Error de conexión al enviar alertas.");
+		} finally {
+			setEnviandoAlerta(false);
 		}
 	};
 
@@ -123,9 +194,7 @@ const VerLotesProducto = ({ idMateriaPrima }) => {
 							</p>
 						</div>
 
-						{/* Contenedor de Botones */}
 						<div className={styles.accionesContainer}>
-							{/* Botón Nuevo: Ver Lote */}
 							<button
 								className={styles.botonVerLote}
 								onClick={() =>
@@ -135,7 +204,6 @@ const VerLotesProducto = ({ idMateriaPrima }) => {
 								Ver Trazabilidad
 							</button>
 
-							{/* Botón Existente: Ver Órdenes */}
 							<button
 								className={styles.botonVerOrdenes}
 								onClick={() => obtenerOrdenesPorLote(lote.id_lote_produccion)}
@@ -229,9 +297,24 @@ const VerLotesProducto = ({ idMateriaPrima }) => {
 						</div>
 
 						<div className={styles.modalFooter}>
+							{/* --- BOTÓN DE CERRAR --- */}
 							<button className={styles.botonSecundario} onClick={cerrarModal}>
 								Cerrar
 							</button>
+
+							{/* --- BOTÓN NUEVO: ENVIAR ALERTA --- */}
+							{/* Solo mostramos si hay órdenes cargadas y exitosas */}
+							{ordenesLote && ordenesLote.exito && (
+								<button
+									className={styles.botonAlerta}
+									onClick={enviarAlertaRiesgo}
+									disabled={enviandoAlerta}
+								>
+									{enviandoAlerta
+										? "Enviando..."
+										: "⚠️ Enviar Alerta a Clientes"}
+								</button>
+							)}
 						</div>
 					</div>
 				</div>
