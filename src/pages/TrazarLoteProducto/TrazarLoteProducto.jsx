@@ -225,7 +225,7 @@ const TrazarLoteProducto = () => {
 			{/* Contenido */}
 			<div className={styles.contenidoVista}>
 				{vistaActiva === "ordenesVenta" ? (
-					<RenderizarOrdenesDeVenta idLoteProduccion={id_lote} />
+					<RenderizarOrdenesDeVenta idLoteProduccion={id_lote} nombreProducto={loteInfo?.producto_nombre} />
 				) : (
 					<RenderizarLotesMateriaPrima idLoteProduccion={id_lote} />
 				)}

@@ -80,11 +80,6 @@ const VerLotesProducto = ({ idMateriaPrima }) => {
 			return;
 		}
 
-		// 3. Confirmación de usuario
-		const confirmar = window.confirm(
-			`Se enviará una alerta a ${ordenesAfectadas.length} clientes. ¿Estás seguro?`
-		);
-		if (!confirmar) return;
 
 		setEnviandoAlerta(true);
 
@@ -117,7 +112,7 @@ const VerLotesProducto = ({ idMateriaPrima }) => {
 
 			if (response.ok) {
 				const resData = await response.json();
-				toast.success(`Alertas enviadas: ${resData.alertas_enviadas}`);
+				toast.success(`¡Alerta enviada!"`);
 				cerrarModal(); // Opcional: cerrar modal al terminar
 			} else {
 				toast.error("Hubo un error al enviar las alertas.");
