@@ -1085,7 +1085,7 @@ const getGaugeColor = (value, target) => {
         ? datosVentasPorTipo.map((item) => {
             // Mapear códigos a nombres descriptivos
             if (item.tipo_venta === "EMP") return "WebApp";
-            if (item.tipo_venta === "ECOM") return "Ecommerce";
+            if (item.tipo_venta === "ONL") return "Ecommerce";
             return item.tipo_venta;
           })
         : ["WebApp", "Ecommerce"],
