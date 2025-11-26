@@ -131,6 +131,8 @@ const Ventas = () => {
 	const [paginaActual, setPaginaActual] = useState(1);
 	const [totalPaginas, setTotalPaginas] = useState(1);
 	const [totalOrdenes, setTotalOrdenes] = useState(0);
+	
+	// Estados para tutorial - MODIFICADO: solo se activa manualmente
 	const [tutorialActivo, setTutorialActivo] = useState(false);
 	const [pasoTutorial, setPasoTutorial] = useState(0);
 	const [tutorialCompletado, setTutorialCompletado] = useState(false);
@@ -402,6 +404,7 @@ const Ventas = () => {
 		}
 	];
 
+	// MODIFICADO: Solo inicia el tutorial cuando se hace clic en el botón
 	const iniciarTutorial = () => {
 		setTutorialActivo(true);
 		setPasoTutorial(0);
@@ -436,21 +439,7 @@ const Ventas = () => {
 		setTutorialActivo(false);
 	};
 
-
-useEffect(() => {
-		const tutorialVisto = localStorage.getItem('tutorialVentasCompletado');
-		if (!tutorialVisto) {
-			// Si es la primera vez, mostrar el tutorial después de un breve delay
-			const timer = setTimeout(() => {
-				setTutorialActivo(true);
-			}, 1000);
-			return () => clearTimeout(timer);
-		} else {
-			setTutorialCompletado(true);
-		}
-	}, []);
-
-	// Cargar datos iniciales
+	// Cargar datos iniciales - ELIMINADO el useEffect que inicia el tutorial automáticamente
 	useEffect(() => {
 		const fetchData = async () => {
 			try {
@@ -761,73 +750,73 @@ useEffect(() => {
 		try {
 			setGuardando(true);
 
-			// Validar que la fecha de entrega no esté vacía
-			if (!fechaEntregaEdit.trim()) {
-				toast.error("La fecha de entrega estimada es obligatoria");
-				setGuardando(false);
-				return;
-			}
+		// Validar que la fecha de entrega no esté vacía
+		if (!fechaEntregaEdit.trim()) {
+			toast.error("La fecha de entrega estimada es obligatoria");
+			setGuardando(false);
+			return;
+		}
 
-			// Validar que la fecha sea hábil
-			const fechaObj = new Date(fechaEntregaEdit + "T00:00:00");
-			if (!esDiaHabil(fechaObj)) {
-				toast.warn("No se pueden seleccionar fines de semana");
-				setGuardando(false);
-				return;
-			}
+		// Validar que la fecha sea hábil
+		const fechaObj = new Date(fechaEntregaEdit + "T00:00:00");
+		if (!esDiaHabil(fechaObj)) {
+			toast.warn("No se pueden seleccionar fines de semana");
+			setGuardando(false);
+			return;
+		}
 
-			// Validar que la nueva fecha sea mayor a la original
-			const fechaOriginalObj = new Date(fechaOriginal + "T00:00:00");
-			if (fechaObj <= fechaOriginalObj) {
-				toast.warn(
-					"La nueva fecha de entrega debe ser mayor a la fecha original"
-				);
-				setGuardando(false);
-				return;
-			}
+		// Validar que la nueva fecha sea mayor a la original
+		const fechaOriginalObj = new Date(fechaOriginal + "T00:00:00");
+		if (fechaObj <= fechaOriginalObj) {
+			toast.warn(
+				"La nueva fecha de entrega debe ser mayor a la fecha original"
+			);
+			setGuardando(false);
+			return;
+		}
 
-			const productosValidos = productosEdit
-				.map((p) => ({
-					id_producto: parseInt(p.id_producto),
-					cantidad: parseInt(p.cantidad),
-				}))
-				.filter((p) => p.cantidad > 0);
+		const productosValidos = productosEdit
+			.map((p) => ({
+				id_producto: parseInt(p.id_producto),
+				cantidad: parseInt(p.cantidad),
+			}))
+			.filter((p) => p.cantidad > 0);
 
-			if (productosValidos.length === 0) {
-				toast.error(
-					"La orden debe tener al menos un producto con cantidad mayor a 0"
-				);
-				setGuardando(false);
-				return;
-			}
+		if (productosValidos.length === 0) {
+			toast.error(
+				"La orden debe tener al menos un producto con cantidad mayor a 0"
+			);
+			setGuardando(false);
+			return;
+		}
 
-			// Preparar datos para la actualización
-			const datosActualizacion = {
-				id_orden_venta: editando,
-				productos: productosValidos,
-			};
+		// Preparar datos para la actualización
+		const datosActualizacion = {
+			id_orden_venta: editando,
+			productos: productosValidos,
+		};
 
-			// Agregar fecha_entrega (obligatoria) - mantener formato completo
-			const fechaParaEnviar = fechaEntregaEdit.includes("T")
-				? fechaEntregaEdit
-				: fechaEntregaEdit + "T00:00";
+		// Agregar fecha_entrega (obligatoria) - mantener formato completo
+		const fechaParaEnviar = fechaEntregaEdit.includes("T")
+			? fechaEntregaEdit
+			: fechaEntregaEdit + "T00:00";
 
-			const fechaObjParaEnviar = new Date(fechaParaEnviar);
-			const fechaFormateada = fechaObjParaEnviar
-				.toISOString()
-				.slice(0, 19)
-				.replace("T", " ");
-			datosActualizacion.fecha_entrega = fechaFormateada;
+		const fechaObjParaEnviar = new Date(fechaParaEnviar);
+		const fechaFormateada = fechaObjParaEnviar
+			.toISOString()
+			.slice(0, 19)
+			.replace("T", " ");
+		datosActualizacion.fecha_entrega = fechaFormateada;
 
-			await api.put("/ventas/ordenes-venta/actualizar/", datosActualizacion, {
-				headers: { "Content-Type": "application/json" },
-			});
+		await api.put("/ventas/ordenes-venta/actualizar/", datosActualizacion, {
+			headers: { "Content-Type": "application/json" },
+		});
 
-			// Recargar la página actual para reflejar los cambios
-			await fetchOrdenes(paginaActual);
+		// Recargar la página actual para reflejar los cambios
+		await fetchOrdenes(paginaActual);
 
-			cancelarEdicion();
-			toast.success("Orden actualizada correctamente");
+		cancelarEdicion();
+		toast.success("Orden actualizada correctamente");
 		} catch (err) {
 			const mensaje = err.response?.data
 				? `Error ${err.response.status}: ${JSON.stringify(err.response.data)}`
@@ -953,242 +942,242 @@ useEffect(() => {
 			</div>
 		);
 
-return (
-    <div className={styles.container}>
-        <ToastContainer
-            position="top-right"
-            autoClose={3000}
-            hideProgressBar={false}
-            newestOnTop={false}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-            theme="colored"
-        />
+	return (
+		<div className={styles.container}>
+			<ToastContainer
+				position="top-right"
+				autoClose={3000}
+				hideProgressBar={false}
+				newestOnTop={false}
+				closeOnClick
+				rtl={false}
+				pauseOnFocusLoss
+				draggable
+				pauseOnHover
+				theme="colored"
+			/>
 
-        {/* Overlay del tutorial */}
-        {tutorialActivo && (
-            <TutorialModal
-                pasoActual={pasoTutorial}
-                pasos={pasosTutorial}
-                onAvanzar={avanzarTutorial}
-                onRetroceder={retrocederTutorial}
-                onSaltar={saltarTutorial}
-                onCompletar={completarTutorial}
-            />
-        )}
+			{/* Overlay del tutorial */}
+			{tutorialActivo && (
+				<TutorialModal
+					pasoActual={pasoTutorial}
+					pasos={pasosTutorial}
+					onAvanzar={avanzarTutorial}
+					onRetroceder={retrocederTutorial}
+					onSaltar={saltarTutorial}
+					onCompletar={completarTutorial}
+				/>
+			)}
 
-        <div className={styles.headerContainer}>
-            <div className={styles.titleContainer}>
-                <h1 className={styles.title}>Órdenes de Venta</h1>
-                {!tutorialActivo && (
-                    <button
-                        onClick={iniciarTutorial}
-                        className={styles.botonTutorial}
-                        title="Ver tutorial"
-                    >
-                        ?
-                    </button>
-                )}
-            </div>
-            <button
-                onClick={handleCrearNuevaOrden}
-                className={styles.botonCrearOrden}
-                data-tutorial-element="botonCrearOrden"
-            >
-                Crear Nueva Orden
-            </button>
-        </div>
+			<div className={styles.headerContainer}>
+				<div className={styles.titleContainer}>
+					<h1 className={styles.title}>Órdenes de Venta</h1>
+					{!tutorialActivo && (
+						<button
+							onClick={iniciarTutorial}
+							className={styles.botonTutorial}
+							title="Ver tutorial"
+						>
+							?
+						</button>
+					)}
+				</div>
+				<button
+					onClick={handleCrearNuevaOrden}
+					className={styles.botonCrearOrden}
+					data-tutorial-element="botonCrearOrden"
+				>
+					Crear Nueva Orden
+				</button>
+			</div>
 
-        {/* Controles de Filtrado */}
-        <div 
-            className={styles.controles}
-            data-tutorial-element="controlesFiltros"
-        >
-            <div className={styles.filtroGrupo}>
-                <label htmlFor="filtroEstado" className={styles.label}>
-                    Filtrar por Estado:{" "}
-                </label>{" "}
-                <Select
-                    id="filtroEstado"
-                    options={opcionesEstadoParaSelect}
-                    styles={customSelectStyles}
-                    value={opcionesEstadoParaSelect.find(
-                        (op) => op.value === filtroEstado
-                    )}
-                    onChange={(opcion) => manejarCambioEstado(opcion.value)}
-                />
-            </div>
+			{/* Controles de Filtrado */}
+			<div 
+				className={styles.controles}
+				data-tutorial-element="controlesFiltros"
+			>
+				<div className={styles.filtroGrupo}>
+					<label htmlFor="filtroEstado" className={styles.label}>
+						Filtrar por Estado:{" "}
+					</label>{" "}
+					<Select
+						id="filtroEstado"
+						options={opcionesEstadoParaSelect}
+						styles={customSelectStyles}
+						value={opcionesEstadoParaSelect.find(
+							(op) => op.value === filtroEstado
+						)}
+						onChange={(opcion) => manejarCambioEstado(opcion.value)}
+					/>
+				</div>
 
-            <div className={styles.filtroGrupo}>
-                <label htmlFor="filtroCliente" className={styles.label}>
-                    Filtrar por Cliente:{" "}
-                </label>{" "}
-                <Select
-                    id="filtroCliente"
-                    options={opcionesClienteParaSelect}
-                    formatOptionLabel={formatOptionLabel}
-                    styles={customSelectStyles}
-                    value={opcionesClienteParaSelect.find(
-                        (op) => op.value === filtroCliente
-                    )}
-                    onChange={(opcion) => manejarCambioCliente(opcion.value)}
-                />{" "}
-            </div>
+				<div className={styles.filtroGrupo}>
+					<label htmlFor="filtroCliente" className={styles.label}>
+						Filtrar por Cliente:{" "}
+					</label>{" "}
+					<Select
+						id="filtroCliente"
+						options={opcionesClienteParaSelect}
+						formatOptionLabel={formatOptionLabel}
+						styles={customSelectStyles}
+						value={opcionesClienteParaSelect.find(
+							(op) => op.value === filtroCliente
+						)}
+						onChange={(opcion) => manejarCambioCliente(opcion.value)}
+					/>{" "}
+				</div>
 
-            <button onClick={limpiarFiltros} className={styles.btnLimpiar}>
-                Limpiar Filtros
-            </button>
-        </div>
+				<button onClick={limpiarFiltros} className={styles.btnLimpiar}>
+					Limpiar Filtros
+				</button>
+			</div>
 
-        {/* Información de paginación */}
-        <div 
-            className={styles.paginacionInfo}
-            data-tutorial-element="paginacionInfo"
-        >
-            <p>
-                Mostrando {ordenes.length} de {totalOrdenes} órdenes (Página{" "}
-                {paginaActual} de {totalPaginas})
-            </p>
-        </div>
+			{/* Información de paginación */}
+			<div 
+				className={styles.paginacionInfo}
+				data-tutorial-element="paginacionInfo"
+			>
+				<p>
+					Mostrando {ordenes.length} de {totalOrdenes} órdenes (Página{" "}
+					{paginaActual} de {totalPaginas})
+				</p>
+			</div>
 
-        <div className={styles.ordenesList}>
-            {ordenes.map((orden, index) => (
-                <div
-                    key={orden.id_orden_venta}
-                    className={`${styles.ordenItem} ${
-                        editando === orden.id_orden_venta ? styles.ordenEditando : ""
-                    } ${!puedeEditarOrden(orden) ? styles.ordenNoEditable : ""}`}
-                    onClick={(e) => handleOrdenClick(orden, e)}
-                    data-tutorial-element={index === 0 ? "primeraOrden" : undefined}
-                >
-                    <div className={styles.ordenHeader}>
-                        <div className={styles.headerTop}>
-                            <span className={styles.ordenId}>
-                                Orden #{orden.id_orden_venta}
-                            </span>
-                            <div 
-                                className={styles.badgesContainer}
-                                data-tutorial-element={index === 0 ? "badgesEstado" : undefined}
-                            >
-                                <span
-                                    className={`${styles.badge} ${getEstadoBadgeClass(
-                                        orden.estado_venta
-                                    )}`}
-                                >
-                                    {getDescripcionEstado(orden.estado_venta)}
-                                </span>
-                                {!puedeEditarOrden(orden) && (
-                                    <span
-                                        className={`${styles.badge} ${styles.badgeNoEditable}`}
-                                    >
-                                        No Editable
-                                    </span>
-                                )}
-                            </div>
-                        </div>
+			<div className={styles.ordenesList}>
+				{ordenes.map((orden, index) => (
+					<div
+						key={orden.id_orden_venta}
+						className={`${styles.ordenItem} ${
+							editando === orden.id_orden_venta ? styles.ordenEditando : ""
+						} ${!puedeEditarOrden(orden) ? styles.ordenNoEditable : ""}`}
+						onClick={(e) => handleOrdenClick(orden, e)}
+						data-tutorial-element={index === 0 ? "primeraOrden" : undefined}
+					>
+						<div className={styles.ordenHeader}>
+							<div className={styles.headerTop}>
+								<span className={styles.ordenId}>
+									Orden #{orden.id_orden_venta}
+								</span>
+								<div 
+									className={styles.badgesContainer}
+									data-tutorial-element={index === 0 ? "badgesEstado" : undefined}
+								>
+									<span
+										className={`${styles.badge} ${getEstadoBadgeClass(
+											orden.estado_venta
+										)}`}
+									>
+										{getDescripcionEstado(orden.estado_venta)}
+									</span>
+									{!puedeEditarOrden(orden) && (
+										<span
+											className={`${styles.badge} ${styles.badgeNoEditable}`}
+										>
+											No Editable
+										</span>
+									)}
+								</div>
+							</div>
 
-                        <div className={styles.headerBottom}>
-                            <div className={styles.clienteInfo}>
-                                <span className={styles.clienteLabel}>Cliente:</span>
-                                <span className={styles.clienteNombre}>
-                                    {" "}
-                                    {getNombreCliente(orden.cliente)}
-                                </span>
-                            </div>
+							<div className={styles.headerBottom}>
+								<div className={styles.clienteInfo}>
+									<span className={styles.clienteLabel}>Cliente:</span>
+									<span className={styles.clienteNombre}>
+										{" "}
+										{getNombreCliente(orden.cliente)}
+									</span>
+								</div>
 
-                            {/* Contenedor para agrupar fecha y creador */}
-                            <div className={styles.metaInfoContainer}>
-                                <div className={styles.fechaInfo}>
-                                    Creada: {formatFecha(orden.fecha)}
-                                </div>
+								{/* Contenedor para agrupar fecha y creador */}
+								<div className={styles.metaInfoContainer}>
+									<div className={styles.fechaInfo}>
+										Creada: {formatFecha(orden.fecha)}
+									</div>
 
-                                {orden.empleado_usuario && (
-                                    <div className={styles.creadorInfo}>
-                                        Empleado: {orden.empleado_usuario}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
+									{orden.empleado_usuario && (
+										<div className={styles.creadorInfo}>
+											Empleado: {orden.empleado_usuario}
+										</div>
+									)}
+								</div>
+							</div>
 
-                        <div className={styles.fechaEntregaInfo}>
-                            <span className={styles.fechaEntregaLabel}>
-                                Entrega estimada:
-                            </span>
-                            <span className={styles.fechaEntregaValor}>
-                                {" "}
-                                {formatFecha(orden.fecha_entrega)}
-                            </span>
-                        </div>
+							<div className={styles.fechaEntregaInfo}>
+								<span className={styles.fechaEntregaLabel}>
+									Entrega estimada:
+								</span>
+								<span className={styles.fechaEntregaValor}>
+									{" "}
+									{formatFecha(orden.fecha_entrega)}
+								</span>
+							</div>
 
-                        {/* BOTONES DE ACCIÓN */}
-                        <div 
-                            className={styles.botonesAccion}
-                            data-tutorial-element={index === 0 ? "botonesAccion" : undefined}
-                        >
-                            {/* NUEVO BOTÓN: Generar Nota de Crédito (Solo estado 1) */}
-                            {puedeGenerarNotaCredito(orden) && (
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setModalNotaCredito({
-                                            visible: true,
-                                            id: orden.id_orden_venta,
-                                        });
-                                    }}
-                                    className={styles.botonNotaCredito}
-                                >
-                                    Generar Nota de Crédito
-                                </button>
-                            )}
-                            {puedeFacturarOrden(orden) && (
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleGenerarFactura(orden.id_orden_venta);
-                                    }}
-                                    className={styles.botonFacturar}
-                                >
-                                    Facturar
-                                </button>
-                            )}
+							{/* BOTONES DE ACCIÓN */}
+							<div 
+								className={styles.botonesAccion}
+								data-tutorial-element={index === 0 ? "botonesAccion" : undefined}
+							>
+								{/* NUEVO BOTÓN: Generar Nota de Crédito (Solo estado 1) */}
+								{puedeGenerarNotaCredito(orden) && (
+									<button
+										onClick={(e) => {
+											e.stopPropagation();
+											setModalNotaCredito({
+												visible: true,
+												id: orden.id_orden_venta,
+											});
+										}}
+										className={styles.botonNotaCredito}
+									>
+										Generar Nota de Crédito
+									</button>
+								)}
+								{puedeFacturarOrden(orden) && (
+									<button
+										onClick={(e) => {
+											e.stopPropagation();
+											handleGenerarFactura(orden.id_orden_venta);
+										}}
+										className={styles.botonFacturar}
+									>
+										Facturar
+									</button>
+								)}
 
-                            {/* Botón para cancelar orden */}
-                            {puedeCancelarOrden(orden) && (
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setModalCancelar({
-                                            visible: true,
-                                            id: orden.id_orden_venta,
-                                        });
-                                    }}
-                                    disabled={cancelandoOrden === orden.id_orden_venta}
-                                    className={styles.botonCancelarOrden}
-                                >
-                                    {cancelandoOrden === orden.id_orden_venta
-                                        ? "Cancelando..."
-                                        : "Cancelar Orden"}
-                                </button>
-                            )}
-                            {orden.estado_venta?.id_estado_venta !== 6 &&
-                                orden.id_estado_venta !== 6 && (
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            navigate(
-                                                `/trazabilidadordenventa?id_ov=${orden.id_orden_venta}`
-                                            );
-                                        }}
-                                        className={styles.botonTrazabilidad}
-                                    >
-                                        Ver Trazabilidad
-                                    </button>
-                                )}
-                        </div>
-                    </div>
+								{/* Botón para cancelar orden */}
+								{puedeCancelarOrden(orden) && (
+									<button
+										onClick={(e) => {
+											e.stopPropagation();
+											setModalCancelar({
+												visible: true,
+												id: orden.id_orden_venta,
+											});
+										}}
+										disabled={cancelandoOrden === orden.id_orden_venta}
+										className={styles.botonCancelarOrden}
+									>
+										{cancelandoOrden === orden.id_orden_venta
+											? "Cancelando..."
+											: "Cancelar Orden"}
+									</button>
+								)}
+								{orden.estado_venta?.id_estado_venta !== 6 &&
+									orden.id_estado_venta !== 6 && (
+										<button
+											onClick={(e) => {
+												e.stopPropagation();
+												navigate(
+													`/trazabilidadordenventa?id_ov=${orden.id_orden_venta}`
+												);
+											}}
+											className={styles.botonTrazabilidad}
+										>
+											Ver Trazabilidad
+										</button>
+									)}
+							</div>
+						</div>
 
 						<div className={styles.ordenBody}>
 							{editando === orden.id_orden_venta ? (
