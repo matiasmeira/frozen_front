@@ -1586,18 +1586,6 @@ const getGaugeColor = (value, target) => {
 
           <div className={`${styles.card} ${styles.chartCard}`}>
             <div className={styles.cardHeader}>
-              <h3>Distribución de Ventas por Canal</h3>
-              {cargando.ventasPorTipo && (
-                <span className={styles.loadingBadge}>Cargando...</span>
-              )}
-            </div>
-            <div className={styles.chartContainer}>
-              <Doughnut data={ventasPorTipoData} options={chartOptions} />
-            </div>
-          </div>
-
-          <div className={`${styles.card} ${styles.chartCard}`}>
-            <div className={styles.cardHeader}>
               <h3>Desperdicio por Producto</h3>
               {cargando.desperdicioPorProducto && (
                 <span className={styles.loadingBadge}>Cargando...</span>
@@ -1652,6 +1640,18 @@ const getGaugeColor = (value, target) => {
             
           </div>
           
+          <div className={`${styles.card} ${styles.chartCard}`}>
+            <div className={styles.cardHeader}>
+              <h3>Distribución de Ventas por Canal</h3>
+              {cargando.ventasPorTipo && (
+                <span className={styles.loadingBadge}>Cargando...</span>
+              )}
+            </div>
+            <div className={styles.chartContainer}>
+              <Doughnut data={ventasPorTipoData} options={chartOptions} />
+            </div>
+          </div>
+
         </div>
       </div>
     );
