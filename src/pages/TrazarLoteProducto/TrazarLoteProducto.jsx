@@ -115,9 +115,8 @@ const TrazarLoteProducto = () => {
 			<div className={styles.header}>
 				<h1 className={styles.title}>Lote de Producto #{id_lote}</h1>
 
-				<div className={styles.accionesContainer}>
-					{/* BOTÓN: PONER EN CUARENTENA 
-                        Solo habilitado si el estado actual es HABILITADO (8) */}
+				{/* <div className={styles.accionesContainer}>
+				
 					<button
 						className={styles.botonCuarentena}
 						onClick={() =>
@@ -139,8 +138,6 @@ const TrazarLoteProducto = () => {
 							: "Poner en cuarentena"}
 					</button>
 
-					{/* BOTÓN: HABILITAR LOTE 
-                        Solo habilitado si el estado actual es CUARENTENA (10) */}
 					<button
 						className={styles.botonHabilitar}
 						onClick={() =>
@@ -161,7 +158,7 @@ const TrazarLoteProducto = () => {
 							? "..."
 							: "Habilitar lote"}
 					</button>
-				</div>
+				</div> */}
 			</div>
 
 			{/* Info Card */}
