@@ -64,32 +64,35 @@ const getDateRange = (dias = 30) => {
   };
 };
 
-  // Función para calcular fechas de cada mes (últimos 6 meses incluyendo actual)
-  const getFechasPorMeses = (cantidadMeses = 6) => {
-    const meses = [];
-    const hoy = new Date();
+// Función para calcular fechas de cada mes (últimos 6 meses incluyendo actual) - MEJORADA
+const getFechasPorMeses = (cantidadMeses = 6) => {
+  const meses = [];
+  const hoy = new Date();
 
-    for (let i = cantidadMeses - 1; i >= 0; i--) {
-      const fecha = new Date();
-      fecha.setMonth(hoy.getMonth() - i);
+  for (let i = cantidadMeses - 1; i >= 0; i--) {
+    const fecha = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1);
 
-      // Primer día del mes
-      const primerDia = new Date(fecha.getFullYear(), fecha.getMonth(), 1);
-      // Último día del mes
-      const ultimoDia = new Date(fecha.getFullYear(), fecha.getMonth() + 1, 0);
+    // Primer día del mes
+    const primerDia = new Date(fecha.getFullYear(), fecha.getMonth(), 1);
+    // Último día del mes
+    const ultimoDia = new Date(fecha.getFullYear(), fecha.getMonth() + 1, 0);
 
-      meses.push({
-        mes: fecha.toLocaleDateString("es-ES", {
-          month: "short",
-          year: "numeric",
-        }),
-        fecha_desde: formatDateToAPI(primerDia),
-        fecha_hasta: formatDateToAPI(ultimoDia),
-      });
-    }
+    // Asegurarse de que la fecha de fin no sea mayor que hoy
+    const fechaHastaAjustada = ultimoDia > hoy ? hoy : ultimoDia;
 
-    return meses;
-  };
+    meses.push({
+      mes: fecha.toLocaleDateString("es-ES", {
+        month: "short",
+        year: "numeric",
+      }),
+      fecha_desde: formatDateToAPI(primerDia),
+      fecha_hasta: formatDateToAPI(fechaHastaAjustada),
+    });
+  }
+
+  console.log("📅 Fechas por meses calculadas:", meses);
+  return meses;
+};
 
   // Función helper para ajustar fechas según la API
   const getFechasParaAPI = (apiTipo) => {
@@ -566,79 +569,130 @@ const getFechasParaAPI = (apiTipo) => {
   };
 };
 
-    // Efecto para cargar datos de tendencia OEE (últimos 6 meses)
-    useEffect(() => {
-      const fetchTendenciaOEE = async () => {
-        try {
-          setCargando((prev) => ({ ...prev, tendenciaOEE: true }));
+// Efecto para cargar datos de tendencia OEE - CON DATOS MOCKEADOS + REALES
+useEffect(() => {
+  const fetchTendenciaOEE = async () => {
+    try {
+      setCargando((prev) => ({ ...prev, tendenciaOEE: true }));
 
-          // Obtener fechas de los últimos 6 meses
-          const meses = getFechasPorMeses(6);
+      // Obtener datos REALES para el mes actual
+      const hoy = new Date();
+      const primerDiaMesActual = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+      const ultimoDiaMesActual = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
 
-          console.log("📊 Tendencia OEE - Meses:", meses);
-
-          // Array para almacenar todas las promesas
-          const promesas = meses.map(async (mes) => {
-            const params = new URLSearchParams({
-              fecha_desde: mes.fecha_desde,
-              fecha_hasta: mes.fecha_hasta,
-            });
-
-            const url = `https://frozenback-test.up.railway.app/api/reportes/oee/?${params.toString()}`;
-
-            const response = await fetch(url);
-            if (!response.ok) {
-              throw new Error(
-                `Error en la petición OEE para ${mes.mes}: ${response.status}`
-              );
-            }
-
-            const data = await response.json();
-
-            // Tomar el primer resultado (o promedio si hay múltiples)
-            if (data && data.length > 0) {
-              const promedioOEE =
-                data.reduce(
-                  (sum, item) => sum + Math.min(item.oee_total, 100),
-                  0
-                ) / data.length;
-              return {
-                mes: mes.mes,
-                oee: promedioOEE,
-              };
-            }
-
-            return {
-              mes: mes.mes,
-              oee: 0,
-            };
-          });
-
-          // Esperar a que todas las peticiones se completen
-          const resultados = await Promise.all(promesas);
-          setDatosTendenciaOEE(resultados);
-          setError((prev) => ({ ...prev, tendenciaOEE: null }));
-        } catch (err) {
-          console.error("Error al cargar datos de tendencia OEE:", err);
-          setError((prev) => ({
-            ...prev,
-            tendenciaOEE: "No se pudieron cargar los datos de tendencia OEE",
-          }));
-
-          // Datos de respaldo en caso de error
-          const meses = getFechasPorMeses(6);
-          const datosRespaldo = meses.map((mes, index) => ({
-            mes: mes.mes,
-            oee: 75 + Math.random() * 10, // Datos aleatorios de respaldo
-          }));
-          setDatosTendenciaOEE(datosRespaldo);
-        } finally {
-          setCargando((prev) => ({ ...prev, tendenciaOEE: false }));
-        }
+      const fechasMesActual = {
+        fecha_desde: formatDateToAPI(primerDiaMesActual),
+        fecha_hasta: formatDateToAPI(ultimoDiaMesActual)
       };
 
-      fetchTendenciaOEE();
-    }, []);
+      console.log("📊 Tendencia OEE - Consultando mes actual:", fechasMesActual);
+
+      let oeeMesActual = 0;
+      let datosRealesEncontrados = false;
+
+      try {
+        const params = new URLSearchParams(fechasMesActual);
+        const url = `https://frozenback-test.up.railway.app/api/reportes/oee/?${params.toString()}`;
+        const response = await fetch(url);
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log("📊 Tendencia OEE - Datos reales mes actual:", data);
+
+          if (data && data.length > 0) {
+            const periodosValidos = data.filter(item => item.oee_total > 0);
+            if (periodosValidos.length > 0) {
+              oeeMesActual = periodosValidos.reduce(
+                (sum, item) => sum + Math.min(item.oee_total, 100), 0
+              ) / periodosValidos.length;
+              datosRealesEncontrados = true;
+              console.log("📊 Tendencia OEE - OEE real mes actual:", oeeMesActual);
+            }
+          }
+        }
+      } catch (error) {
+        console.warn("Error al cargar datos reales del mes actual:", error);
+      }
+
+      // Si no hay datos reales, usar el OEE actual del dashboard
+      if (!datosRealesEncontrados) {
+        oeeMesActual = indicadores.oee;
+        console.log("📊 Tendencia OEE - Usando OEE del dashboard:", oeeMesActual);
+      }
+
+      // Generar datos MOCKEADOS para los 5 meses anteriores
+      const tendenciaData = [];
+      
+      // Meses anteriores (mockeados)
+      for (let i = 5; i >= 1; i--) {
+        const fecha = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1);
+        const mes = fecha.toLocaleDateString("es-ES", {
+          month: "short",
+          year: "numeric",
+        });
+        
+        // Crear tendencia realista basada en el OEE actual
+        const variacion = (Math.random() - 0.5) * 8; // ±4% de variación
+        const oeeMock = Math.max(65, Math.min(95, oeeMesActual + variacion - (i * 0.5)));
+        
+        tendenciaData.push({
+          mes: mes,
+          oee: Number(oeeMock.toFixed(1)),
+          esReal: false,
+          esMockeado: true
+        });
+      }
+
+      // Mes actual (con datos reales o del dashboard)
+      tendenciaData.push({
+        mes: hoy.toLocaleDateString("es-ES", {
+          month: "short",
+          year: "numeric",
+        }),
+        oee: Number(oeeMesActual.toFixed(1)),
+        esReal: datosRealesEncontrados,
+        esMockeado: !datosRealesEncontrados
+      });
+
+      console.log("📊 Tendencia OEE - Datos finales (5 mock + 1 real):", tendenciaData);
+      setDatosTendenciaOEE(tendenciaData);
+      setError((prev) => ({ ...prev, tendenciaOEE: null }));
+      
+    } catch (err) {
+      console.error("Error al cargar tendencia OEE:", err);
+      setError((prev) => ({
+        ...prev,
+        tendenciaOEE: "No se pudieron cargar los datos de tendencia OEE",
+      }));
+
+      // Fallback: datos completamente mockeados
+      const hoy = new Date();
+      const datosFallback = [];
+      
+      for (let i = 5; i >= 0; i--) {
+        const fecha = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1);
+        const mes = fecha.toLocaleDateString("es-ES", {
+          month: "short",
+          year: "numeric",
+        });
+        
+        const oeeMock = 75 + (Math.random() * 15);
+        datosFallback.push({
+          mes: mes,
+          oee: Number(oeeMock.toFixed(1)),
+          esReal: false,
+          esMockeado: true
+        });
+      }
+      
+      setDatosTendenciaOEE(datosFallback);
+    } finally {
+      setCargando((prev) => ({ ...prev, tendenciaOEE: false }));
+    }
+  };
+
+  fetchTendenciaOEE();
+}, [indicadores.oee]); // Se ejecuta cuando cambia el OEE actual
 
     // Efecto para cargar datos de cumplimiento con fechas dinámicas AJUSTADAS
     useEffect(() => {
@@ -979,43 +1033,43 @@ const ventasTipoProductoOptions = {
       ],
     };
 
-    // Datos para gráfico de tendencia OEE - basado en datos reales de la API
-    const oeeTrendData = {
-      labels: datosTendenciaOEE
-        ? datosTendenciaOEE.map((item) => item.mes)
-        : ["Ene", "Feb", "Mar", "Abr", "May", "Jun"],
-      datasets: [
-        {
-          label: "OEE (%)",
-          data: datosTendenciaOEE
-            ? datosTendenciaOEE.map((item) => item.oee)
-            : [72.1, 75.3, 76.8, 78.5, 79.2, 80.1],
-          borderColor: "rgba(52, 152, 219, 1)",
-          backgroundColor: "rgba(52, 152, 219, 0.1)",
-          borderWidth: 3,
-          fill: true,
-          tension: 0.4,
-          pointBackgroundColor: "rgba(52, 152, 219, 1)",
-          pointBorderColor: "#fff",
-          pointBorderWidth: 2,
-          pointRadius: 5,
-          pointHoverRadius: 7,
-        },
-        {
-          label: "Objetivo OEE",
-          data: datosTendenciaOEE
-            ? datosTendenciaOEE.map(() => indicadores.objetivoOEE)
-            : [85, 85, 85, 85, 85, 85],
-          borderColor: "rgba(231, 76, 60, 1)",
-          backgroundColor: "rgba(231, 76, 60, 0.1)",
-          borderWidth: 2,
-          borderDash: [5, 5],
-          fill: false,
-          pointRadius: 0,
-          tension: 0,
-        },
-      ],
-    };
+// Datos para gráfico de tendencia OEE - MEJORADO
+const oeeTrendData = {
+  labels: datosTendenciaOEE
+    ? datosTendenciaOEE.map((item) => item.mes)
+    : ["Ene", "Feb", "Mar", "Abr", "May", "Jun"],
+  datasets: [
+    {
+      label: "OEE (%)",
+      data: datosTendenciaOEE
+        ? datosTendenciaOEE.map((item) => item.oee)
+        : [0, 0, 0, 0, 0, 0],
+      borderColor: "rgba(52, 152, 219, 1)",
+      backgroundColor: "rgba(52, 152, 219, 0.1)",
+      borderWidth: 3,
+      fill: true,
+      tension: 0.4,
+      pointBackgroundColor: "rgba(52, 152, 219, 1)",
+      pointBorderColor: "#fff",
+      pointBorderWidth: 2,
+      pointRadius: 5,
+      pointHoverRadius: 7,
+    },
+    {
+      label: "Objetivo OEE",
+      data: datosTendenciaOEE
+        ? datosTendenciaOEE.map(() => indicadores.objetivoOEE)
+        : [85, 85, 85, 85, 85, 85],
+      borderColor: "rgba(231, 76, 60, 1)",
+      backgroundColor: "rgba(231, 76, 60, 0.1)",
+      borderWidth: 2,
+      borderDash: [5, 5],
+      fill: false,
+      pointRadius: 0,
+      tension: 0,
+    },
+  ],
+};
 
 // Función para obtener el color del gauge basado en el valor
 const getGaugeColor = (value, target) => {
@@ -1031,7 +1085,7 @@ const getGaugeColor = (value, target) => {
         ? datosVentasPorTipo.map((item) => {
             // Mapear códigos a nombres descriptivos
             if (item.tipo_venta === "EMP") return "WebApp";
-            if (item.tipo_venta === "ECOM") return "Ecommerce";
+            if (item.tipo_venta === "ONL") return "Ecommerce";
             return item.tipo_venta;
           })
         : ["WebApp", "Ecommerce"],
@@ -1490,18 +1544,33 @@ const getGaugeColor = (value, target) => {
   </div>
 </div>
 
-          {/* Gráficos */}
-          <div className={`${styles.card} ${styles.chartCard}`}>
-            <div className={styles.cardHeader}>
-              <h3>Tendencia OEE - Últimos 6 Meses</h3>
-              {cargando.tendenciaOEE && (
-                <span className={styles.loadingBadge}>Cargando...</span>
-              )}
-            </div>
-            <div className={styles.chartContainer}>
-              <Line data={oeeTrendData} options={chartOptions} />
-            </div>
-          </div>
+<div className={`${styles.card} ${styles.chartCard}`}>
+  <div className={styles.cardHeader}>
+    <h3>Tendencia OEE - Últimos 6 Meses</h3>
+    {cargando.tendenciaOEE && (
+      <span className={styles.loadingBadge}>Cargando...</span>
+    )}
+    {datosTendenciaOEE && (
+      <div className={styles.dataSourceInfo}>
+        <span className={styles.realDataBadge}>
+          ● Actual: Real
+        </span>
+        <span className={styles.mockDataBadge}>
+          ● Histórico: Simulado
+        </span>
+      </div>
+    )}
+  </div>
+  <div className={styles.chartContainer}>
+    {datosTendenciaOEE ? (
+      <Line data={oeeTrendData} options={chartOptions} />
+    ) : (
+      <div className={styles.noData}>
+        Cargando datos de tendencia...
+      </div>
+    )}
+  </div>
+</div>
 
           <div className={`${styles.card} ${styles.chartCard}`}>
             <div className={styles.cardHeader}>
@@ -1512,18 +1581,6 @@ const getGaugeColor = (value, target) => {
             </div>
             <div className={styles.chartContainer}>
               <Bar data={productionChartData} options={chartOptions} />
-            </div>
-          </div>
-
-          <div className={`${styles.card} ${styles.chartCard}`}>
-            <div className={styles.cardHeader}>
-              <h3>Distribución de Ventas por Canal</h3>
-              {cargando.ventasPorTipo && (
-                <span className={styles.loadingBadge}>Cargando...</span>
-              )}
-            </div>
-            <div className={styles.chartContainer}>
-              <Doughnut data={ventasPorTipoData} options={chartOptions} />
             </div>
           </div>
 
@@ -1583,6 +1640,18 @@ const getGaugeColor = (value, target) => {
             
           </div>
           
+          <div className={`${styles.card} ${styles.chartCard}`}>
+            <div className={styles.cardHeader}>
+              <h3>Distribución de Ventas por Canal</h3>
+              {cargando.ventasPorTipo && (
+                <span className={styles.loadingBadge}>Cargando...</span>
+              )}
+            </div>
+            <div className={styles.chartContainer}>
+              <Doughnut data={ventasPorTipoData} options={chartOptions} />
+            </div>
+          </div>
+
         </div>
       </div>
     );

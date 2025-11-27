@@ -758,3 +758,109 @@
   line-height: 1.2;
   font-style: italic;
 }
+
+.debugBadge {
+  background: #f0f0f0;
+  color: #666;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  margin-left: 8px;
+}
+
+.dataSourceInfo {
+  display: flex;
+  gap: 12px;
+  font-size: 0.75rem;
+}
+
+.realDataBadge {
+  color: #38a169;
+  font-weight: 500;
+}
+
+.mockDataBadge {
+  color: #718096;
+  font-weight: 500;
+}
+
+/* Agregar estos estilos al archivo CSS */
+
+/* Mejoras para la generación de PDF */
+.card {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.chartContainer {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.kpiSection {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.componentsSection {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+/* Asegurar que los gráficos se rendericen completamente */
+.chartCard {
+  min-height: auto !important;
+}
+
+/* Mejorar la legibilidad en PDF */
+.cardHeader {
+  margin-bottom: 20px;
+}
+
+.kpiValue {
+  padding: 10px 0;
+}
+
+/* Para secciones específicas que necesitan más espacio */
+.oeeMainCard {
+  min-height: 280px;
+}
+
+.componentsCard {
+  min-height: 240px;
+}
+
+/* Asegurar contraste suficiente para impresión */
+.dashboard {
+  background-color: white !important;
+}
+
+.card {
+  background: white !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+}
+
+/* Mejorar textos para PDF */
+.cardHeader h3 {
+  color: #000 !important;
+  font-weight: 700 !important;
+}
+
+.kpiNumber {
+  color: #000 !important;
+}
+
+/* Responsive para PDF */
+@media print {
+  .dashboard {
+    padding: 0 !important;
+    background: white !important;
+  }
+  
+  .card {
+    margin-bottom: 20px !important;
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+  }
+}
+
