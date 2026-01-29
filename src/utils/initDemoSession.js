@@ -13,8 +13,8 @@ export const initDemoSession = () => {
       nombre: 'Usuario',
       apellido: 'Demo',
       iniciales: 'UD',
-      rol: 'Administrador',
-      id_rol: 1,
+      rol: 'Gerente',
+      id_rol: 3,
       id_departamento: 1,
       id_turno: 1,
       autenticado: true, // Importante: ya autenticado
