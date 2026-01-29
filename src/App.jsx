@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar/Navbar";
 import Footer from "./components/Footer/Footer";
+import { initDemoSession } from "./utils/initDemoSession";
 //Pages
 import AutenticacionFacial from "./pages/AutenticacionFacial/AutenticacionFacial";
 import MenuPrincipal from "./pages/MenuPrincipal/MenuPrincipal";
@@ -42,6 +43,9 @@ import Calendario from "./pages/Calendario/Calendario";
 
 
 function App() {
+	// Inicializar sesión de demostración
+	initDemoSession();
+
 	return (
 		<Router>
 			<div className="app">
