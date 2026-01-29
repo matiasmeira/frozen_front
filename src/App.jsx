@@ -48,10 +48,13 @@ function App() {
 				<Navbar />
 				<main className="main-content">
 					<Routes>
+						{/* Ruta por defecto */}
+						<Route path="/" element={<Login />} />
+						
 						<Route path="/fichaje" element={<Fichaje />} />
 
 						<Route element={<ProtectedLogin></ProtectedLogin>}>
-							<Route path="/" element={<Login />} />
+							{/* Ruta de login redundante por compatibilidad */}
 						</Route>
 
 						<Route element={<ProtectedAuth></ProtectedAuth>}>
