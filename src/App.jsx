@@ -48,25 +48,12 @@ function App() {
 				<Navbar />
 				<main className="main-content">
 					<Routes>
-						{/* Ruta por defecto */}
-						<Route path="/" element={<Login />} />
-						
-						<Route path="/fichaje" element={<Fichaje />} />
+						{/* Ruta por defecto - Sin login para demostración */}
+						<Route path="/" element={<MenuPrincipal />} />
+						<Route path="/home" element={<MenuPrincipal />} />
 
-						<Route element={<ProtectedLogin></ProtectedLogin>}>
-							{/* Ruta de login redundante por compatibilidad */}
-						</Route>
-
-						<Route element={<ProtectedAuth></ProtectedAuth>}>
-							<Route
-								path="/autenticacionFacial"
-								element={<AutenticacionFacial />}
-							/>
-						</Route>
-
-						{/*<Route element={<ProtectedRoutes></ProtectedRoutes>}>*/}
-							<Route path="/home" element={<MenuPrincipal />} />
-							<Route path="/crearUsuario" element={<FormularioEmpleado />} />
+						<Route path="/home" element={<MenuPrincipal />} />
+						<Route path="/crearUsuario" element={<FormularioEmpleado />} />
 							<Route path="/verOrdenesVenta" element={<Ventas />} />
 							<Route path="/crearOrdenVenta" element={<CrearOrdenDeVenta />} />
 							<Route path="/generar-factura/:idOrden" element={<GeneradorFactura />} />
@@ -92,7 +79,7 @@ function App() {
 							<Route path="/lotesMateriasPrimas" element={<VerLotesMateriaPrimaGeneral/>}/>
 							<Route path="/metricas-configuracion" element={<MetricasConfiguracion/>}/>
 							<Route path="/ejecutarPlanificacion" element={<EjecutarPlanificacion/>}/>
-						{/*</Route>*/}
+
 					</Routes>
 				</main>
 				<Footer />
